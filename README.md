@@ -1,8 +1,26 @@
-# Notification Edge (알림 엣지)
+# 📱 Notification Edge (알림 엣지)
 
-삼성 갤럭시 스마트폰에서 지원되던 "Notification Edge(알림 엣지 패널)" 기능을 최신 안드로이드(Android 8.0 ~ Android 14+) 및 One UI 환경에 맞춰 독립형으로 재구현한 애플리케이션입니다.
+<p align="center">
+  <img src="docs/images/notification_edge_preview.jpg" alt="Notification Edge App Preview" width="360" style="border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/DevDooly/message_edge/releases/latest"><img src="https://img.shields.io/badge/Download-Latest%20APK-00E5FF?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" /></a>
+  <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-brightgreen?style=for-the-badge" alt="Platform" />
+  <img src="https://img.shields.io/badge/Language-Kotlin%202.0-purple?style=for-the-badge&logo=kotlin" alt="Kotlin" />
+</p>
+
+삼성 갤럭시 스마트폰에서 지원되던 **"Notification Edge(알림 엣지 패널)"** 기능을 최신 안드로이드(Android 8.0 ~ Android 14+) 및 One UI 환경에 맞춰 독립형으로 재구현한 애플리케이션입니다.
 
 화면 가장자리에 상주하는 가느다란 **엣지 핸들(Edge Handle)**을 스와이프하거나 탭하여 최근 알림을 실시간으로 확인하고, 빠른 답장(Quick Reply), 알림 삭제, 앱 바로 실행, **엣지 라이팅(Edge Lighting)** 테두리 반짝임 효과를 제공합니다.
+
+---
+
+## 📥 APK 다운로드 바로가기
+
+최신 빌드된 APK는 GitHub Releases 페이지에서 언제든 바로 다운로드하여 설치하실 수 있습니다:
+
+👉 **[최신 Notification Edge APK 다운로드 (Releases)](https://github.com/DevDooly/message_edge/releases/latest)**
 
 ---
 
@@ -11,6 +29,7 @@
 1. **실시간 알림 캡처 (Notification Listener)**
    - `NotificationListenerService` 기반의 실시간 푸시 알림 수신
    - 앱 아이콘, 보낸 사람, 메시지 내용, 수신 시간 실시간 파싱
+   - 카카오톡, 문자(SMS), 메신저 등의 대화형 알림(`MessagingStyle`) 메시지 내역 지원
    - 진행 중인 알림(Ongoing) 필터링 및 앱별 알림 제외(Blacklist) 지원
 
 2. **슬라이드 아웃 엣지 패널 (Floating Edge Overlay)**
@@ -20,7 +39,7 @@
    - 알림 카드 탭 시 해당 앱으로 즉시 이동
 
 3. **인라인 빠른 답장 (Quick Reply)**
-   - 카카오톡, 문자(SMS), 메신저 등 RemoteInput 지원 알림의 경우 패널 내에서 즉시 텍스트 입력 및 전송
+   - 카카오톡, 문자, 메신저 등 RemoteInput 지원 알림의 경우 패널 내에서 즉시 텍스트 입력 및 전송
 
 4. **엣지 라이팅 효과 (Edge Lighting Effect)**
    - 새 알림 수신 시 화면 테두리를 따라 빛나는 그라데이션 테두리 애니메이션
@@ -46,67 +65,6 @@
   - `WindowManager` + `SYSTEM_ALERT_WINDOW` (엣지 오버레이 렌더링)
   - `ComposeView` + Custom `OverlayLifecycleOwner` (오버레이 내 Compose UI 호스팅)
   - `ForegroundService` (Android 14+ 대응 백그라운드 상주)
-
----
-
-## 📂 프로젝트 구조
-
-```
-notification-edge/
-├── app/
-│   ├── src/main/
-│   │   ├── AndroidManifest.xml
-│   │   ├── java/com/devdooly/notificationedge/
-│   │   │   ├── NotificationEdgeApp.kt
-│   │   │   ├── MainActivity.kt
-│   │   │   ├── data/
-│   │   │   │   ├── model/
-│   │   │   │   │   ├── AppSettings.kt
-│   │   │   │   │   └── EdgeNotification.kt
-│   │   │   │   └── repository/
-│   │   │   │       ├── NotificationRepository.kt
-│   │   │   │       └── SettingsRepository.kt
-│   │   │   ├── service/
-│   │   │   │   ├── BootReceiver.kt
-│   │   │   │   ├── EdgeOverlayService.kt
-│   │   │   │   └── NotificationListener.kt
-│   │   │   ├── ui/
-│   │   │   │   ├── overlay/
-│   │   │   │   │   ├── EdgeLightingEffect.kt
-│   │   │   │   │   └── EdgePanelContent.kt
-│   │   │   │   ├── settings/
-│   │   │   │   │   └── SettingsScreen.kt
-│   │   │   │   └── theme/
-│   │   │   │       ├── Color.kt
-│   │   │   │       ├── Theme.kt
-│   │   │   │       └── Type.kt
-│   │   │   └── util/
-│   │   │       └── OverlayLifecycleOwner.kt
-│   │   └── res/
-│   └── build.gradle.kts
-├── gradle/
-│   └── libs.versions.toml
-├── build.gradle.kts
-├── settings.gradle.kts
-└── README.md
-```
-
----
-
-## 🚀 빌드 및 실행 방법
-
-### 요구사항
-- JDK 17 이상
-- Android SDK 34 (Android 14)
-- Android 디바이스 또는 에뮬레이터 (API 26 / Android 8.0 이상)
-
-### 빌드 명령어
-```bash
-cd notification-edge
-./gradlew assembleDebug
-```
-
-APK 파일은 `app/build/outputs/apk/debug/app-debug.apk`에 생성됩니다.
 
 ---
 

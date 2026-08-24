@@ -1,0 +1,65 @@
+name: Build and Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant Execute Permission for Gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Prepare APK Asset
+        id: prepare_asset
+        run: |
+          mkdir -p release_assets
+          TAG_NAME="${GITHUB_REF_NAME:-latest}"
+          if [[ "$TAG_NAME" == "main" ]]; then
+            TAG_NAME="latest"
+          fi
+          echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+          cp app/build/outputs/apk/release/app-release.apk "release_assets/NotificationEdge-${TAG_NAME}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "release_assets/NotificationEdge.apk"
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Notification Edge Latest Release' }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            release_assets/NotificationEdge.apk
+            release_assets/NotificationEdge-*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
