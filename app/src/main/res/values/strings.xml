@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Notification Edge</string>
+    <string name="notification_listener_service_name">Notification Edge 알림 감지 서비스</string>
+    <string name="overlay_service_title">Notification Edge 실행 중</string>
+    <string name="overlay_service_desc">화면 가장자리에서 엣지 패널을 사용할 수 있습니다.</string>
+</resources>

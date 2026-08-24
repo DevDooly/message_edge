@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Edge Bar Line -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M88,24 L94,24 A4,4 0 0 1 98,28 L98,80 A4,4 0 0 1 94,84 L88,84 Z" />
+    <!-- Notification Bell -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M54,26c-8.84,0 -16,7.16 -16,16v18l-6,6v4h44v-4l-6,-6v-18c0,-8.84 -7.16,-16 -16,-16zM46,74c0,4.42 3.58,8 8,8s8,-3.58 8,-8h-16z" />
+</vector>
