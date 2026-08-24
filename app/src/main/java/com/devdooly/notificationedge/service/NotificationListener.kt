@@ -86,6 +86,30 @@ class NotificationListener : NotificationListenerService() {
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
         val pm = applicationContext.packageManager
 
+        // 대화형 알림(카카오톡, 문자 등 MessagingStyle) 메시지 추출
+        val messagesList = mutableListOf<com.devdooly.notificationedge.data.model.MessageItem>()
+        val rawMessages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+        if (rawMessages != null) {
+            for (raw in rawMessages) {
+                if (raw is android.os.Bundle) {
+                    val msgText = raw.getCharSequence("text")?.toString() ?: ""
+                    val msgSender = raw.getCharSequence("sender")?.toString()
+                        ?: raw.getBundle("sender_person")?.getCharSequence("name")?.toString()
+                        ?: title
+                    val msgTime = raw.getLong("time", System.currentTimeMillis())
+                    if (msgText.isNotBlank()) {
+                        messagesList.add(
+                            com.devdooly.notificationedge.data.model.MessageItem(
+                                sender = msgSender,
+                                text = msgText,
+                                timestamp = msgTime
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         val appName = try {
             val appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
             pm.getApplicationLabel(appInfo).toString()
@@ -133,6 +157,7 @@ class NotificationListener : NotificationListenerService() {
             title = title,
             text = text,
             subText = subText,
+            messages = messagesList,
             timestamp = sbn.postTime,
             contentIntent = contentIntent,
             actions = actionsList,

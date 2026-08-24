@@ -11,6 +11,12 @@ data class NotificationActionItem(
     val remoteInputKey: String? = null
 )
 
+data class MessageItem(
+    val sender: String,
+    val text: String,
+    val timestamp: Long
+)
+
 data class EdgeNotification(
     val key: String,
     val id: Int,
@@ -20,6 +26,7 @@ data class EdgeNotification(
     val title: String,
     val text: String,
     val subText: String? = null,
+    val messages: List<MessageItem> = emptyList(),
     val timestamp: Long = System.currentTimeMillis(),
     val contentIntent: PendingIntent? = null,
     val actions: List<NotificationActionItem> = emptyList(),

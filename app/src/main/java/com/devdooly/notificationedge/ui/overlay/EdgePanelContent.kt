@@ -296,8 +296,36 @@ private fun NotificationCard(
                 )
             }
 
-            // 알림 본문
-            if (notification.text.isNotBlank()) {
+            // 알림 본문 또는 대화 내역
+            if (notification.messages.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFF1E1E1E).copy(alpha = 0.6f))
+                        .padding(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    notification.messages.takeLast(4).forEach { msg ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text(
+                                text = "${msg.sender}: ",
+                                color = EdgeCyan,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = msg.text,
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            } else if (notification.text.isNotBlank()) {
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = notification.text,
