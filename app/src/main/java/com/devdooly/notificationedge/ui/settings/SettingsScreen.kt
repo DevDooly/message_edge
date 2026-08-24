@@ -127,7 +127,8 @@ fun SettingsScreen() {
                 onPositionChange = { scope.launch { settingsRepo.updateHandlePositionRatio(it) } },
                 onHeightChange = { scope.launch { settingsRepo.updateHandleHeightDp(it) } },
                 onColorChange = { scope.launch { settingsRepo.updateHandleColor(it) } },
-                onAlphaChange = { scope.launch { settingsRepo.updateHandleAlpha(it) } }
+                onAlphaChange = { scope.launch { settingsRepo.updateHandleAlpha(it) } },
+                onVisibleToggle = { scope.launch { settingsRepo.updateHandleVisible(it) } }
             )
 
             // 엣지 라이팅 설정
@@ -324,7 +325,8 @@ private fun EdgeHandleSettingsCard(
     onPositionChange: (Float) -> Unit,
     onHeightChange: (Int) -> Unit,
     onColorChange: (Long) -> Unit,
-    onAlphaChange: (Float) -> Unit
+    onAlphaChange: (Float) -> Unit,
+    onVisibleToggle: (Boolean) -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
@@ -339,6 +341,25 @@ private fun EdgeHandleSettingsCard(
             )
             Spacer(modifier = Modifier.height(14.dp))
 
+            // 핸들 보이기 / 숨기기 (제스처 전용)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("핸들 바 화면 표시", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("끄면 핸들이 투명해지며 스와이프 터치만 작동합니다 (기본 엣지와 간섭 방지)", color = Color.Gray, fontSize = 11.sp)
+                }
+                Switch(
+                    checked = settings.isHandleVisible,
+                    onCheckedChange = onVisibleToggle,
+                    colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             // 좌 / 우 선택
             Text("핸들 위치 (사이드)", color = Color.LightGray, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(6.dp))
@@ -352,9 +373,10 @@ private fun EdgeHandleSettingsCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "왼쪽 (Left)",
+                        "왼쪽 (Left - 추천)",
                         color = if (settings.edgeSide == EdgeSide.LEFT) Color.Black else Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
                     )
                 }
                 Button(
@@ -368,7 +390,8 @@ private fun EdgeHandleSettingsCard(
                     Text(
                         "오른쪽 (Right)",
                         color = if (settings.edgeSide == EdgeSide.RIGHT) Color.Black else Color.White,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
                     )
                 }
             }
@@ -409,33 +432,35 @@ private fun EdgeHandleSettingsCard(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            if (settings.isHandleVisible) {
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // 투명도
-            Text(
-                "핸들 투명도 (${(settings.handleAlpha * 100).toInt()}%)",
-                color = Color.LightGray,
-                fontSize = 13.sp
-            )
-            Slider(
-                value = settings.handleAlpha,
-                onValueChange = onAlphaChange,
-                valueRange = 0.1f..1.0f,
-                colors = SliderDefaults.colors(
-                    thumbColor = EdgeCyan,
-                    activeTrackColor = EdgeCyan
+                // 투명도
+                Text(
+                    "핸들 투명도 (${(settings.handleAlpha * 100).toInt()}%)",
+                    color = Color.LightGray,
+                    fontSize = 13.sp
                 )
-            )
+                Slider(
+                    value = settings.handleAlpha,
+                    onValueChange = onAlphaChange,
+                    valueRange = 0.0f..1.0f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = EdgeCyan,
+                        activeTrackColor = EdgeCyan
+                    )
+                )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            // 색상 팔레트
-            Text("핸들 색상", color = Color.LightGray, fontSize = 13.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            ColorPaletteRow(
-                selectedColor = settings.handleColor,
-                onSelectColor = onColorChange
-            )
+                // 색상 팔레트
+                Text("핸들 색상", color = Color.LightGray, fontSize = 13.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                ColorPaletteRow(
+                    selectedColor = settings.handleColor,
+                    onSelectColor = onColorChange
+                )
+            }
         }
     }
 }

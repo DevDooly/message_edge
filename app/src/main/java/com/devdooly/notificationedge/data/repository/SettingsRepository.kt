@@ -25,6 +25,7 @@ class SettingsRepository(private val context: Context) {
         val HANDLE_HEIGHT_DP = intPreferencesKey("handle_height_dp")
         val HANDLE_COLOR = longPreferencesKey("handle_color")
         val HANDLE_ALPHA = floatPreferencesKey("handle_alpha")
+        val HANDLE_VISIBLE = booleanPreferencesKey("handle_visible")
         val EDGE_LIGHTING_ENABLED = booleanPreferencesKey("edge_lighting_enabled")
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
@@ -41,6 +42,7 @@ class SettingsRepository(private val context: Context) {
             handleHeightDp = prefs[PreferencesKeys.HANDLE_HEIGHT_DP] ?: 110,
             handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: 0xFF00E5FF,
             handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
+            isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
@@ -74,7 +76,11 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updateHandleAlpha(alpha: Float) {
-        context.dataStore.edit { it[PreferencesKeys.HANDLE_ALPHA] = alpha.coerceIn(0.1f, 1.0f) }
+        context.dataStore.edit { it[PreferencesKeys.HANDLE_ALPHA] = alpha.coerceIn(0.0f, 1.0f) }
+    }
+
+    suspend fun updateHandleVisible(visible: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.HANDLE_VISIBLE] = visible }
     }
 
     suspend fun updateEdgeLightingEnabled(enabled: Boolean) {

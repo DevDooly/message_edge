@@ -180,12 +180,18 @@ class EdgeOverlayService : Service() {
             this.y = yPosPx
         }
 
+        val effectiveAlpha = if (currentSettings.isHandleVisible) {
+            (currentSettings.handleAlpha * 255).toInt()
+        } else {
+            0 // 완전히 투명하게 숨김 (터치는 가능)
+        }
+
         if (handleView == null) {
             val view = View(this).apply {
                 val drawable = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     setColor(currentSettings.handleColor.toInt())
-                    alpha = (currentSettings.handleAlpha * 255).toInt()
+                    alpha = effectiveAlpha
                     val radius = 12f * density
                     if (currentSettings.edgeSide == EdgeSide.RIGHT) {
                         cornerRadii = floatArrayOf(radius, radius, 0f, 0f, 0f, 0f, radius, radius)
@@ -233,7 +239,7 @@ class EdgeOverlayService : Service() {
                 val drawable = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     setColor(currentSettings.handleColor.toInt())
-                    alpha = (currentSettings.handleAlpha * 255).toInt()
+                    alpha = effectiveAlpha
                     val radius = 12f * density
                     if (currentSettings.edgeSide == EdgeSide.RIGHT) {
                         cornerRadii = floatArrayOf(radius, radius, 0f, 0f, 0f, 0f, radius, radius)
