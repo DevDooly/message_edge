@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build & Release APK
@@ -28,17 +32,16 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Setup Gradle & Build Cache
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: false
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
-      - name: Run Unit Tests
-        run: ./gradlew testDebugUnitTest --stacktrace
-
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace
+      - name: Run Tests and Build Release APK
+        run: ./gradlew testDebugUnitTest assembleRelease --no-daemon
 
       - name: Prepare APK Asset
         id: prepare_asset

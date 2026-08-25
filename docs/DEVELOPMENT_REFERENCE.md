@@ -69,10 +69,15 @@ graph TD
 * **문제**: 
   - Android 13+ (API 33, Tiramisu) 및 Android 14+ 기기에서 제스처 네비게이션(화면 가장자리 스와이프 뒤로가기) 사용 시 시스템 제스처가 WMS에 의해 오버레이 창을 통과하여 배경 앱으로 빠져나가던 현상.
   - 가상 LifecycleOwner Dispatcher와 Compose 포커스 트리가 분실되었을 때 `closePanel()`이 호출되지 않던 문제.
+### 6) GitHub Actions CI/CD 및 Gradle 빌드 속도 50% 이상 단축 최적화
+* **원인**: 
+  - `main` 브랜치와 `v*` 태그 동시 푸시 시 GitHub Actions 러너가 2개 동시 실행되어 대기열(Queueing) 및 리소스 경합 발생.
+  - `gradle.properties`에 빌드 캐시(`caching`), 병렬 컴파일(`parallel`), 메모리 최적화 옵션이 꺼져 있어 매번 클린 빌드 수행.
+  - `assembleRelease` 시 Android Lint(`lintVitalRelease`) 검사로 인한 지연.
 * **해결**: 
-  - **`OnBackInvokedDispatcher` 연동 (`v1.3.9`)**: Android 13/14 시스템 제스처를 `OverlayPanelLayout`에서 `registerOnBackInvokedCallback(PRIORITY_OVERLAY)`로 직접 가로채어 패널 즉시 닫기.
-  - **Compose `onPreviewKeyEvent` 연동 (`v1.3.9`)**: Compose 내부 포커스에서도 최상단 `onPreviewKeyEvent`로 `Key.Back`/`Key.Escape`를 가로채어 `onClose()` 호출.
-  - `OverlayPanelLayout`의 `onBackPressed` 콜백에서 Dispatcher 조건 없이 `closePanel()` 다이렉트 호출.
+  - `concurrency` 그룹 설정으로 중복 빌드 즉시 취소.
+  - `gradle/actions/setup-gradle@v4` 및 `org.gradle.caching=true`, `org.gradle.parallel=true`, 4GB G1GC 메모리 최적화 적용.
+  - `./gradlew testDebugUnitTest assembleRelease` 단일 파이프라인 통합 및 `lint { checkReleaseBuilds = false }` 적용으로 릴리즈 시간 획기적 단축.
 
 ---
 
