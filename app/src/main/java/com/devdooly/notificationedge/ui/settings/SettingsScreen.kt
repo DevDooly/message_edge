@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.5",
+                                text = "v1.2.6",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -224,7 +224,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.5")
+            AppUpdateCard(currentVersionName = "1.2.6")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -372,7 +372,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.5 (Build 25) | Target Android 14",
+                text = "버전 1.2.6 (Build 26) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -1072,13 +1072,13 @@ private fun ColorPaletteRow(
     onSelectColor: (Long) -> Unit
 ) {
     val colors = listOf(
-        0xFF00E5FF, // Cyan
-        0xFFBB86FC, // Purple
-        0xFF00E676, // Green
-        0xFFFF4081, // Pink
-        0xFFFFD600, // Yellow
-        0xFFFF6E40, // Orange
-        0xFFFFFFFF  // White
+        0xFF82D8D0, // Aqueous Aqua (Design Master)
+        0xFFA9A6EA, // Quiet Periwinkle (Design Master)
+        0xFF00E5FF, // Electric Cyan
+        0xFF00E676, // Neon Emerald
+        0xFFFF4081, // Vivid Pink
+        0xFFFFD600, // Amber Yellow
+        0xFFF0EEE9  // Cloud Dancer White
     )
 
     Row(

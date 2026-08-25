@@ -2,19 +2,42 @@ package com.devdooly.notificationedge.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val DarkBackground = Color(0xFF121212)
-val DarkSurface = Color(0xFF1E1E1E)
-val DarkSurfaceVariant = Color(0xFF2C2C2C)
-val DarkCardBackground = Color(0xCC252525)
+// =================================================================
+// Edge Whisper Design Tokens (PANTONE Cloud Dancer & Aqueous Aqua)
+// =================================================================
 
-val EdgeCyan = Color(0xFF00E5FF)
-val EdgePurple = Color(0xFFBB86FC)
-val EdgeGreen = Color(0xFF00E676)
-val EdgePink = Color(0xFFFF4081)
+// Dark Palette (Graphite)
+val Graphite950 = Color(0xFF0F131A) // Deep background
+val Graphite900 = Color(0xFF151923) // Panel background
+val Graphite800 = Color(0xFF252B36) // Card / Surface
+val Graphite700 = Color(0xFF333B4A) // Surface Variant / Borders
 
-val TextPrimary = Color(0xFFEEEEEE)
-val TextSecondary = Color(0xFFAAAAAA)
-val TextMuted = Color(0xFF757575)
+// Brand Accent Colors
+val AqueousAqua = Color(0xFF82D8D0) // Primary Accent (Edge Aqua)
+val QuietPeriwinkle = Color(0xFFA9A6EA) // Secondary Accent (Periwinkle Purple)
+val NeonEmerald = Color(0xFF00E676) // Accent Green
+val VividPink = Color(0xFFFF4081) // Accent Pink
 
-val GlassBorder = Color(0x33FFFFFF)
-val GlassBackground = Color(0xD91E1E1E)
+// Typography & Content Colors (PANTONE 11-4201 Cloud Dancer)
+val CloudDancer = Color(0xFFF0EEE9) // Primary Text
+val CloudHighlight = Color(0xFFF8F6F2) // Highlighted Text / Titles
+val CloudShadow = Color(0xFFB0AEA9) // Secondary Text
+val TextMuted = Color(0xFF7A808C) // Muted / Inactive Text
+
+// Legacy / Component Mappings
+val DarkBackground = Graphite950
+val DarkSurface = Graphite800
+val DarkSurfaceVariant = Graphite700
+val DarkCardBackground = Color(0xCC252B36)
+
+val EdgeCyan = AqueousAqua
+val EdgePurple = QuietPeriwinkle
+val EdgeGreen = NeonEmerald
+val EdgePink = VividPink
+
+val TextPrimary = CloudDancer
+val TextSecondary = CloudShadow
+
+val GlassBorder = Color(0x3382D8D0)
+val GlassBackground = Color(0xE6151923)
+

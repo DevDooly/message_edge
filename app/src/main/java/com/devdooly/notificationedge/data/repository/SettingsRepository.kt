@@ -44,7 +44,7 @@ class SettingsRepository(private val context: Context) {
             handlePositionRatio = prefs[PreferencesKeys.HANDLE_POS_RATIO] ?: 0.5f,
             handleWidthDp = prefs[PreferencesKeys.HANDLE_WIDTH_DP] ?: 8,
             handleHeightDp = prefs[PreferencesKeys.HANDLE_HEIGHT_DP] ?: 110,
-            handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: 0xFF00E5FF,
+            handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: 0xFF82D8D0,
             handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
             isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
             launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
@@ -52,7 +52,7 @@ class SettingsRepository(private val context: Context) {
             autoDismissOnOpen = prefs[PreferencesKeys.AUTO_DISMISS_ON_OPEN] ?: true,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
-            edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
+            edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF82D8D0,
             edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
             excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet()

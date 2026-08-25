@@ -10,7 +10,7 @@ data class AppSettings(
     val handlePositionRatio: Float = 0.5f,
     val handleWidthDp: Int = 8,
     val handleHeightDp: Int = 110,
-    val handleColor: Long = 0xFF00E5FF,
+    val handleColor: Long = 0xFF82D8D0,
     val handleAlpha: Float = 0.75f,
     val isHandleVisible: Boolean = true,
     val launchDirectToPanel: Boolean = true,
@@ -18,7 +18,7 @@ data class AppSettings(
     val autoDismissOnOpen: Boolean = true,
     val isEdgeLightingEnabled: Boolean = true,
     val edgeLightingDurationMs: Long = 3000L,
-    val edgeLightingColor: Long = 0xFF00E5FF,
+    val edgeLightingColor: Long = 0xFF82D8D0,
     val edgeLightingCornerRadiusDp: Int = 32,
     val hapticFeedbackEnabled: Boolean = true,
     val excludedPackages: Set<String> = emptySet()
