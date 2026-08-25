@@ -26,6 +26,7 @@ class SettingsRepository(private val context: Context) {
         val HANDLE_COLOR = longPreferencesKey("handle_color")
         val HANDLE_ALPHA = floatPreferencesKey("handle_alpha")
         val HANDLE_VISIBLE = booleanPreferencesKey("handle_visible")
+        val LAUNCH_DIRECT_TO_PANEL = booleanPreferencesKey("launch_direct_to_panel")
         val EDGE_LIGHTING_ENABLED = booleanPreferencesKey("edge_lighting_enabled")
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
@@ -43,6 +44,7 @@ class SettingsRepository(private val context: Context) {
             handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: 0xFF00E5FF,
             handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
             isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
+            launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
@@ -81,6 +83,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateHandleVisible(visible: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.HANDLE_VISIBLE] = visible }
+    }
+
+    suspend fun updateLaunchDirectToPanel(direct: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] = direct }
     }
 
     suspend fun updateEdgeLightingEnabled(enabled: Boolean) {

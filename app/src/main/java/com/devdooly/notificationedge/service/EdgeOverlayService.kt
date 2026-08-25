@@ -319,7 +319,8 @@ class EdgeOverlayService : Service() {
                     onOpenSettings = {
                         closePanel()
                         val intent = Intent(this@EdgeOverlayService, MainActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            putExtra(MainActivity.EXTRA_OPEN_SETTINGS, true)
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                         }
                         startActivity(intent)
                     }

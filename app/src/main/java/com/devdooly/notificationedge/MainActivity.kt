@@ -1,6 +1,5 @@
 package com.devdooly.notificationedge
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -22,16 +21,63 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         settingsRepository = SettingsRepository(applicationContext)
 
-        setContent {
-            NotificationEdgeTheme {
-                SettingsScreen()
+        val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
+
+        lifecycleScope.launch {
+            val settings = settingsRepository.settingsFlow.first()
+
+            // 1. 오버레이 권한이 있고, 설정 화면 요청이 아니며, 바로 열기 모드가 활성화된 경우
+            if (!openSettings && Settings.canDrawOverlays(this@MainActivity) && settings.launchDirectToPanel) {
+                val serviceIntent = Intent(this@MainActivity, EdgeOverlayService::class.java).apply {
+                    action = EdgeOverlayService.ACTION_OPEN_PANEL
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(serviceIntent)
+                } else {
+                    startService(serviceIntent)
+                }
+                finish()
+                @Suppress("DEPRECATION")
+                overridePendingTransition(0, 0)
+                return@launch
+            }
+
+            // 2. 설정 화면 표시
+            enableEdgeToEdge()
+            setContent {
+                NotificationEdgeTheme {
+                    SettingsScreen()
+                }
+            }
+
+            checkAndStartService()
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
+        if (!openSettings) {
+            lifecycleScope.launch {
+                val settings = settingsRepository.settingsFlow.first()
+                if (Settings.canDrawOverlays(this@MainActivity) && settings.launchDirectToPanel) {
+                    val serviceIntent = Intent(this@MainActivity, EdgeOverlayService::class.java).apply {
+                        action = EdgeOverlayService.ACTION_OPEN_PANEL
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(serviceIntent)
+                    } else {
+                        startService(serviceIntent)
+                    }
+                    finish()
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(0, 0)
+                }
             }
         }
-
-        checkAndStartService()
     }
 
     override fun onResume() {
@@ -53,5 +99,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    companion object {
+        const val EXTRA_OPEN_SETTINGS = "extra_open_settings"
     }
 }

@@ -63,6 +63,20 @@ fun SettingsScreen() {
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Notification Edge", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = EdgeCyan.copy(alpha = 0.2f),
+                            border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
+                        ) {
+                            Text(
+                                text = "v1.0.3",
+                                color = EdgeCyan,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -122,6 +136,8 @@ fun SettingsScreen() {
 
             // 삼성 Good Lock 연동 가이드 카드
             GoodLockIntegrationCard(
+                launchDirectToPanel = settings.launchDirectToPanel,
+                onToggleLaunchDirect = { scope.launch { settingsRepo.updateLaunchDirectToPanel(it) } },
                 onTestOpenPanel = {
                     val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -185,6 +201,9 @@ fun SettingsScreen() {
                     )
                 }
             }
+
+            // 앱 버전 및 시스템 정보 카드
+            AppInfoCard()
         }
     }
 }
@@ -238,6 +257,8 @@ private fun MasterSwitchCard(
 
 @Composable
 private fun GoodLockIntegrationCard(
+    launchDirectToPanel: Boolean,
+    onToggleLaunchDirect: (Boolean) -> Unit,
     onTestOpenPanel: () -> Unit
 ) {
     Card(
@@ -263,11 +284,34 @@ private fun GoodLockIntegrationCard(
             }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "One Hand Operation +의 제스처에 '알림 엣지 열기'를 등록하면 화면에 핸들을 안 띄우고도 순정처럼 알림 패널을 열 수 있습니다.",
+                text = "One Hand Operation +의 제스처에 '알림 엣지(Notification Edge)'를 등록하면 화면에 핸들을 안 띄우고도 순정처럼 제스처로 알림 패널을 열 수 있습니다.",
                 color = Color.LightGray,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 앱 실행 시 알림 엣지 바로 열기 스위치
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFF252525))
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("앱 실행 시 알림 엣지 바로 열기", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Good Lock 제스처나 앱 실행 시 설정창 대신 알림 패널만 즉시 엽니다", color = Color.Gray, fontSize = 11.sp)
+                }
+                Switch(
+                    checked = launchDirectToPanel,
+                    onCheckedChange = onToggleLaunchDirect,
+                    colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                )
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = onTestOpenPanel,
@@ -279,6 +323,42 @@ private fun GoodLockIntegrationCard(
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("알림 엣지 즉시 열기 테스트", color = Color.Black, fontWeight = FontWeight.Bold)
             }
+        }
+    }
+}
+
+@Composable
+private fun AppInfoCard() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color(0xFF333333))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Notification Edge",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "버전 1.0.3 (Build 3) | Target Android 14",
+                color = EdgeCyan,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "패키지: com.devdooly.notificationedge",
+                color = Color.Gray,
+                fontSize = 11.sp
+            )
         }
     }
 }

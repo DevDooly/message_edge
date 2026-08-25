@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Reply
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -78,6 +79,7 @@ fun EdgePanelContent(
                 PanelHeader(
                     notificationCount = notifications.size,
                     onClearAll = { NotificationRepository.clearAll() },
+                    onOpenSettings = onOpenSettings,
                     onClose = onClose
                 )
 
@@ -85,7 +87,7 @@ fun EdgePanelContent(
 
                 // 알림 리스트 또는 빈 상태
                 if (notifications.isEmpty()) {
-                    EmptyNotificationView()
+                    EmptyNotificationView(onOpenSettings = onOpenSettings)
                 } else {
                     LazyColumn(
                         modifier = Modifier
@@ -125,6 +127,7 @@ fun EdgePanelContent(
 private fun PanelHeader(
     notificationCount: Int,
     onClearAll: () -> Unit,
+    onOpenSettings: () -> Unit,
     onClose: () -> Unit
 ) {
     Row(
@@ -168,6 +171,16 @@ private fun PanelHeader(
                         tint = Color.LightGray
                     )
                 }
+            }
+            IconButton(
+                onClick = onOpenSettings,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "설정",
+                    tint = Color.LightGray
+                )
             }
             IconButton(
                 onClick = onClose,
@@ -408,7 +421,9 @@ private fun NotificationCard(
 }
 
 @Composable
-private fun EmptyNotificationView() {
+private fun EmptyNotificationView(
+    onOpenSettings: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -428,6 +443,16 @@ private fun EmptyNotificationView() {
                 color = Color.Gray,
                 fontSize = 14.sp
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = onOpenSettings,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C)),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = EdgeCyan, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("설정 열기", color = Color.White, fontSize = 12.sp)
+            }
         }
     }
 }
