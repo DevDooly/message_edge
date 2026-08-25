@@ -145,10 +145,13 @@ fun EdgePanelContent(
                 }
             )
     ) {
-        // 사이드 슬라이드 패널
+        // 사이드 슬라이드 패널 (상태바의 배터리/시계/알림 정보 및 네비바를 가리지 않도록 인셋 패딩 적용)
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(vertical = 6.dp)
                 .width(panelWidthDp.dp)
                 .align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
                 .pointerInput(Unit) {
@@ -171,9 +174,9 @@ fun EdgePanelContent(
                 .clickable(enabled = false) {}, // 클릭 전파 방지
             color = GlassBackground,
             shape = if (edgeSide == EdgeSide.RIGHT) {
-                RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
+                RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 4.dp, bottomEnd = 4.dp)
             } else {
-                RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+                RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp, topStart = 4.dp, bottomStart = 4.dp)
             },
             border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
         ) {
