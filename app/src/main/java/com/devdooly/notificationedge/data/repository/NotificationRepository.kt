@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.update
 object NotificationRepository {
 
     private const val MAX_HISTORY_COUNT = 150
+    private const val MAX_MESSAGES_PER_NOTIFICATION = 50
 
     private val _notifications = MutableStateFlow<List<EdgeNotification>>(emptyList())
     val notifications: StateFlow<List<EdgeNotification>> = _notifications.asStateFlow()
@@ -172,7 +173,12 @@ object NotificationRepository {
         onClose()
     }
 
-    fun sendQuickReply(context: Context, action: NotificationActionItem, replyText: String) {
+    fun sendQuickReply(
+        context: Context,
+        notificationKey: String,
+        action: NotificationActionItem,
+        replyText: String
+    ) {
         if (action.actionIntent == null || action.remoteInputKey == null) return
 
         try {
@@ -184,6 +190,42 @@ object NotificationRepository {
             RemoteInput.addResultsToIntent(arrayOf(remoteInput), intent, bundle)
 
             action.actionIntent.send(context, 0, intent)
+
+            // 내 답장 메시지를 해당 알림 카드의 대화 목록에 즉시 추가하여 채팅방처럼 대화 유지
+            _notifications.update { list ->
+                list.map { notif ->
+                    if (notif.key == notificationKey) {
+                        val userMsg = MessageItem(
+                            sender = "나",
+                            text = replyText,
+                            timestamp = System.currentTimeMillis(),
+                            isFromUser = true
+                        )
+                        // 기존 메시지 목록이 비어있었다면 기존 text를 상대방 메시지로 먼저 넣고 내 메시지 추가
+                        val currentMsgs = if (notif.messages.isNotEmpty()) {
+                            notif.messages
+                        } else if (notif.text.isNotBlank()) {
+                            listOf(
+                                MessageItem(
+                                    sender = notif.title.ifBlank { notif.appName },
+                                    text = notif.text,
+                                    timestamp = notif.timestamp,
+                                    isFromUser = false
+                                )
+                            )
+                        } else {
+                            emptyList()
+                        }
+                        notif.copy(
+                            messages = (currentMsgs + userMsg).takeLast(MAX_MESSAGES_PER_NOTIFICATION),
+                            text = "나: $replyText",
+                            timestamp = System.currentTimeMillis()
+                        )
+                    } else {
+                        notif
+                    }
+                }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }

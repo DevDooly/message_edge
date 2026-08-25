@@ -237,7 +237,12 @@ fun EdgePanelContent(
                 onTextChange = { replyText = it },
                 onSend = {
                     if (replyText.isNotBlank()) {
-                        NotificationRepository.sendQuickReply(context, activeReplyAction, replyText)
+                        NotificationRepository.sendQuickReply(
+                            context = context,
+                            notificationKey = activeNotification.key,
+                            action = activeReplyAction,
+                            replyText = replyText
+                        )
                         replyText = ""
                         keyboardController?.hide()
                         activeReplyKey = null
@@ -640,23 +645,51 @@ private fun NotificationCard(
                     }
 
                     displayMessages.forEach { msg ->
+                        val isMine = msg.isFromUser || msg.sender == "나"
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 1.dp),
+                            horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
                             verticalAlignment = Alignment.Top
                         ) {
-                            Text(
-                                text = "${msg.sender}: ",
-                                color = EdgeCyan,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = msg.text,
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                maxLines = if (isExpandedMessages) 6 else 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            if (!isMine) {
+                                Text(
+                                    text = "${msg.sender}: ",
+                                    color = EdgeCyan,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    text = msg.text,
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    maxLines = if (isExpandedMessages) 6 else 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            } else {
+                                Surface(
+                                    shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp, topEnd = 2.dp),
+                                    color = EdgeCyan.copy(alpha = 0.2f),
+                                    border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.5f))
+                                ) {
+                                    Row(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) {
+                                        Text(
+                                            text = "나: ",
+                                            color = EdgeCyan,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = msg.text,
+                                            color = Color.White,
+                                            fontSize = 12.sp,
+                                            maxLines = if (isExpandedMessages) 6 else 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }

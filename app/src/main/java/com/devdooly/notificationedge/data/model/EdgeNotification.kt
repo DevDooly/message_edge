@@ -14,7 +14,8 @@ data class NotificationActionItem(
 data class MessageItem(
     val sender: String,
     val text: String,
-    val timestamp: Long
+    val timestamp: Long,
+    val isFromUser: Boolean = false
 )
 
 data class EdgeNotification(
