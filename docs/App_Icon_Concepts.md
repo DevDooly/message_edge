@@ -80,16 +80,19 @@ Notification Edge 앱의 세련되고 트렌디한 런처 아이콘 디자인 �
 > **"단단한 메탈 질감과 직관적인 엣지 핸들 인터페이스"**
 
 <p align="center">
-  <img src="icons/concept_5_metallic_bell_bar.jpg" width="220" alt="Concept 5 Metallic Bell Bar" style="border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+  <img src="icons/concept_5_metallic_bell_bar.svg" width="220" alt="Concept 5 Metallic Bell Bar SVG" style="border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
 </p>
 
 * **특징**:
   * 브러시드 다크 메탈 텍스처와 견고한 금속 프레임
-  * 중앙 네온 벨 + 우측의 선명한 엣지 핸들 바
+  * 중앙 네온 벨 + 우측의 선명한 엣지 핸들 바 & 음파 시그널 도트
 * **장점**: 공학적이고 전문적인 유틸리티 앱의 무게감 있는 인상 제공.
+* 📦 **일러스트레이터 / Figma 편집용 SVG 벡터 파일**:
+  * 👉 **[`concept_5_metallic_bell_bar.svg`](icons/concept_5_metallic_bell_bar.svg)**
+  * `Layer_Base_Frame`, `Layer_Neon_Edge_Bar`, `Layer_Neon_Bell`, `Layer_Sound_Waves_And_Dots` 레이어 그룹이 완벽히 분리되어 있어 색상, 곡률, 글로우 강도를 자유롭게 수정할 수 있습니다.
 
 ---
 
 ## 📌 선택 및 적용 방법
 
-마음에 드는 컨셉 번호(예: **Concept 03**)를 말씀해 주시면, 해당 디자인을 안드로이드 규격의 **Adaptive Icon (`res/mipmap-...`)** 포맷으로 앱에 즉시 적용해 드립니다! 🚀
+마음에 드는 컨셉 번호(예: **Concept 05**)를 말씀해 주시면, 해당 디자인을 안드로이드 규격의 **Adaptive Icon (`res/mipmap-...`)** 포맷으로 앱에 즉시 적용해 드립니다! 🚀
