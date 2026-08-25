@@ -2,8 +2,10 @@ package com.devdooly.notificationedge.ui.overlay
 
 import android.content.Context
 import android.text.format.DateUtils
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
@@ -11,12 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.Reply
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,9 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -52,6 +57,20 @@ fun EdgePanelContent(
     val context = LocalContext.current
     val notifications by NotificationRepository.notifications.collectAsState()
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
+
+    // 현재 답장 입력창이 열려있는 알림의 Key (뒤로가기 시 먼저 답장창 닫기 위함)
+    var activeReplyKey by remember { mutableStateOf<String?>(null) }
+
+    // 네비게이션 뒤로가기 제스처 / 버튼 처리
+    BackHandler(enabled = true) {
+        if (activeReplyKey != null) {
+            // 1단계: 답장창이 열려있으면 답장 입력창 먼저 닫기
+            activeReplyKey = null
+        } else {
+            // 2단계: 기본 상태에서는 엣지 패널 전체 닫기
+            onClose()
+        }
+    }
 
     // 전체 화면 배경 (완전 투명, 바깥 터치 및 왼쪽/오른쪽 드래그 시 닫기)
     Box(
@@ -141,6 +160,10 @@ fun EdgePanelContent(
                         ) { notification ->
                             NotificationCard(
                                 notification = notification,
+                                isReplyActive = (activeReplyKey == notification.key),
+                                onToggleReply = { open ->
+                                    activeReplyKey = if (open) notification.key else null
+                                },
                                 onDismiss = { NotificationRepository.dismissNotification(notification.key) },
                                 onClick = {
                                     NotificationRepository.openNotificationApp(
@@ -180,55 +203,67 @@ private fun PanelHeader(
             Text(
                 text = "알림 엣지",
                 color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp
             )
             if (notificationCount > 0) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Badge(
-                    containerColor = EdgeCyan,
-                    contentColor = Color.Black
+                Spacer(modifier = Modifier.width(6.dp))
+                Surface(
+                    shape = CircleShape,
+                    color = EdgeCyan.copy(alpha = 0.2f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan)
                 ) {
                     Text(
                         text = "$notificationCount",
+                        color = EdgeCyan,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
                     )
                 }
             }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (notificationCount > 0) {
-                IconButton(
-                    onClick = onClearAll,
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ClearAll,
-                        contentDescription = "모두 지우기",
-                        tint = Color.LightGray
-                    )
-                }
-            }
+            // 설정 화면 열기 버튼
             IconButton(
                 onClick = onOpenSettings,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "설정",
-                    tint = Color.LightGray
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(18.dp)
                 )
             }
+
+            if (notificationCount > 0) {
+                Spacer(modifier = Modifier.width(2.dp))
+                IconButton(
+                    onClick = onClearAll,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ClearAll,
+                        contentDescription = "모두 지우기",
+                        tint = Color.LightGray,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(2.dp))
+
             IconButton(
                 onClick = onClose,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(32.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "닫기",
-                    tint = Color.White
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(20.dp)
                 )
             }
         }
@@ -238,16 +273,16 @@ private fun PanelHeader(
 @Composable
 private fun NotificationCard(
     notification: EdgeNotification,
+    isReplyActive: Boolean,
+    onToggleReply: (Boolean) -> Unit,
     onDismiss: () -> Unit,
     onClick: () -> Unit,
     onSendReply: (NotificationActionItem, String) -> Unit
 ) {
-    var replyMode by remember { mutableStateOf(false) }
-    var replyText by remember { mutableStateOf("") }
     val replyAction = remember(notification.actions) {
         notification.actions.firstOrNull { it.isReply }
     }
-
+    var replyText by remember { mutableStateOf("") }
     var isExpandedMessages by remember { mutableStateOf(false) }
 
     val timeString = remember(notification.timestamp) {
@@ -298,7 +333,7 @@ private fun NotificationCard(
                             contentDescription = notification.appName,
                             modifier = Modifier
                                 .size(20.dp)
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(4.dp))
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                     }
@@ -438,73 +473,105 @@ private fun NotificationCard(
                 )
             }
 
-            // 빠른 답장 버튼 또는 입력창
+            // 빠른 답장 버튼 또는 입력창 (글씨 깨짐 방지 및 슬림 인풋 디자인)
             if (replyAction != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                if (!replyMode) {
+                if (!isReplyActive) {
                     Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(6.dp))
                             .background(EdgeCyan.copy(alpha = 0.15f))
-                            .clickable { replyMode = true }
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                            .clickable { onToggleReply(true) }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Reply,
+                            imageVector = Icons.AutoMirrored.Filled.Reply,
                             contentDescription = "답장",
                             tint = EdgeCyan,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(13.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "답장",
                             color = EdgeCyan,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        TextField(
-                            value = replyText,
-                            onValueChange = { replyText = it },
-                            placeholder = { Text("답장 입력...", fontSize = 12.sp) },
+                        Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(46.dp),
-                            singleLine = true,
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color(0xFF1E1E1E),
-                                unfocusedContainerColor = Color(0xFF1E1E1E),
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                focusedIndicatorColor = EdgeCyan,
-                                unfocusedIndicatorColor = Color.Transparent
-                            ),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                                .heightIn(min = 36.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E1E1E))
+                                .border(0.8.dp, EdgeCyan.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                                .padding(horizontal = 10.dp, vertical = 8.dp),
+                            contentAlignment = Alignment.CenterStart
+                        ) {
+                            if (replyText.isEmpty()) {
+                                Text(
+                                    text = "답장 입력...",
+                                    color = Color.Gray,
+                                    fontSize = 12.sp
+                                )
+                            }
+                            BasicTextField(
+                                value = replyText,
+                                onValueChange = { replyText = it },
+                                textStyle = TextStyle(
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Normal
+                                ),
+                                cursorBrush = SolidColor(EdgeCyan),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
+
+                        // 전송 버튼
                         IconButton(
                             onClick = {
                                 if (replyText.isNotBlank()) {
                                     onSendReply(replyAction, replyText)
                                     replyText = ""
-                                    replyMode = false
+                                    onToggleReply(false)
                                 }
                             },
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(34.dp)
                                 .background(EdgeCyan, CircleShape)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Send,
+                                imageVector = Icons.AutoMirrored.Filled.Send,
                                 contentDescription = "전송",
                                 tint = Color.Black,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+
+                        // 취소/닫기 버튼
+                        IconButton(
+                            onClick = {
+                                replyText = ""
+                                onToggleReply(false)
+                            },
+                            modifier = Modifier
+                                .size(34.dp)
+                                .background(Color(0xFF2C2C2C), CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "취소",
+                                tint = Color.LightGray,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
@@ -543,7 +610,12 @@ private fun EmptyNotificationView(
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2C2C2C)),
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Icon(imageVector = Icons.Default.Settings, contentDescription = null, tint = EdgeCyan, modifier = Modifier.size(16.dp))
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = null,
+                    tint = EdgeCyan,
+                    modifier = Modifier.size(16.dp)
+                )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text("설정 열기", color = Color.White, fontSize = 12.sp)
             }

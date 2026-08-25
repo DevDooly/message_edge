@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -312,6 +313,18 @@ class EdgeOverlayService : Service() {
 
         val composeView = ComposeView(this).apply {
             lifecycleOwner.attachToComposeView(this)
+            isFocusable = true
+            isFocusableInTouchMode = true
+            setOnKeyListener { _, keyCode, event ->
+                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                    if (!lifecycleOwner.handleOnBackPressed()) {
+                        closePanel()
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
             setContent {
                 EdgePanelContent(
                     edgeSide = currentSettings.edgeSide,

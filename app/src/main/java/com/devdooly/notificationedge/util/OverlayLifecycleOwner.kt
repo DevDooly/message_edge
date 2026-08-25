@@ -1,6 +1,10 @@
 package com.devdooly.notificationedge.util
 
 import android.os.Bundle
+import androidx.activity.OnBackPressedDispatcher
+import androidx.activity.OnBackPressedDispatcherOwner
+import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
+import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -12,17 +16,18 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import androidx.compose.ui.platform.ComposeView
 
-class OverlayLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
+class OverlayLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner, OnBackPressedDispatcherOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     private val store = ViewModelStore()
+    private val dispatcher = OnBackPressedDispatcher()
 
     override val lifecycle: Lifecycle = lifecycleRegistry
     override val viewModelStore: ViewModelStore = store
     override val savedStateRegistry: SavedStateRegistry = savedStateRegistryController.savedStateRegistry
+    override val onBackPressedDispatcher: OnBackPressedDispatcher = dispatcher
 
     fun onCreate() {
         savedStateRegistryController.performRestore(Bundle())
@@ -42,5 +47,14 @@ class OverlayLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateReg
         composeView.setViewTreeLifecycleOwner(this)
         composeView.setViewTreeViewModelStoreOwner(this)
         composeView.setViewTreeSavedStateRegistryOwner(this)
+        composeView.setViewTreeOnBackPressedDispatcherOwner(this)
+    }
+
+    fun handleOnBackPressed(): Boolean {
+        if (dispatcher.hasEnabledCallbacks()) {
+            dispatcher.onBackPressed()
+            return true
+        }
+        return false
     }
 }
