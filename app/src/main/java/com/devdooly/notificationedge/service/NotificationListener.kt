@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.app.RemoteInput
 import android.content.pm.PackageManager
+import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.devdooly.notificationedge.data.model.EdgeNotification
@@ -79,17 +80,32 @@ class NotificationListener : NotificationListenerService() {
                 extras.containsKey("android.mediaSession")
         if (isMediaTransport) return
 
-        val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
+        val isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
+        val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()
+
+        val rawTitle = conversationTitle
+            ?: extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()
             ?: ""
 
-        val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+        val rawText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
+            ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()
             ?: ""
 
         // 내용이 없는 빈 알림은 무시
-        if (title.isBlank() && text.isBlank()) return
+        if (rawTitle.isBlank() && rawText.isBlank()) return
+
+        val formattedTitle = if (conversationTitle != null || isGroupConversation || rawTitle.contains(",")) {
+            com.devdooly.notificationedge.util.NotificationTextCleaner.formatGroupTitle(rawTitle)
+        } else {
+            rawTitle
+        }
+
+        val cleanedText = com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
+            rawText,
+            formattedTitle
+        )
 
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()
         val pm = applicationContext.packageManager
@@ -101,15 +117,33 @@ class NotificationListener : NotificationListenerService() {
             for (raw in rawMessages) {
                 if (raw is android.os.Bundle) {
                     val msgText = raw.getCharSequence("text")?.toString() ?: ""
-                    val msgSender = raw.getCharSequence("sender")?.toString()
-                        ?: raw.getBundle("sender_person")?.getCharSequence("name")?.toString()
-                        ?: title
+
+                    // 발신자 이름 추출 (Android P Person 객체, bundle, sender 문자열 등 모두 지원)
+                    var msgSender: String? = raw.getCharSequence("sender")?.toString()
+                    if (msgSender == null) {
+                        val personObj = raw.get("sender_person")
+                        if (personObj is android.os.Bundle) {
+                            msgSender = personObj.getCharSequence("name")?.toString()
+                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && personObj is android.app.Person) {
+                            msgSender = personObj.name?.toString()
+                        }
+                    }
+                    if (msgSender == null) {
+                        msgSender = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString() ?: formattedTitle
+                    }
+
+                    val cleanedMsgText = com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
+                        msgText,
+                        formattedTitle,
+                        msgSender
+                    )
                     val msgTime = raw.getLong("time", System.currentTimeMillis())
-                    if (msgText.isNotBlank()) {
+
+                    if (cleanedMsgText.isNotBlank()) {
                         messagesList.add(
                             com.devdooly.notificationedge.data.model.MessageItem(
                                 sender = msgSender,
-                                text = msgText,
+                                text = cleanedMsgText,
                                 timestamp = msgTime
                             )
                         )
@@ -162,8 +196,8 @@ class NotificationListener : NotificationListenerService() {
             packageName = packageName,
             appName = appName,
             appIcon = appIcon,
-            title = title,
-            text = text,
+            title = formattedTitle,
+            text = cleanedText,
             subText = subText,
             messages = messagesList,
             timestamp = sbn.postTime,

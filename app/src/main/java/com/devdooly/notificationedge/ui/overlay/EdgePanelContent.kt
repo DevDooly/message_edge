@@ -670,6 +670,13 @@ private fun NotificationCard(
 
                     displayMessages.forEach { msg ->
                         val isMine = msg.isFromUser || msg.sender == "나"
+                        val displayMsgText = remember(msg.text, msg.sender, notification.title) {
+                            com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
+                                msg.text,
+                                notification.title,
+                                msg.sender
+                            )
+                        }
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -685,7 +692,7 @@ private fun NotificationCard(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = msg.text,
+                                    text = displayMsgText,
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     maxLines = if (isExpandedMessages) 6 else 2,
@@ -705,7 +712,7 @@ private fun NotificationCard(
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
-                                            text = msg.text,
+                                            text = displayMsgText,
                                             color = Color.White,
                                             fontSize = 12.sp,
                                             maxLines = if (isExpandedMessages) 6 else 2,
@@ -719,8 +726,14 @@ private fun NotificationCard(
                 }
             } else if (notification.text.isNotBlank()) {
                 Spacer(modifier = Modifier.height(2.dp))
+                val displayText = remember(notification.text, notification.title) {
+                    com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
+                        notification.text,
+                        notification.title
+                    )
+                }
                 Text(
-                    text = notification.text,
+                    text = displayText,
                     color = Color(0xFFDDDDDD),
                     fontSize = 13.sp,
                     lineHeight = 17.sp,
