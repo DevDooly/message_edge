@@ -132,6 +132,13 @@ graph TD
   - `EdgePanelContent.kt`: 각 알림 카드 하단에 `[데이터 복사]` 버튼을 추가하여 수신된 알림의 모든 Bundle Key-Value 데이터를 클립보드에 원클릭 복사 가능.
   - `SettingsScreen.kt`: `NotificationDebugDumpCard`를 탑재하여 최근 수신된 알림들의 원본 extras 구조를 한눈에 조회하고 `[전체 복사]`할 수 있는 디버그 인스펙터 지원.
 
+### 13) 카카오톡 무제(그룹) 단체방 참여자 목록 기반 방 이름 자동 생성 (`v1.4.7`)
+* **문제**: 카카오톡에서 방 이름을 별도로 설정하지 않은 그룹 채팅방의 경우, `android.isGroupConversation = true`이지만 `android.conversationTitle`과 `android.subText`가 모두 `null`이고 `android.title`에는 마지막 발신자 이름("김영남")만 넘어와서 단체방 이름이 표시되지 않던 현상.
+* **해결**:
+  - 실제 제공된 Notification Extras 덤프를 분석하여, `android.messages` 배열 내의 모든 고유 발신자 목록(예: `["미리비트 윤창빈 책임", "미리비트 정진우 책임", "김영남"]`)을 추출.
+  - `buildGroupRoomTitleFromSenders` 함수를 구축하여 참여자 목록(예: `"미리비트 윤창빈 책임, 미리비트 정진우 책임, 김영남"`)을 시스템 알림과 동일한 대표 단체방 이름으로 자동 합성.
+  - `MessengerNotificationParserTest.kt`에 실제 수신 덤프 기반 회귀 테스트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

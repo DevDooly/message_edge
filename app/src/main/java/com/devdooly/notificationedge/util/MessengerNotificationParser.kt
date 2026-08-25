@@ -11,7 +11,7 @@ import com.devdooly.notificationedge.data.model.MessageItem
  */
 data class ParsedNotificationData(
     val roomTitle: String,         // 단체방 이름 또는 1:1 상대방 이름
-    val groupRoomName: String?,    // 단체방일 경우의 순수 방 이름 (예: "우리 가족방")
+    val groupRoomName: String?,    // 단체방일 경우의 순수 방 이름 (예: "우리 가족방" 또는 참여자 목록)
     val isGroupChat: Boolean,      // 단체방 여부
     val currentSender: String,     // 현재 메시지를 보낸 사람
     val cleanText: String,         // 정제된 메시지 본문
@@ -29,9 +29,9 @@ object MessengerNotificationParser {
         val extras = notification.extras ?: return fallback(sbn)
 
         val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()?.trim()
+            ?: extras.getCharSequence("android.hiddenConversationTitle")?.toString()?.trim()
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim()
         val summaryText = extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()?.trim()
-        val infoText = extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()?.trim()
         val isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
 
         val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
@@ -45,7 +45,7 @@ object MessengerNotificationParser {
 
         val isKakaoTalk = packageName == "com.kakao.talk"
 
-        // 1. 카카오톡 특화 분석
+        // 1. 카카오톡 특화 정밀 분석
         if (isKakaoTalk) {
             return parseKakaoTalk(
                 rawTitle = rawTitle,
@@ -73,7 +73,7 @@ object MessengerNotificationParser {
     }
 
     /**
-     * 카카오톡 전용 정밀 파서
+     * 카카오톡 전용 정밀 파서 (실제 Notification Extras 덤프 기반)
      */
     private fun parseKakaoTalk(
         rawTitle: String,
@@ -89,7 +89,7 @@ object MessengerNotificationParser {
         var senderName: String = rawTitle
         var messageBody: String = rawText
 
-        // A) subText가 존재하는 경우 -> 카카오톡은 단체방일 때 subText에 방 이름을 넣음
+        // A) subText가 존재하는 경우 -> 카카오톡은 명명된 단체방일 때 subText에 방 이름을 넣음
         if (!subText.isNullOrBlank() && subText != rawTitle) {
             groupName = subText
             senderName = rawTitle
@@ -110,18 +110,16 @@ object MessengerNotificationParser {
             if (parenMatch != null) {
                 val p1 = parenMatch.groupValues[1].trim()
                 val p2 = parenMatch.groupValues[2].trim()
-                // p2가 숫자인 경우 -> "가족방 (5)"
                 if (p2.toIntOrNull() != null) {
                     groupName = rawTitle
                     senderName = ""
                 } else {
-                    // "홍길동 (가족방)"
                     senderName = p1
                     groupName = p2
                 }
             }
         }
-        // E) rawText 본문 안에 "[단체방이름] 발신자: 내용" 또는 "단체방이름\n발신자: 내용" 패턴이 있는 경우
+        // E) rawText 본문 안에 "[단체방이름] 발신자: 내용" 패턴이 있는 경우
         if (groupName == null) {
             val bracketMatch = Regex("""^\[([^\]\n]{2,30})\]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(rawText)
             if (bracketMatch != null) {
@@ -134,21 +132,46 @@ object MessengerNotificationParser {
             }
         }
 
-        val isGroup = groupName != null || isGroupConversation || rawTitle.contains(",")
+        // MessagingStyle 메시지 리스트 추출
+        val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime)
 
-        // 단체방 이름 및 카드 대표 타이틀 결정
+        // 고유 발신자 목록 추출 (참여자 목록)
+        val uniqueSenders = messagesList.map { it.sender.trim() }.filter { it.isNotBlank() }.distinct()
+
+        // F) 카카오톡 무제(그룹) 단체방인 경우: android.isGroupConversation = true 이거나 참여자가 2명 이상인 경우
+        val isGroup = isGroupConversation || groupName != null || uniqueSenders.size >= 2 || rawTitle.contains(",")
+
+        // 명시적 단체방 이름이 없을 때 참여자 목록으로 방 이름 자동 합성
+        if (groupName == null && isGroup) {
+            groupName = if (uniqueSenders.isNotEmpty()) {
+                buildGroupRoomTitleFromSenders(uniqueSenders, rawTitle)
+            } else if (rawTitle.isNotBlank()) {
+                "$rawTitle 외 (단체방)"
+            } else {
+                "그룹 채팅방"
+            }
+        }
+
+        // 단체방 이름 및 대표 타이틀 결정
         val finalRoomTitle = groupName ?: rawTitle
-        val cleanSender = if (senderName.isNotBlank()) senderName else (if (isGroup) "상대방" else finalRoomTitle)
+        val latestMsg = messagesList.lastOrNull()
+        val cleanSender = if (latestMsg != null && latestMsg.sender.isNotBlank()) {
+            latestMsg.sender
+        } else if (senderName.isNotBlank()) {
+            senderName
+        } else if (isGroup) {
+            "상대방"
+        } else {
+            finalRoomTitle
+        }
 
         // 메시지 본문 정제
         val cleanedText = NotificationTextCleaner.cleanMessageText(
-            text = messageBody,
+            text = latestMsg?.text ?: messageBody,
             title = finalRoomTitle,
             sender = cleanSender
         )
 
-        // MessagingStyle 메시지 추출
-        val messagesList = extractMessagingStyleMessages(extras, finalRoomTitle, cleanSender, postTime)
         if (messagesList.isEmpty() && cleanedText.isNotBlank()) {
             messagesList.add(
                 MessageItem(
@@ -182,32 +205,36 @@ object MessengerNotificationParser {
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
+        val messagesList = extractMessagingStyleMessages(extras, conversationTitle ?: rawTitle, rawTitle, postTime)
+        val uniqueSenders = messagesList.map { it.sender.trim() }.filter { it.isNotBlank() }.distinct()
+
         val isGroup = !conversationTitle.isNullOrBlank() ||
                 isGroupConversation ||
                 (!subText.isNullOrBlank() && subText != rawTitle) ||
+                uniqueSenders.size >= 2 ||
                 rawTitle.contains(",")
 
-        val groupName = when {
+        var groupName = when {
             !conversationTitle.isNullOrBlank() -> conversationTitle
             !subText.isNullOrBlank() && isGroup -> subText
             !summaryText.isNullOrBlank() && isGroup -> summaryText
             else -> null
         }
 
-        val finalRoomTitle = groupName ?: rawTitle
-        val cleanSender = if (isGroup && groupName != null && groupName != rawTitle && rawTitle.isNotBlank()) {
-            rawTitle
-        } else {
-            finalRoomTitle
+        if (groupName == null && isGroup && uniqueSenders.isNotEmpty()) {
+            groupName = buildGroupRoomTitleFromSenders(uniqueSenders, rawTitle)
         }
 
+        val finalRoomTitle = groupName ?: rawTitle
+        val latestMsg = messagesList.lastOrNull()
+        val cleanSender = latestMsg?.sender?.ifBlank { rawTitle } ?: finalRoomTitle
+
         val cleanedText = NotificationTextCleaner.cleanMessageText(
-            text = rawText,
+            text = latestMsg?.text ?: rawText,
             title = finalRoomTitle,
             sender = cleanSender
         )
 
-        val messagesList = extractMessagingStyleMessages(extras, finalRoomTitle, cleanSender, postTime)
         if (messagesList.isEmpty() && cleanedText.isNotBlank()) {
             messagesList.add(
                 MessageItem(
@@ -226,6 +253,23 @@ object MessengerNotificationParser {
             cleanText = cleanedText,
             messages = messagesList
         )
+    }
+
+    /**
+     * 참여자 목록(Senders)을 기반으로 안드로이드 One UI / 카카오톡 시스템 알림 표준 방 제목 생성
+     */
+    private fun buildGroupRoomTitleFromSenders(senders: List<String>, fallbackTitle: String): String {
+        return when {
+            senders.isEmpty() -> fallbackTitle.ifBlank { "그룹 채팅방" }
+            senders.size == 1 -> if (senders[0] != fallbackTitle && fallbackTitle.isNotBlank()) {
+                "${senders[0]}, $fallbackTitle"
+            } else {
+                "${senders[0]} (단체방)"
+            }
+            senders.size == 2 -> "${senders[0]}, ${senders[1]}"
+            senders.size == 3 -> "${senders[0]}, ${senders[1]}, ${senders[2]}"
+            else -> "${senders[0]}, ${senders[1]}, ${senders[2]} 외 ${senders.size - 3}명"
+        }
     }
 
     private fun extractMessagingStyleMessages(

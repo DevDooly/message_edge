@@ -34,7 +34,9 @@ class MessengerNotificationParserTest {
         text: String? = null,
         subText: String? = null,
         conversationTitle: String? = null,
-        summaryText: String? = null
+        summaryText: String? = null,
+        isGroupConversation: Boolean = false,
+        messages: Array<Bundle>? = null
     ): StatusBarNotification {
         val sbn = mockk<StatusBarNotification>(relaxed = true)
         
@@ -49,6 +51,13 @@ class MessengerNotificationParserTest {
         }
         if (summaryText != null) {
             notification.extras.putCharSequence(Notification.EXTRA_SUMMARY_TEXT, summaryText)
+        }
+        if (isGroupConversation) {
+            notification.extras.putBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, true)
+        }
+        if (messages != null) {
+            @Suppress("DEPRECATION")
+            notification.extras.putParcelableArray(Notification.EXTRA_MESSAGES, messages)
         }
 
         every { sbn.packageName } returns packageName
@@ -103,5 +112,39 @@ class MessengerNotificationParserTest {
         assertNull(result.groupRoomName)
         assertEquals("이영희", result.currentSender)
         assertEquals("밥 먹었어?", result.cleanText)
+    }
+
+    @Test
+    fun `kakao talk actual dump group chat should synthesize participants room title`() {
+        val msg1 = Bundle().apply {
+            putCharSequence("sender", "미리비트 윤창빈 책임")
+            putCharSequence("text", "전 한 29분 정도입니다")
+            putLong("time", 1001L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("sender", "미리비트 정진우 책임")
+            putCharSequence("text", "판교 출발")
+            putLong("time", 1002L)
+        }
+        val msg3 = Bundle().apply {
+            putCharSequence("sender", "김영남")
+            putCharSequence("text", "@미리비트 정진우 책임 미리 주문점여")
+            putLong("time", 1003L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김영남",
+            text = "@미리비트 정진우 책임 미리 주문점여",
+            isGroupConversation = true,
+            messages = arrayOf(msg1, msg2, msg3)
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertTrue(result.isGroupChat)
+        assertEquals("미리비트 윤창빈 책임, 미리비트 정진우 책임, 김영남", result.roomTitle)
+        assertEquals("김영남", result.currentSender)
+        assertEquals("@미리비트 정진우 책임 미리 주문점여", result.cleanText)
+        assertEquals(3, result.messages.size)
     }
 }
