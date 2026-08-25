@@ -13,24 +13,34 @@ object NotificationTextCleaner {
         if (text.isNullOrBlank()) return ""
         var cleaned = text.trim()
 
-        // 1. 발신자(Sender) 또는 제목(Title) 기반 중복 접두어 제거 (콜론, 대괄호, 줄바꿈 등)
+        // 1. 전화번호 접두어 제거 (예: "010-1234-5678: ", "01012345678 - ", "+82 10-1234-5678: ")
+        cleaned = cleaned.replaceFirst(
+            Regex("""^(\+?82[-. ]?10[-. ]?\d{4}[-. ]?\d{4}|01[016789][-. ]?\d{3,4}[-. ]?\d{4}|\d{2,4}[-. ]?\d{3,4}[-. ]?\d{4})[:：\s\-]*"""),
+            ""
+        ).trim()
+
+        // 2. 제목/발신자 이름 매칭 기반 접두어 제거
         cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
 
-        // 2. 전화번호 중복 접두어 제거 (예: "010-1234-5678: 안녕하세요", "01012345678 안녕하세요")
-        val phoneRegex = Regex("""^(\+?82[-. ]?10[-. ]?\d{4}[-. ]?\d{4}|01[016789][-. ]?\d{3,4}[-. ]?\d{4}|\d{2,4}[-. ]?\d{3,4}[-. ]?\d{4})[:：\s\-]*""")
-        val phoneMatch = phoneRegex.find(cleaned)
-        if (phoneMatch != null) {
-            val prefix = phoneMatch.value
-            val remainder = cleaned.substring(prefix.length).trim()
-            if (remainder.isNotEmpty()) {
-                cleaned = remainder
+        // 3. 범용 발신자 콜론 접두어 무조건 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장]: 회의시작")
+        val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})[:：\-]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+        if (genericColon != null) {
+            val contentAfterColon = genericColon.groupValues[2].trim()
+            if (contentAfterColon.isNotEmpty()) {
+                cleaned = contentAfterColon
             }
         }
 
-        // 3. 2차 정리 (전화번호 제거 후 다시 이름 접두어가 남아있을 경우)
-        cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
+        // 4. 대괄호 접두어 제거 (예: "[홍길동] 안녕하세요", "[Web발신] 택배가 도착했습니다")
+        val genericBracket = Regex("""^\[[가-힣a-zA-Z0-9_\.\s]{1,20}\]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+        if (genericBracket != null) {
+            val contentAfterBracket = genericBracket.groupValues[1].trim()
+            if (contentAfterBracket.isNotEmpty()) {
+                cleaned = contentAfterBracket
+            }
+        }
 
-        return cleaned
+        return cleaned.trim()
     }
 
     /**

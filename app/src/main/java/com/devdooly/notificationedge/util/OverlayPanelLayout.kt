@@ -17,6 +17,18 @@ class OverlayPanelLayout(context: Context) : FrameLayout(context) {
         isFocusableInTouchMode = true
     }
 
+    override fun dispatchKeyEventPreIme(event: KeyEvent): Boolean {
+        if (event.keyCode == KeyEvent.KEYCODE_BACK) {
+            if (event.action == KeyEvent.ACTION_UP) {
+                val handled = onBackPressed?.invoke() ?: false
+                if (handled) return true
+            } else if (event.action == KeyEvent.ACTION_DOWN) {
+                return true
+            }
+        }
+        return super.dispatchKeyEventPreIme(event)
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (event.action == KeyEvent.ACTION_UP) {
