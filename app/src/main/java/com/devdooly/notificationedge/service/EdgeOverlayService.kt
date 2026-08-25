@@ -46,7 +46,7 @@ class EdgeOverlayService : Service() {
     private lateinit var settingsRepository: SettingsRepository
 
     private var handleView: View? = null
-    private var panelComposeView: ComposeView? = null
+    private var panelComposeView: View? = null
     private var lightingComposeView: ComposeView? = null
 
     private var panelLifecycleOwner: OverlayLifecycleOwner? = null
@@ -314,25 +314,22 @@ class EdgeOverlayService : Service() {
         val lifecycleOwner = OverlayLifecycleOwner()
         panelLifecycleOwner = lifecycleOwner
 
+        val rootLayout = com.devdooly.notificationedge.util.OverlayPanelLayout(this).apply {
+            setBackgroundColor(AndroidColor.TRANSPARENT)
+            lifecycleOwner.attachToView(this)
+            onBackPressed = {
+                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                imm?.hideSoftInputFromWindow(windowToken, 0)
+                if (!lifecycleOwner.handleOnBackPressed()) {
+                    closePanel()
+                }
+                true
+            }
+        }
+
         val composeView = ComposeView(this).apply {
             setBackgroundColor(AndroidColor.TRANSPARENT)
-            lifecycleOwner.attachToComposeView(this)
-            isFocusable = true
-            isFocusableInTouchMode = true
-            setOnKeyListener { view, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    if (event.action == KeyEvent.ACTION_UP) {
-                        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                        imm?.hideSoftInputFromWindow(view.windowToken, 0)
-                        if (!lifecycleOwner.handleOnBackPressed()) {
-                            closePanel()
-                        }
-                    }
-                    true
-                } else {
-                    false
-                }
-            }
+            lifecycleOwner.attachToView(this)
             setContent {
                 EdgePanelContent(
                     edgeSide = currentSettings.edgeSide,
@@ -350,13 +347,22 @@ class EdgeOverlayService : Service() {
                 )
             }
         }
-        panelComposeView = composeView
+
+        rootLayout.addView(
+            composeView,
+            android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        panelComposeView = rootLayout
         lifecycleOwner.onCreate()
 
         try {
-            windowManager.addView(composeView, params)
-            composeView.post {
-                composeView.requestFocus()
+            windowManager.addView(rootLayout, params)
+            rootLayout.post {
+                rootLayout.requestFocus()
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -413,7 +419,7 @@ class EdgeOverlayService : Service() {
         lightingLifecycleOwner = lifecycleOwner
 
         val composeView = ComposeView(this).apply {
-            lifecycleOwner.attachToComposeView(this)
+            lifecycleOwner.attachToView(this)
             setContent {
                 EdgeLightingEffect(
                     color = Color(currentSettings.edgeLightingColor),

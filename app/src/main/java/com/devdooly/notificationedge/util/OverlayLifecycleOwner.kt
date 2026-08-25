@@ -1,10 +1,10 @@
 package com.devdooly.notificationedge.util
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.OnBackPressedDispatcher
 import androidx.activity.OnBackPressedDispatcherOwner
 import androidx.activity.setViewTreeOnBackPressedDispatcherOwner
-import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -43,11 +43,11 @@ class OverlayLifecycleOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateReg
         store.clear()
     }
 
-    fun attachToComposeView(composeView: ComposeView) {
-        composeView.setViewTreeLifecycleOwner(this)
-        composeView.setViewTreeViewModelStoreOwner(this)
-        composeView.setViewTreeSavedStateRegistryOwner(this)
-        composeView.setViewTreeOnBackPressedDispatcherOwner(this)
+    fun attachToView(view: View) {
+        view.setViewTreeLifecycleOwner(this)
+        view.setViewTreeViewModelStoreOwner(this)
+        view.setViewTreeSavedStateRegistryOwner(this)
+        view.setViewTreeOnBackPressedDispatcherOwner(this)
     }
 
     fun handleOnBackPressed(): Boolean {
