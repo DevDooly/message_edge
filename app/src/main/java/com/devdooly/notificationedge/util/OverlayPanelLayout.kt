@@ -3,7 +3,6 @@ package com.devdooly.notificationedge.util
 import android.content.Context
 import android.os.Build
 import android.view.KeyEvent
-import android.view.View
 import android.widget.FrameLayout
 
 /**
@@ -27,9 +26,17 @@ class OverlayPanelLayout(context: Context) : FrameLayout(context) {
                 onBackPressed?.invoke()
             }
             onBackInvokedCallback = callback
+        }
+    }
 
-            addOnAttachStateChangeListener(object : OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: View) {
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        requestFocus()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val callback = onBackInvokedCallback as? android.window.OnBackInvokedCallback
+            if (callback != null) {
+                post {
                     try {
                         findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
                             android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY,
@@ -39,15 +46,28 @@ class OverlayPanelLayout(context: Context) : FrameLayout(context) {
                         e.printStackTrace()
                     }
                 }
+            }
+        }
+    }
 
-                override fun onViewDetachedFromWindow(v: View) {
-                    try {
-                        findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(callback)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+    override fun onDetachedFromWindow() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val callback = onBackInvokedCallback as? android.window.OnBackInvokedCallback
+            if (callback != null) {
+                try {
+                    findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(callback)
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-            })
+            }
+        }
+        super.onDetachedFromWindow()
+    }
+
+    override fun onWindowFocusChanged(hasWindowFocus: Boolean) {
+        super.onWindowFocusChanged(hasWindowFocus)
+        if (hasWindowFocus) {
+            requestFocus()
         }
     }
 

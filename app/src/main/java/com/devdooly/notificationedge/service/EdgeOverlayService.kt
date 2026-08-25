@@ -343,6 +343,14 @@ class EdgeOverlayService : Service() {
         }
 
         val composeView = ComposeView(this).apply {
+            setOnKeyListener { _, keyCode, event ->
+                if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
+                    if (event.action == KeyEvent.ACTION_UP) {
+                        closePanel()
+                    }
+                    true
+                } else false
+            }
             setBackgroundColor(AndroidColor.TRANSPARENT)
             lifecycleOwner.attachToView(this)
             setContent {
