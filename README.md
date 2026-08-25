@@ -17,6 +17,7 @@
 
 [📥 최신 APK 다운로드](https://github.com/DevDooly/message_edge/releases/latest) • 
 [📖 갤럭시 Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md) • 
+[📋 해결 과제 및 미해결 이슈](docs/PENDING_ISSUES.md) • 
 [🎨 앱 아이콘 후보 리스트](docs/App_Icon_Concepts.md) • 
 [🐛 이슈 제보 및 기능 제안](https://github.com/DevDooly/message_edge/issues)
 
