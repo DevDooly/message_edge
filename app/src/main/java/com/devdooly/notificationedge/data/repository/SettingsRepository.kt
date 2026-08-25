@@ -18,6 +18,11 @@ private val Context.dataStore by preferencesDataStore(name = "notification_edge_
 
 class SettingsRepository(private val context: Context) {
 
+    companion object {
+        private const val SYNC_PREFS_NAME = "notification_edge_sync_prefs"
+        private const val KEY_LAUNCH_DIRECT = "launch_direct_to_panel"
+    }
+
     private object PreferencesKeys {
         val SERVICE_ENABLED = booleanPreferencesKey("service_enabled")
         val EDGE_SIDE = intPreferencesKey("edge_side")
@@ -96,7 +101,16 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updateLaunchDirectToPanel(direct: Boolean) {
+        context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_LAUNCH_DIRECT, direct)
+            .apply()
         context.dataStore.edit { it[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] = direct }
+    }
+
+    fun isLaunchDirectToPanelSync(): Boolean {
+        val sp = context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+        return sp.getBoolean(KEY_LAUNCH_DIRECT, true)
     }
 
     suspend fun updatePanelWidthDp(width: Int) {
