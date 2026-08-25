@@ -721,27 +721,56 @@ private fun NotificationCard(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 1.dp),
+                                .padding(vertical = 1.5.dp),
                             horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
-                            verticalAlignment = Alignment.Top
+                            verticalAlignment = Alignment.Bottom
                         ) {
+                            val msgTime = remember(msg.timestamp, notification.timestamp) {
+                                formatMessageTime(if (msg.timestamp > 0) msg.timestamp else notification.timestamp)
+                            }
+
                             if (!isMine) {
-                                if (shouldShowSenderLabel) {
+                                Row(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    if (shouldShowSenderLabel) {
+                                        Text(
+                                            text = "${msg.sender}: ",
+                                            color = EdgeCyan,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
                                     Text(
-                                        text = "${msg.sender}: ",
-                                        color = EdgeCyan,
+                                        text = displayMsgText,
+                                        color = Color.White,
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold
+                                        maxLines = if (isExpandedMessages) 6 else 2,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
-                                Text(
-                                    text = displayMsgText,
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    maxLines = if (isExpandedMessages) 6 else 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
+                                if (msgTime.isNotBlank()) {
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = msgTime,
+                                        color = Color(0xFFAAAAAA),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        modifier = Modifier.padding(bottom = 1.dp)
+                                    )
+                                }
                             } else {
+                                if (msgTime.isNotBlank()) {
+                                    Text(
+                                        text = msgTime,
+                                        color = Color(0xFFAAAAAA),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        modifier = Modifier.padding(bottom = 1.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                }
                                 Surface(
                                     shape = RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp, bottomEnd = 8.dp, topEnd = 2.dp),
                                     color = EdgeCyan.copy(alpha = 0.2f),
@@ -775,14 +804,33 @@ private fun NotificationCard(
                         notification.title
                     )
                 }
-                Text(
-                    text = displayText,
-                    color = Color(0xFFDDDDDD),
-                    fontSize = 13.sp,
-                    lineHeight = 17.sp,
-                    maxLines = 6,
-                    overflow = TextOverflow.Ellipsis
-                )
+                val notifTime = remember(notification.timestamp) {
+                    formatMessageTime(notification.timestamp)
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Text(
+                        text = displayText,
+                        color = Color(0xFFDDDDDD),
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
+                        maxLines = 6,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (notifTime.isNotBlank()) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = notifTime,
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 9.sp,
+                            modifier = Modifier.padding(bottom = 1.dp)
+                        )
+                    }
+                }
             }
 
             // 빠른 답장 버튼 (작성 중일 때 하이라이트)
@@ -854,5 +902,25 @@ private fun EmptyNotificationView(
                 Text("설정 열기", color = Color.White, fontSize = 12.sp)
             }
         }
+    }
+}
+
+/**
+ * 메시지 수신 시각을 깔끔한 한국어 12시간제('오후 3:24' 또는 'M/d a h:mm')로 포맷팅
+ */
+private fun formatMessageTime(timestamp: Long): String {
+    if (timestamp <= 0) return ""
+    val now = System.currentTimeMillis()
+    
+    val calNow = java.util.Calendar.getInstance().apply { timeInMillis = now }
+    val calMsg = java.util.Calendar.getInstance().apply { timeInMillis = timestamp }
+    
+    val isToday = calNow.get(java.util.Calendar.YEAR) == calMsg.get(java.util.Calendar.YEAR) &&
+            calNow.get(java.util.Calendar.DAY_OF_YEAR) == calMsg.get(java.util.Calendar.DAY_OF_YEAR)
+    
+    return if (isToday) {
+        java.text.SimpleDateFormat("a h:mm", java.util.Locale.KOREAN).format(java.util.Date(timestamp))
+    } else {
+        java.text.SimpleDateFormat("M/d a h:mm", java.util.Locale.KOREAN).format(java.util.Date(timestamp))
     }
 }

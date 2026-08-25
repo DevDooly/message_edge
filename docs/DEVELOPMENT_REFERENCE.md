@@ -95,6 +95,9 @@ graph TD
   - `gradle/actions/setup-gradle@v4` 및 `org.gradle.caching=true`, `org.gradle.parallel=true`, 4GB G1GC 메모리 최적화 적용.
   - `./gradlew testDebugUnitTest assembleRelease` 단일 파이프라인 통합 및 `lint { checkReleaseBuilds = false }` 적용으로 릴리즈 시간 획기적 단축.
 
+### 7) 메시지 및 알림 수신 시각 개별 표시 (`v1.4.1`)
+* **개선**: 대화형 알림의 각 말풍선 메시지 옆 및 일반 알림 본문 우측 하단에 한국어 12시간제('오후 3:24' 또는 'M/d a h:mm') 수신 시각(`formatMessageTime`)을 표시하여 언제 수신된 메시지인지 직관적으로 파악 가능하도록 개선.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
