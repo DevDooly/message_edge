@@ -19,6 +19,7 @@ data class AppSettings(
     val isEdgeLightingEnabled: Boolean = true,
     val edgeLightingDurationMs: Long = 3000L,
     val edgeLightingColor: Long = 0xFF00E5FF,
+    val edgeLightingCornerRadiusDp: Int = 32,
     val hapticFeedbackEnabled: Boolean = true,
     val excludedPackages: Set<String> = emptySet()
 )

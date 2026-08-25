@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.3",
+                                text = "v1.2.4",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -182,6 +182,7 @@ fun SettingsScreen() {
                 settings = settings,
                 onLightingToggle = { scope.launch { settingsRepo.updateEdgeLightingEnabled(it) } },
                 onColorChange = { scope.launch { settingsRepo.updateEdgeLightingColor(it) } },
+                onCornerRadiusChange = { scope.launch { settingsRepo.updateEdgeLightingCornerRadiusDp(it) } },
                 onTestTrigger = {
                     // 가상 테스트 알림 방출
                     NotificationRepository.addOrUpdateNotification(
@@ -223,7 +224,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.3")
+            AppUpdateCard(currentVersionName = "1.2.4")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -371,7 +372,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.3 (Build 23) | Target Android 14",
+                text = "버전 1.2.4 (Build 24) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -983,6 +984,7 @@ private fun EdgeLightingSettingsCard(
     settings: AppSettings,
     onLightingToggle: (Boolean) -> Unit,
     onColorChange: (Long) -> Unit,
+    onCornerRadiusChange: (Int) -> Unit,
     onTestTrigger: () -> Unit
 ) {
     Card(
@@ -1022,6 +1024,30 @@ private fun EdgeLightingSettingsCard(
                 ColorPaletteRow(
                     selectedColor = settings.edgeLightingColor,
                     onSelectColor = onColorChange
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // 모서리 둥글기 (곡률) 조절 (0dp 직각 ~ 50dp 둥근 모서리)
+                Text(
+                    text = "화면 모서리 곡률 / 둥글기 (${settings.edgeLightingCornerRadiusDp} dp)",
+                    color = Color.LightGray,
+                    fontSize = 13.sp
+                )
+                Text(
+                    text = if (settings.edgeLightingCornerRadiusDp == 0) "0 dp: 직각 디스플레이 (Galaxy Ultra 등)" else "스마트폰 모서리 곡률에 맞춰 조절하세요",
+                    color = Color.Gray,
+                    fontSize = 11.sp
+                )
+                Slider(
+                    value = settings.edgeLightingCornerRadiusDp.toFloat(),
+                    onValueChange = { onCornerRadiusChange(it.toInt()) },
+                    valueRange = 0f..50f,
+                    steps = 50,
+                    colors = SliderDefaults.colors(
+                        thumbColor = EdgeCyan,
+                        activeTrackColor = EdgeCyan
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -433,6 +433,7 @@ class EdgeOverlayService : Service() {
             setContent {
                 EdgeLightingEffect(
                     color = Color(currentSettings.edgeLightingColor),
+                    cornerRadiusDp = currentSettings.edgeLightingCornerRadiusDp,
                     durationMs = currentSettings.edgeLightingDurationMs,
                     onFinish = { removeEdgeLighting() }
                 )

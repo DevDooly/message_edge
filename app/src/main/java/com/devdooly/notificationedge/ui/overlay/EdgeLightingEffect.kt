@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun EdgeLightingEffect(
     color: Color = EdgeCyan,
+    cornerRadiusDp: Int = 32,
     durationMs: Long = 3000L,
     onFinish: () -> Unit
 ) {
@@ -49,7 +50,7 @@ fun EdgeLightingEffect(
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         val strokeWidth = 8.dp.toPx()
-        val cornerRadius = 32.dp.toPx()
+        val cornerRadius = cornerRadiusDp.dp.toPx()
         val colors = listOf(
             color.copy(alpha = alpha * 0.9f),
             color.copy(alpha = alpha * 0.2f),

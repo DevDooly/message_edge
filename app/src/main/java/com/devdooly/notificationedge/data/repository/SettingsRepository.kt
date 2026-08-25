@@ -32,6 +32,7 @@ class SettingsRepository(private val context: Context) {
         val EDGE_LIGHTING_ENABLED = booleanPreferencesKey("edge_lighting_enabled")
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
+        val EDGE_LIGHTING_CORNER_RADIUS_DP = intPreferencesKey("edge_lighting_corner_radius_dp")
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
     }
@@ -52,6 +53,7 @@ class SettingsRepository(private val context: Context) {
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
+            edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
             excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet()
         )
@@ -109,6 +111,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateEdgeLightingColor(color: Long) {
         context.dataStore.edit { it[PreferencesKeys.EDGE_LIGHTING_COLOR] = color }
+    }
+
+    suspend fun updateEdgeLightingCornerRadiusDp(radius: Int) {
+        context.dataStore.edit { it[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] = radius.coerceIn(0, 60) }
     }
 
     suspend fun updateHapticEnabled(enabled: Boolean) {
