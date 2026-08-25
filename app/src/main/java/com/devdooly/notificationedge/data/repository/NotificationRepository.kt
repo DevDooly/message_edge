@@ -1,8 +1,10 @@
 package com.devdooly.notificationedge.data.repository
 
+import android.app.ActivityOptions
 import android.app.RemoteInput
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.MessageItem
@@ -71,6 +73,7 @@ object NotificationRepository {
 
             val updatedNotification = notification.copy(
                 messages = mergedMessages,
+                contentIntent = notification.contentIntent ?: existing?.contentIntent,
                 isDismissed = false
             )
 
@@ -115,6 +118,48 @@ object NotificationRepository {
 
     fun dismissNotification(key: String) {
         removeNotification(key)
+    }
+
+    /**
+     * 채팅방으로 이동하거나 앱 실행
+     */
+    fun openNotificationApp(context: Context, notification: EdgeNotification, onClose: () -> Unit) {
+        var launched = false
+
+        // 1. PendingIntent(특정 채팅방으로 이동) 실행 시도
+        if (notification.contentIntent != null) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    val options = ActivityOptions.makeBasic().apply {
+                        pendingIntentBackgroundActivityStartMode = ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
+                    }
+                    notification.contentIntent.send(context, 0, null, null, null, null, options.toBundle())
+                } else {
+                    notification.contentIntent.send()
+                }
+                launched = true
+            } catch (e: Exception) {
+                e.printStackTrace()
+                launched = false
+            }
+        }
+
+        // 2. PendingIntent가 실패하거나 없는 경우 해당 앱의 런처 실행
+        if (!launched) {
+            try {
+                val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)?.apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                }
+                if (launchIntent != null) {
+                    context.startActivity(launchIntent)
+                    launched = true
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        onClose()
     }
 
     fun sendQuickReply(context: Context, action: NotificationActionItem, replyText: String) {

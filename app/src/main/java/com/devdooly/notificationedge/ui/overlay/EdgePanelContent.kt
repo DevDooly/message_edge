@@ -141,12 +141,7 @@ fun EdgePanelContent(
                                 notification = notification,
                                 onDismiss = { NotificationRepository.dismissNotification(notification.key) },
                                 onClick = {
-                                    try {
-                                        notification.contentIntent?.send()
-                                        onClose()
-                                    } catch (e: Exception) {
-                                        e.printStackTrace()
-                                    }
+                                    NotificationRepository.openNotificationApp(context, notification, onClose)
                                 },
                                 onSendReply = { action, text ->
                                     NotificationRepository.sendQuickReply(context, action, text)
@@ -376,6 +371,7 @@ private fun NotificationCard(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color(0xFF1E1E1E).copy(alpha = 0.6f))
+                        .clickable(onClick = onClick)
                         .padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -403,7 +399,10 @@ private fun NotificationCard(
                     }
 
                     displayMessages.forEach { msg ->
-                        Row(verticalAlignment = Alignment.Top) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top
+                        ) {
                             Text(
                                 text = "${msg.sender}: ",
                                 color = EdgeCyan,
