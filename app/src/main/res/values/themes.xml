@@ -2,5 +2,18 @@
 <resources>
     <style name="Theme.NotificationEdge" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@color/black</item>
+        <item name="android:windowBackground">@color/black</item>
+    </style>
+
+    <!-- Good Lock / Launcher 실행 시 화면 깜빡임 없이 0초 만에 닫히는 완전 투명 무애니메이션 테마 -->
+    <style name="Theme.NotificationEdge.TranslucentLauncher" parent="Theme.NotificationEdge">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
     </style>
 </resources>

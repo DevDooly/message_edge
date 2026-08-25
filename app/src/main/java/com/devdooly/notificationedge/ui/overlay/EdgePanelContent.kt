@@ -48,11 +48,11 @@ fun EdgePanelContent(
     val context = LocalContext.current
     val notifications by NotificationRepository.notifications.collectAsState()
 
-    // 전체 화면 배경 (반투명 터치 시 닫기)
+    // 전체 화면 배경 (완전 투명, 바깥 터치 시 닫기)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.45f))
+            .background(Color.Transparent)
             .clickable(onClick = onClose)
     ) {
         // 사이드 슬라이드 패널

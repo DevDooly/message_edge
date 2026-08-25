@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
             }
 
             // 2. 설정 화면 표시
+            setTheme(R.style.Theme_NotificationEdge)
             enableEdgeToEdge()
             setContent {
                 NotificationEdgeTheme {

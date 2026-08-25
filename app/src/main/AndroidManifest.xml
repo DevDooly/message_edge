@@ -33,7 +33,9 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.NotificationEdge">
+            android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
+            android:noHistory="false"
+            android:excludeFromRecents="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
