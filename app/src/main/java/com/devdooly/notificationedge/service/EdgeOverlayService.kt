@@ -307,21 +307,26 @@ class EdgeOverlayService : Service() {
         ).apply {
             gravity = Gravity.CENTER
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            windowAnimations = 0
+            format = PixelFormat.TRANSLUCENT
         }
 
         val lifecycleOwner = OverlayLifecycleOwner()
         panelLifecycleOwner = lifecycleOwner
 
         val composeView = ComposeView(this).apply {
+            setBackgroundColor(AndroidColor.TRANSPARENT)
             lifecycleOwner.attachToComposeView(this)
             isFocusable = true
             isFocusableInTouchMode = true
             setOnKeyListener { view, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                    imm?.hideSoftInputFromWindow(view.windowToken, 0)
-                    if (!lifecycleOwner.handleOnBackPressed()) {
-                        closePanel()
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    if (event.action == KeyEvent.ACTION_UP) {
+                        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                        imm?.hideSoftInputFromWindow(view.windowToken, 0)
+                        if (!lifecycleOwner.handleOnBackPressed()) {
+                            closePanel()
+                        }
                     }
                     true
                 } else {
@@ -350,6 +355,9 @@ class EdgeOverlayService : Service() {
 
         try {
             windowManager.addView(composeView, params)
+            composeView.post {
+                composeView.requestFocus()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -359,16 +367,25 @@ class EdgeOverlayService : Service() {
         if (!isPanelOpen) return
         isPanelOpen = false
 
-        panelComposeView?.let {
-            try {
-                windowManager.removeView(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            panelComposeView = null
-        }
-        panelLifecycleOwner?.onDestroy()
+        val view = panelComposeView
+        val owner = panelLifecycleOwner
+        panelComposeView = null
         panelLifecycleOwner = null
+
+        if (view != null) {
+            view.visibility = View.GONE
+            view.alpha = 0f
+            try {
+                windowManager.removeViewImmediate(view)
+            } catch (e: Exception) {
+                try {
+                    windowManager.removeView(view)
+                } catch (e2: Exception) {
+                    e2.printStackTrace()
+                }
+            }
+        }
+        owner?.onDestroy()
     }
 
     private fun showEdgeLighting() {

@@ -120,18 +120,30 @@ fun EdgePanelContent(
                     onHorizontalDrag = { _, dragAmount ->
                         dragOffsetX += dragAmount
                         if (dragOffsetX < -40f || dragOffsetX > 40f) {
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
                             onClose()
                         }
                     },
                     onDragEnd = {
                         if (kotlin.math.abs(dragOffsetX) > 30f) {
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
                             onClose()
                         }
                         dragOffsetX = 0f
                     }
                 )
             }
-            .clickable(onClick = onClose)
+            .clickable(
+                interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    onClose()
+                }
+            )
     ) {
         // 사이드 슬라이드 패널
         Surface(
