@@ -261,11 +261,7 @@ object MessengerNotificationParser {
     private fun buildGroupRoomTitleFromSenders(senders: List<String>, fallbackTitle: String): String {
         return when {
             senders.isEmpty() -> fallbackTitle.ifBlank { "그룹 채팅방" }
-            senders.size == 1 -> if (senders[0] != fallbackTitle && fallbackTitle.isNotBlank()) {
-                "${senders[0]}, $fallbackTitle"
-            } else {
-                "${senders[0]} (단체방)"
-            }
+            senders.size == 1 -> senders[0]
             senders.size == 2 -> "${senders[0]}, ${senders[1]}"
             senders.size == 3 -> "${senders[0]}, ${senders[1]}, ${senders[2]}"
             else -> "${senders[0]}, ${senders[1]}, ${senders[2]} 외 ${senders.size - 3}명"

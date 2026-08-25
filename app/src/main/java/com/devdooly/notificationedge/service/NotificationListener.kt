@@ -131,6 +131,8 @@ class NotificationListener : NotificationListenerService() {
             )
         }
 
+        val finalTitle = if (formattedTitle.isNotBlank()) formattedTitle else appName
+
         val extrasDump = dumpExtras(extras, sbn)
 
         val edgeNotification = EdgeNotification(
@@ -139,7 +141,7 @@ class NotificationListener : NotificationListenerService() {
             packageName = packageName,
             appName = appName,
             appIcon = appIcon,
-            title = formattedTitle,
+            title = finalTitle,
             text = parsed.cleanText,
             subText = parsed.groupRoomName ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
             messages = parsed.messages,

@@ -147,4 +147,28 @@ class MessengerNotificationParserTest {
         assertEquals("@미리비트 정진우 책임 미리 주문점여", result.cleanText)
         assertEquals(3, result.messages.size)
     }
+
+    @Test
+    fun `kakao talk group chat with 1 sender should keep sender name cleanly without awkward suffix`() {
+        val msg = Bundle().apply {
+            putCharSequence("sender", "김수환")
+            putCharSequence("text", "브레이크가 고장나서 가장자리로 달리려던걸까")
+            putLong("time", 1001L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김수환",
+            text = "브레이크가 고장나서 가장자리로 달리려던걸까",
+            isGroupConversation = true,
+            messages = arrayOf(msg)
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertTrue(result.isGroupChat)
+        assertEquals("김수환", result.roomTitle)
+        assertEquals("김수환", result.currentSender)
+        assertEquals("브레이크가 고장나서 가장자리로 달리려던걸까", result.cleanText)
+        assertEquals(1, result.messages.size)
+    }
 }
