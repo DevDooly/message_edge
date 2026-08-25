@@ -1,142 +1,133 @@
-# Notification Edge (알림 엣지)
+<div align="center">
+
+# 📱 Notification Edge (알림 엣지)
+
+**순정 갤럭시 감성을 그대로 담은 올인원 알림 오버레이 & 실시간 빠른 답장 시스템**
 
 <p align="center">
-  <img src="docs/images/notification_edge_preview.jpg" alt="Notification Edge App Preview" width="360" style="border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);" />
+  <img src="docs/images/notification_edge_preview.jpg" alt="Notification Edge Preview" width="380" style="border-radius: 24px; box-shadow: 0 10px 35px rgba(0,0,0,0.6);" />
 </p>
 
-<p align="center">
-  <a href="https://github.com/DevDooly/message_edge/releases/latest"><img src="https://img.shields.io/badge/Download-Latest%20APK-00E5FF?style=for-the-badge&logo=android&logoColor=black" alt="Download APK" /></a>
-  <img src="https://img.shields.io/badge/Platform-Android%208.0%2B-brightgreen?style=for-the-badge" alt="Platform" />
-  <img src="https://img.shields.io/badge/Language-Kotlin%202.0-purple?style=for-the-badge&logo=kotlin" alt="Kotlin" />
-</p>
+[![Latest Release](https://img.shields.io/github/v/release/DevDooly/message_edge?style=for-the-badge&color=00E5FF&logo=github&label=Release)](https://github.com/DevDooly/message_edge/releases/latest)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Compose](https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
 
-과거 삼성 갤럭시 스마트폰에서 제공되었던 Notification Edge(알림 엣지 패널) 기능을 최신 안드로이드(Android 8.0 ~ 14+) 및 One UI 환경에 맞춰 재구현한 독립형 오버레이 앱입니다.
+<br/>
 
-화면 가장자리 제스처를 통해 최근 알림을 실시간으로 확인하고, 빠른 답장(Quick Reply), 과거 대화 내역 누적 조회, 알림 삭제, 엣지 라이팅(Edge Lighting) 테두리 네온 효과를 순정 엣지처럼 이용할 수 있습니다.
+[📥 최신 APK 다운로드](https://github.com/DevDooly/message_edge/releases/latest) • 
+[📖 갤럭시 Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md) • 
+[🐛 이슈 제보 및 기능 제안](https://github.com/DevDooly/message_edge/issues)
+
+</div>
 
 ---
 
-## 📥 APK 다운로드 및 설치
+## 🌟 프로젝트 소개 (Overview)
 
-최신 빌드 APK는 GitHub Releases에서 바로 다운로드하여 설치할 수 있습니다. 고정 서명 키가 적용되어 있어 앱 삭제 없이 덮어쓰기 업데이트가 지원됩니다.
+**Notification Edge(알림 엣지)**는 과거 삼성 갤럭시 스마트폰에서 큰 사랑을 받았던 **'알림 엣지 패널'** 기능을 최신 안드로이드(Android 8.0 ~ 14+) 및 One UI 환경에 맞춰 현대적인 아키텍처와 감성적인 글래스모피즘(Glassmorphism) UI로 재탄생시킨 **오픈소스 독립형 오버레이 앱**입니다.
 
-👉 [최신 Notification Edge APK 다운로드 (Releases)](https://github.com/DevDooly/message_edge/releases/latest)
+게임 중이거나 다른 앱을 사용하는 도중에도 화면을 벗어나지 않고 **화면 가장자리 스와이프 제스처 한 번으로 최근 알림을 실시간으로 확인**하고, **카카오톡/문자 앱으로 이동하지 않고도 엣지 패널 안에서 채팅방처럼 실시간 대화를 주고받을 수 있습니다.**
 
-### ⚠️ 설치 시 '보안 위험으로 앱이 차단됨' 또는 설치 불가 오류가 뜰 때
+---
 
+## ✨ 주요 핵심 기능 (Feature Highlights)
+
+### 💬 1. 인라인 빠른 답장 & 실시간 대화 누적 (Live Chat Overlay)
+- **앱 이동 없는 채팅 지속**: 알림에서 바로 답장을 보내면, 상대방 메시지 아래에 **내가 보낸 답장(`나: 메시지`)이 대화 목록에 즉시 추가**되어 실제 메신저처럼 대화가 이어집니다.
+- **키보드 상단 플로팅 전송 바**: 엄지손가락이 닿기 쉬운 가상 키보드 바로 위에 답장 입력창과 전송 버튼(`[전송 ➔]`)이 제공됩니다.
+- **과거 대화 내역 최대 50개 누적 보관**: 같은 대화방의 이전 메시지들을 최대 50개까지 누적 보관하며, `[이전 대화 더보기]`로 과거 내역을 한눈에 확인할 수 있습니다.
+
+### 🪟 2. 글래스모피즘 오버레이 & 상태바 보호
+- **완전 투명 배경 & 무결점 전환**: 바탕화면 터치 시 깜빡임이나 잔상 없이 즉시 사라지는 쾌적한 반응 속도를 자랑합니다.
+- **최상단 상태 표시줄(Status Bar) 정보 보호**: 배터리 잔량, 현재 시간, Wi-Fi 신호, 시스템 알림 아이콘 등을 전혀 가리지 않도록 인셋 영역을 보존합니다.
+- **뒤로가기(Back) 제스처 순차 닫기**: 뒤로가기 시 `가상 키보드/답장창 닫기` ➔ `엣지 패널 닫기`가 자연스럽게 동작합니다.
+
+### 💡 3. 네온 엣지 라이팅 (Edge Lighting)
+- 알림이 도착하면 화면 둘레를 따라 부드럽게 빛나는 네온 그라데이션 발광 효과를 제공합니다.
+- 발광 색상(에메랄드, 퍼플, 네온 블루 등) 및 발광 지속 시간을 자유롭게 조절할 수 있습니다.
+
+### 📐 4. 정밀한 핸들바 & 패널 커스터마이징
+- **패널 가로 너비**: `220dp ~ 360dp` (5dp 단위 정밀 조절)
+- **핸들바 두께/너비**: `4dp ~ 30dp` 슬라이더 지원
+- **핸들바 높이 길이**: `50dp ~ 200dp`
+- **위치 및 투명도**: 좌/우 사이드 전환, 상하 위치 비율(10%~90%), 투명도(0%~100%), 색상 팔레트 지원
+- **핸들 숨김(제스처 전용 모드)**: 핸들을 화면에서 완전히 숨기고 Good Lock 제스처로만 깔끔하게 호출 가능
+
+### 🔄 5. 원클릭 인앱(In-App) 자동 업데이트
+- 매번 웹사이트를 찾아갈 필요 없이, 앱 설정 화면에서 **`[최신 업데이트 확인]` ➔ `[지금 다운로드 및 바로 업데이트]`** 터치 한 번으로 최신 버전이 자동 설치됩니다.
+- 릴리즈 노트와 변경 사항을 앱 내부에서 바로 확인할 수 있습니다.
+
+---
+
+## 📥 설치 방법 (Installation)
+
+### 1. APK 다운로드
+👉 **[GitHub Releases 최신 버전 다운로드](https://github.com/DevDooly/message_edge/releases/latest)**
+
+### ⚠️ 설치 시 '보안 위험으로 앱 차단됨' 오류 해결 방법
 삼성 One UI 6.0+ (Galaxy S23/S24 등) 또는 안드로이드 보안 기능으로 인해 설치가 차단되는 경우 아래 설정을 확인해 주세요:
 
 1. **삼성 '보안 위험 자동 차단(Auto Blocker)' 끄기** (One UI 6+ 갤럭시 기기)
-   - 스마트폰 `설정` ➔ `보안 및 개인정보 보호` ➔ `보안 위험 자동 차단` ➔ **`사용 안 함(OFF)`**으로 변경
+   - 스마트폰 `설정` ➔ `보안 및 개인정보 보호` ➔ `보안 위험 자동 차단` ➔ **`사용 안 함(OFF)`**
 2. **출처를 알 수 없는 앱 설치 허용**
-   - 스마트폰 `설정` ➔ `보안 및 개인정보 보호` ➔ `출처를 알 수 없는 앱 설치` ➔ 다운로드에 사용한 앱(`내 파일`, `Chrome`, `삼성 인터넷` 또는 `Notification Edge`) ➔ **`허용(ON)`**
-3. **Google Play 프로텍트 경고 창이 뜰 때**
+   - 스마트폰 `설정` ➔ `보안 및 개인정보 보호` ➔ `출처를 알 수 없는 앱 설치` ➔ 다운로드 앱(`내 파일`, `Chrome` 등) ➔ **`허용(ON)`**
+3. **Google Play 프로텍트 경고 창**
    - 팝업 창 하단의 `세부정보 더보기` ➔ **`무시하고 설치(안전하지 않음)`** 터치
 
 ---
 
-## 💡 갤럭시 기본 엣지 패널 연동 가이드
+## 💡 갤럭시 기본 엣지 & Good Lock 연동 꿀팁
 
-> 📖 상세한 설정 단계는 [갤럭시 기본 Edge & Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md) 문서를 참고해 주세요.
+> 📖 더욱 상세한 설정 안내는 **[갤럭시 기본 Edge & Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md)**를 참고하세요.
 
-갤럭시 스마트폰의 기본 Edge 패널과 알림 엣지가 겹쳐서 불편한 경우, 아래 추천 설정을 사용하면 간섭 없이 쾌적하게 이용할 수 있습니다.
+### ⭐ 가장 추천하는 설정: One Hand Operation + 제스처 연동
+화면에 별도 핸들을 띄우지 않고, 갤럭시 순정 제스처만으로 알림 엣지를 호출하는 가장 깔끔한 방법입니다.
 
-### ⭐ 추천 1: 삼성 Good Lock (One Hand Operation +) 제스처 연동
-
-화면에 별도 핸들을 띄우지 않고, 갤럭시 제스처만으로 알림 엣지를 즉시 호출하는 가장 깔끔한 방법입니다.
-
-1. **앱 설치**: [Google Play Store](https://play.google.com/store/apps/details?id=com.samsung.android.sidegesturepad) 또는 Galaxy Store에서 `One Hand Operation +` 및 `Good Lock`을 설치합니다.
-2. **핸들 선택**: `One Hand Operation +` 실행 후 `오른쪽 핸들` (또는 왼쪽 핸들)을 선택합니다.
-3. **제스처 지정**: 기본 엣지와 겹치지 않는 제스처(예: `대각선 아래로` 또는 `대각선 아래로 길게 당기기`)를 선택합니다.
-4. **동작 등록**: 제스처 동작 목록에서 `애플리케이션 실행` ➔ `Notification Edge`를 선택합니다.
-5. **핸들 숨김**: Notification Edge 앱 설정에서 `핸들 바 화면 표시`를 OFF로 변경합니다.
-6. **사용 방법**:
-   - 수평 스와이프: 삼성 기본 엣지 패널 실행
-   - 대각선 아래 스와이프: 알림 엣지 패널 + 테두리 엣지 라이팅 즉시 호출
-   - 닫기 제스처: 패널 화면을 터치 후 왼쪽으로 드래그하거나 바깥 투명 영역 터치
+1. **앱 설치**: Play Store 또는 Galaxy Store에서 `Good Lock` 및 `One Hand Operation +` 설치
+2. **제스처 지정**: `One Hand Operation +` ➔ `오른쪽 핸들` ➔ `대각선 아래로 당기기` 선택
+3. **동작 등록**: `애플리케이션 실행` ➔ **`Notification Edge`** 선택
+4. **핸들 숨김**: Notification Edge 앱 설정에서 `핸들 바 화면 표시`를 **OFF**로 변경
+5. **사용 결과**:
+   - **수평 스와이프**: 삼성 기본 도구 엣지 패널 실행
+   - **대각선 아래 스와이프**: Notification Edge 알림 패널 + 엣지 라이팅 즉시 호출
 
 ---
 
-### 추천 2: 좌/우 분리 배치 (양손 제스처)
-- 갤럭시 기본 Edge 패널: 화면 우측(Right) 유지
-- Notification Edge: 앱 설정에서 핸들 위치를 `왼쪽 (Left)`으로 설정
-- 효과: 오른쪽은 기본 도구 패널, 왼쪽은 알림 엣지로 분리 사용
+## 🛡️ 개인정보 보호 및 보안 (Privacy & Security First)
 
-### 추천 3: 상/하 높이 분리 배치 (동일 방향 사용)
-- 갤럭시 기본 Edge 패널: 시스템 설정에서 핸들 위치를 우측 상단(20~30%)으로 이동
-- Notification Edge: 앱 설정에서 핸들 위치를 우측 하단(70~80%)으로 설정
-- 효과: 엄지가 닿기 쉬운 아래쪽은 알림 엣지, 위쪽은 기본 도구 패널로 사용
+Notification Edge는 사용자의 프라이버시를 최우선으로 생각합니다:
+
+- 🔒 **100% 온디바이스 로컬 처리**: 사용자의 알림 및 메시지 데이터는 어떠한 외부 서버로도 전송되지 않으며, 스마트폰 기기 내부 메모리에서만 안전하게 동작합니다.
+- 🌐 **인터넷 권한 최소화**: 인터넷 통신은 **GitHub Releases 최신 버전 체크 및 APK 다운로드**에만 한정적으로 사용됩니다.
+- 🚫 **광고 및 유료 결제 없음**: 본 앱은 비상업적 오픈소스 프로젝트로, 일체의 광고나 추적기(Tracker), 유료 결제가 포함되어 있지 않습니다.
 
 ---
 
-## 📱 주요 기능
+## 🛠 기술 스택 (Tech Stack)
 
-### 1. 실시간 알림 캡처 (Notification Listener)
-- 실시간 푸시 알림 수신 및 발신자, 본문, 시간 파싱
-- 카카오톡, 문자(SMS) 등 메신저 대화형 알림 지원
-- 시스템 상태바에서 알림이 지워져도 패널 히스토리에 과거 알림 최대 150개까지 보관
-
-### 2. 과거 대화 내역 누적 및 확장 조회
-- 동일 대화방의 새 메시지 수신 시 이전 대화 뒤에 누적 보관 (최대 50개)
-- `이전 대화 더보기` 버튼을 통해 과거 긴 대화 내역 전체 확인 가능
-
-### 3. 슬라이드 아웃 엣지 패널 & 제스처 닫기
-- 뒤의 화면을 가리지 않는 100% 완전 투명 배경 오버레이
-- 패널 화면 터치 후 왼쪽 드래그(스와이프) 또는 바깥 터치로 즉시 닫기
-- 개별 알림 삭제 및 모두 지우기 지원
-
-### 4. 인라인 빠른 답장 (Quick Reply)
-- 카카오톡, 문자 등 답장 지원 알림의 경우 패널 내에서 직접 텍스트 답장 전송
-
-### 5. 엣지 라이팅 테두리 효과 (Edge Lighting)
-- 알림 수신 시 화면 둘레를 따라 빛나는 네온 그라데이션 애니메이션
-- 색상 커스텀 및 발광 시간 조절 지원
-
-### 6. 상세 커스터마이징 & 인앱 자동 업데이트
-- 핸들 위치(좌/우, 상하 위치 비율), 크기, 투명도, 색상 조절
-- 핸들 바 화면 표시 숨김(제스처 전용 모드) 지원
-- 햅틱 진동 피드백 설정
-- **GitHub Release 기반 인앱(In-App) 원클릭 자동 업데이트 & 릴리즈 노트 확인 기능**
+| 구분 | 기술 / 라이브러리 |
+| :--- | :--- |
+| **언어 (Language)** | Kotlin 2.0.21 |
+| **UI 프레임워크** | Jetpack Compose, Material 3, Glassmorphism Styling |
+| **아키텍처** | Modern Android Architecture (MVVM, Clean Architecture) |
+| **비동기 / 반응형** | Kotlin Coroutines, StateFlow, SharedFlow |
+| **데이터 영속성** | Jetpack DataStore Preferences |
+| **시스템 통합** | `NotificationListenerService`, `WindowManager (TYPE_APPLICATION_OVERLAY)`, `OverlayPanelLayout (dispatchKeyEvent)`, `ForegroundService` |
 
 ---
 
-## 🛠 기술 스택
+## 📜 라이선스 (License)
 
-- **Language**: Kotlin 2.0.21
-- **UI**: Jetpack Compose, Material 3
-- **Architecture**: Modern Android Architecture (MVVM, Clean Architecture)
-- **Async / Reactive**: Kotlin Coroutines, StateFlow, SharedFlow
-- **Storage**: Jetpack DataStore Preferences
-- **System**:
-  - `NotificationListenerService`
-  - `WindowManager` (TYPE_APPLICATION_OVERLAY)
-  - `ComposeView` + Custom `OverlayLifecycleOwner`
-  - `ForegroundService`
+본 프로젝트는 **[Apache License 2.0](LICENSE)**에 따라 배포되는 오픈소스 소프트웨어입니다. 누구나 자유롭게 소스 코드를 열람, 수정, 재배포할 수 있습니다.
 
----
+```
+Copyright 2026 DevDooly
 
-## 🔒 필요 권한 안내
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-1. **다른 앱 위에 표시**: 화면 가장자리에 엣지 오버레이 패널을 표시하기 위해 필요합니다.
-2. **알림 접근 허용**: 수신되는 알림을 감지하여 패널에 표시하기 위해 필요합니다.
-3. **배터리 사용량 최적화 중지 (선택)**: 백그라운드 서비스가 절전 모드로 종료되는 것을 방지합니다.
-
----
-
-## ❓ 팁: '다른 앱 위에 표시됨' 상단 시스템 알림 끄는 방법
-
-안드로이드 OS 자체 보안 기능으로 인해 상단 바에 `Notification Edge이(가) 다른 앱 위에 표시됨` (또는 `다른 앱 위에 표시 중`) 알림이 상시 떠 있는 경우, 아래 방법 중 하나로 깔끔하게 영구 제거할 수 있습니다:
-
-### 방법 1. 상단 바 알림에서 바로 끄기 (가장 추천 / 3초 완료)
-1. 스마트폰 상단 바를 내려 `Notification Edge이(가) 다른 앱 위에 표시됨` 알림을 찾습니다.
-2. 해당 알림을 **길게 꾹 누릅니다** (또는 알림을 살짝 밀어 톱니바퀴 ⚙️ 설정 아이콘 터치).
-3. **`[알림 끄기]`** (또는 알림 스위치 OFF) ➔ **`적용`**을 누릅니다.
-
-### 방법 2. 스마트폰 시스템 설정에서 끄기
-1. 스마트폰 `설정` ➔ `애플리케이션`으로 이동합니다.
-2. 앱 목록 우측의 `필터 및 정렬` 아이콘을 눌러 **`시스템 앱 표시`**를 **ON(켜기)**으로 변경합니다.
-3. 목록에서 **`Android 시스템`**을 찾아 선택합니다.
-4. **`알림`** ➔ **`알림 카테고리`**로 들어갑니다.
-5. **`다른 앱 위에 표시되는 앱`** (또는 `다른 앱 위에 표시 중`) 스위치를 **OFF(끄기)**로 변경합니다.
-
-> 💡 **참고**: 이 설정은 안드로이드 OS 시스템의 오버레이 안내 알림 카테고리만 끄는 것이므로, 알림 엣지 앱의 모든 기능(알림 수신, 빠른 답장, 엣지 패널, 엣지 라이팅 등)은 100% 정상 작동합니다.
+    http://www.apache.org/licenses/LICENSE-2.0
+```
