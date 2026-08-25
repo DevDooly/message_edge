@@ -70,8 +70,7 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updateHandleWidthDp(width: Int) {
-        val snapped = (width / 5) * 5
-        context.dataStore.edit { it[PreferencesKeys.HANDLE_WIDTH_DP] = snapped.coerceIn(5, 25) }
+        context.dataStore.edit { it[PreferencesKeys.HANDLE_WIDTH_DP] = width.coerceIn(4, 30) }
     }
 
     suspend fun updateHandleHeightDp(height: Int) {

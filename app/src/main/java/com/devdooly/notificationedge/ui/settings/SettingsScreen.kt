@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.0",
+                                text = "v1.2.1",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -168,6 +168,7 @@ fun SettingsScreen() {
                 settings = settings,
                 onSideChange = { scope.launch { settingsRepo.updateEdgeSide(it) } },
                 onPositionChange = { scope.launch { settingsRepo.updateHandlePositionRatio(it) } },
+                onWidthChange = { scope.launch { settingsRepo.updateHandleWidthDp(it) } },
                 onHeightChange = { scope.launch { settingsRepo.updateHandleHeightDp(it) } },
                 onPanelWidthChange = { scope.launch { settingsRepo.updatePanelWidthDp(it) } },
                 onAutoDismissToggle = { scope.launch { settingsRepo.updateAutoDismissOnOpen(it) } },
@@ -222,7 +223,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.0")
+            AppUpdateCard(currentVersionName = "1.2.1")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -370,7 +371,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.0 (Build 20) | Target Android 14",
+                text = "버전 1.2.1 (Build 21) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -773,6 +774,7 @@ private fun EdgeHandleSettingsCard(
     settings: AppSettings,
     onSideChange: (EdgeSide) -> Unit,
     onPositionChange: (Float) -> Unit,
+    onWidthChange: (Int) -> Unit,
     onHeightChange: (Int) -> Unit,
     onPanelWidthChange: (Int) -> Unit,
     onAutoDismissToggle: (Boolean) -> Unit,
@@ -918,6 +920,25 @@ private fun EdgeHandleSettingsCard(
                 onValueChange = { onHeightChange(it.toInt()) },
                 valueRange = 50f..200f,
                 steps = 29,
+                colors = SliderDefaults.colors(
+                    thumbColor = EdgeCyan,
+                    activeTrackColor = EdgeCyan
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 핸들 너비 (두께 조절)
+            Text(
+                "핸들 가로 너비 / 두께 (${settings.handleWidthDp} dp)",
+                color = Color.LightGray,
+                fontSize = 13.sp
+            )
+            Slider(
+                value = settings.handleWidthDp.toFloat(),
+                onValueChange = { onWidthChange(it.toInt()) },
+                valueRange = 4f..30f,
+                steps = 25,
                 colors = SliderDefaults.colors(
                     thumbColor = EdgeCyan,
                     activeTrackColor = EdgeCyan
