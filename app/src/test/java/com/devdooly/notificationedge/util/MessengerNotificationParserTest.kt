@@ -1,0 +1,107 @@
+package com.devdooly.notificationedge.util
+
+import android.app.Notification
+import android.content.Context
+import android.os.Bundle
+import android.service.notification.StatusBarNotification
+import androidx.core.app.NotificationCompat
+import androidx.test.core.app.ApplicationProvider
+import io.mockk.every
+import io.mockk.mockk
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE)
+class MessengerNotificationParserTest {
+
+    private lateinit var context: Context
+
+    @Before
+    fun setUp() {
+        context = ApplicationProvider.getApplicationContext()
+    }
+
+    private fun createMockSbn(
+        packageName: String = "com.kakao.talk",
+        title: String? = null,
+        text: String? = null,
+        subText: String? = null,
+        conversationTitle: String? = null,
+        summaryText: String? = null
+    ): StatusBarNotification {
+        val sbn = mockk<StatusBarNotification>(relaxed = true)
+        
+        val builder = NotificationCompat.Builder(context, "test_channel")
+            .setContentTitle(title)
+            .setContentText(text)
+            .setSubText(subText)
+            
+        val notification = builder.build()
+        if (conversationTitle != null) {
+            notification.extras.putCharSequence(Notification.EXTRA_CONVERSATION_TITLE, conversationTitle)
+        }
+        if (summaryText != null) {
+            notification.extras.putCharSequence(Notification.EXTRA_SUMMARY_TEXT, summaryText)
+        }
+
+        every { sbn.packageName } returns packageName
+        every { sbn.notification } returns notification
+        every { sbn.postTime } returns 1000L
+
+        return sbn
+    }
+
+    @Test
+    fun `kakao talk group chat with subText should extract room title and sender properly`() {
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "홍길동",
+            text = "오늘 회의 몇시인가요?",
+            subText = "개발팀 단톡방"
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertEquals("개발팀 단톡방", result.roomTitle)
+        assertEquals("개발팀 단톡방", result.groupRoomName)
+        assertTrue(result.isGroupChat)
+        assertEquals("홍길동", result.currentSender)
+        assertEquals("오늘 회의 몇시인가요?", result.cleanText)
+    }
+
+    @Test
+    fun `kakao talk group chat with title containing paren should extract room title`() {
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "홍길동 (가족모임)",
+            text = "저녁 7시에 만나요"
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertEquals("가족모임", result.roomTitle)
+        assertEquals("가족모임", result.groupRoomName)
+        assertTrue(result.isGroupChat)
+        assertEquals("홍길동", result.currentSender)
+    }
+
+    @Test
+    fun `kakao talk 1-to-1 direct message should remain direct chat`() {
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "이영희",
+            text = "밥 먹었어?"
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertEquals("이영희", result.roomTitle)
+        assertNull(result.groupRoomName)
+        assertEquals("이영희", result.currentSender)
+        assertEquals("밥 먹었어?", result.cleanText)
+    }
+}

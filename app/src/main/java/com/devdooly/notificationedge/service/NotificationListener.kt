@@ -80,120 +80,18 @@ class NotificationListener : NotificationListenerService() {
                 extras.containsKey("android.mediaSession")
         if (isMediaTransport) return
 
-        val isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
-        val conversationTitle = extras.getCharSequence(Notification.EXTRA_CONVERSATION_TITLE)?.toString()?.trim()
-        val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim()
-        val summaryText = extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()?.trim()
-
-        val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
-            ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()?.trim()
-            ?: ""
-
-        val rawText = extras.getCharSequence(Notification.EXTRA_BIG_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            ?: extras.getCharSequence(Notification.EXTRA_INFO_TEXT)?.toString()
-            ?: ""
+        val parsed = com.devdooly.notificationedge.util.MessengerNotificationParser.parse(sbn)
 
         // 내용이 없는 빈 알림은 무시
-        if (rawTitle.isBlank() && rawText.isBlank() && conversationTitle.isNullOrBlank() && subText.isNullOrBlank()) return
+        if (parsed.roomTitle.isBlank() && parsed.cleanText.isBlank() && parsed.messages.isEmpty()) return
 
-        val isKakaoTalk = packageName == "com.kakao.talk"
-
-        // 단체 채팅방 판별 및 실제 단체방 방 이름(Room Title) 추출:
-        // 1. EXTRA_CONVERSATION_TITLE이 있으면 최우선 방 이름
-        // 2. 카카오톡의 경우 단체방에서만 subText에 방 이름이 들어오므로 subText를 방 이름으로 채택
-        // 3. isGroupConversation == true 이고 subText가 존재하면 subText 채택
-        // 4. summaryText가 있고 rawTitle과 다르면 summaryText 채택
-        val isGroupChat = !conversationTitle.isNullOrBlank() ||
-                isGroupConversation ||
-                (isKakaoTalk && !subText.isNullOrBlank()) ||
-                (!subText.isNullOrBlank() && rawTitle.isNotBlank() && subText != rawTitle) ||
-                rawTitle.contains(",")
-
-        val determinedRoomTitle = when {
-            !conversationTitle.isNullOrBlank() -> conversationTitle
-            isKakaoTalk && !subText.isNullOrBlank() -> subText
-            !subText.isNullOrBlank() && isGroupConversation -> subText
-            !summaryText.isNullOrBlank() && isGroupConversation -> summaryText
-            else -> rawTitle
-        }
-
-        val formattedTitle = if (isGroupChat || determinedRoomTitle.contains(",")) {
-            com.devdooly.notificationedge.util.NotificationTextCleaner.formatGroupTitle(determinedRoomTitle)
+        val formattedTitle = if (parsed.isGroupChat || parsed.roomTitle.contains(",")) {
+            com.devdooly.notificationedge.util.NotificationTextCleaner.formatGroupTitle(parsed.roomTitle)
         } else {
-            determinedRoomTitle
+            parsed.roomTitle
         }
-
-        // 단체방인 경우 개별 메시지 발신자(Sender)는 rawTitle(보낸사람 이름)을 우선 사용
-        val defaultSender = if (isGroupChat && determinedRoomTitle != rawTitle && rawTitle.isNotBlank()) {
-            rawTitle
-        } else {
-            formattedTitle
-        }
-
-        val cleanedText = com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
-            rawText,
-            formattedTitle,
-            defaultSender
-        )
 
         val pm = applicationContext.packageManager
-
-        // 대화형 알림(카카오톡, 문자 등 MessagingStyle) 메시지 추출
-        val messagesList = mutableListOf<com.devdooly.notificationedge.data.model.MessageItem>()
-        @Suppress("DEPRECATION")
-        val rawMessages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
-        if (rawMessages != null) {
-            for (raw in rawMessages) {
-                if (raw is android.os.Bundle) {
-                    val msgText = raw.getCharSequence("text")?.toString() ?: ""
-
-                    // 발신자 이름 추출 (Android P Person 객체, bundle, sender 문자열 등 모두 지원)
-                    var msgSender: String? = raw.getCharSequence("sender")?.toString()?.trim()
-                    if (msgSender.isNullOrBlank()) {
-                        @Suppress("DEPRECATION")
-                        val personObj = raw.get("sender_person")
-                        if (personObj is android.os.Bundle) {
-                            msgSender = personObj.getCharSequence("name")?.toString()?.trim()
-                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && personObj is android.app.Person) {
-                            msgSender = personObj.name?.toString()?.trim()
-                        }
-                    }
-                    if (msgSender.isNullOrBlank()) {
-                        msgSender = defaultSender
-                    }
-
-                    val cleanedMsgText = com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
-                        msgText,
-                        formattedTitle,
-                        msgSender
-                    )
-                    val msgTime = raw.getLong("time", System.currentTimeMillis())
-
-                    if (cleanedMsgText.isNotBlank()) {
-                        messagesList.add(
-                            com.devdooly.notificationedge.data.model.MessageItem(
-                                sender = msgSender,
-                                text = cleanedMsgText,
-                                timestamp = msgTime
-                            )
-                        )
-                    }
-                }
-            }
-        }
-
-        // 만약 EXTRA_MESSAGES가 없지만 단일 메시지 텍스트가 있고 단체방인 경우 메시지 아이템으로 변환
-        if (messagesList.isEmpty() && cleanedText.isNotBlank() && isGroupChat) {
-            messagesList.add(
-                com.devdooly.notificationedge.data.model.MessageItem(
-                    sender = defaultSender,
-                    text = cleanedText,
-                    timestamp = sbn.postTime
-                )
-            )
-        }
-
         val appName = try {
             val appInfo = pm.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
             pm.getApplicationLabel(appInfo).toString()
@@ -239,9 +137,9 @@ class NotificationListener : NotificationListenerService() {
             appName = appName,
             appIcon = appIcon,
             title = formattedTitle,
-            text = cleanedText,
-            subText = subText,
-            messages = messagesList,
+            text = parsed.cleanText,
+            subText = parsed.groupRoomName ?: extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString(),
+            messages = parsed.messages,
             timestamp = sbn.postTime,
             contentIntent = contentIntent,
             actions = actionsList,

@@ -119,6 +119,13 @@ graph TD
   - `Theme.NotificationEdge.TranslucentPanel`에 `windowDrawsSystemBarBackgrounds=true`, `enforceStatusBarContrast=false`, `enforceNavigationBarContrast=false` 속성 추가.
   - `EdgePanelActivity.kt`에서 `enableEdgeToEdge()`를 투명 스타일(`Color.TRANSPARENT`)로 명시 선언하고, `isStatusBarContrastEnforced = false`, `isNavigationBarContrastEnforced = false`를 코드로 강제 적용하여 상단 배터리바 및 하단 네비바가 완전 투명하게 유지되도록 개선.
 
+### 11) 앱별 특화 메신저 알림 파서(`MessengerNotificationParser`) 및 단체방 뱃지 UI 도입 (`v1.4.5`)
+* **개선**:
+  - 카카오톡(`com.kakao.talk`), 텔레그램, 라인, 기본 문자 등 메신저별 알림 데이터 구조에 특화된 `MessengerNotificationParser.kt` 구축.
+  - `subText`, `conversationTitle`, `summaryText`, 괄호(`"홍길동 (가족모임)"`), 본문 대괄호(`"[가족모임] ..."`), 쉼표 참여자 목록 등 모든 단체방 패턴을 100% 감지하여 단체방 이름 및 발신자 완벽 분리.
+  - `NotificationCard` 상단 헤더에 `카카오톡 › 단체방이름` 경로 표시 및 제목 앞 `[단체방]` 청록색 뱃지를 부여하여 단체방 식별 시인성 극대화.
+  - `MessengerNotificationParserTest.kt` 단위 테스트 스위트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

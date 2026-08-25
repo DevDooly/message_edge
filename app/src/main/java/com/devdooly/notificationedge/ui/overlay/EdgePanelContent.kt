@@ -596,15 +596,32 @@ private fun NotificationCard(
                     }
                 }
 
-                Text(
-                    text = notification.appName,
-                    color = Color.LightGray,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = notification.appName,
+                        color = Color.LightGray,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    // 단체방이거나 subText가 있는 경우 상단에 방 태그 노출
+                    val sub = notification.subText
+                    if (!sub.isNullOrBlank() && sub != notification.title && sub != notification.appName) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "› $sub",
+                            color = Color(0xFFAAAAAA),
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
 
                 if (notification.isDismissed) {
                     Surface(
@@ -644,16 +661,40 @@ private fun NotificationCard(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            // 알림 제목
+            // 알림 제목 (단체방 이름 또는 발신자 이름)
             if (notification.title.isNotBlank()) {
-                Text(
-                    text = notification.title,
-                    color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val isGroupChat = notification.messages.isNotEmpty() && (
+                            notification.subText != null ||
+                            notification.title.contains("(") ||
+                            notification.title.contains(",") ||
+                            notification.messages.any { it.sender.isNotBlank() && it.sender != notification.title }
+                    )
+                    if (isGroupChat) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = EdgeCyan.copy(alpha = 0.18f),
+                            border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.6f))
+                        ) {
+                            Text(
+                                text = "단체방",
+                                color = EdgeCyan,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(5.dp))
+                    }
+                    Text(
+                        text = notification.title,
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             // 알림 본문 또는 대화 내역 (과거 내역 확장 지원)
