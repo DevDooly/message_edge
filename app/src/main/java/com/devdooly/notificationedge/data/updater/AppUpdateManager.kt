@@ -93,7 +93,7 @@ object AppUpdateManager {
     /**
      * 버전 문자열 비교 (예: "1.1.0" vs "v1.1.1" -> true)
      */
-    private fun isNewerVersion(current: String, latest: String): Boolean {
+    internal fun isNewerVersion(current: String, latest: String): Boolean {
         val cleanCurrent = current.removePrefix("v").trim()
         val cleanLatest = latest.removePrefix("v").trim()
 

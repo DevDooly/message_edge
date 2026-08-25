@@ -81,11 +81,15 @@ graph TD
    - `AppUpdateCard(currentVersionName = "1.3.7")`
    - `AppInfoCard` (예: `버전 1.3.7 (Build 37) | Target Android 14`)
 
-### 2) 빌드 검증 명령어
+### 2) 테스트 및 빌드 검증 명령어
 ```bash
+# 로컬 JVM 단위 테스트 실행
+./gradlew testDebugUnitTest
+
+# 디버그 & 릴리즈 빌드 검증
 ./gradlew compileDebugKotlin assembleRelease
 ```
-*(빌드가 성공(`BUILD SUCCESSFUL`)하는지 반드시 확인)*
+*(테스트 및 빌드가 성공(`BUILD SUCCESSFUL`)하는지 반드시 확인)*
 
 ### 3) Git 커밋, 태그 생성 및 원격 자동 푸시
 ```bash
@@ -95,6 +99,23 @@ git tag -a v버전 -m "Release v버전: 상세 설명"
 git push origin main
 git push origin v버전
 ```
+
+---
+
+## 🧪 4. 테스트 환경 및 스위트 구조
+
+프로젝트에는 다음과 같은 로컬 JVM 단위 테스트 및 계측 테스트 환경이 구축되어 있습니다:
+
+| 테스트 클래스 | 테스트 대상 및 내용 |
+| :--- | :--- |
+| **`NotificationTextCleanerTest`** | 1:1 대화 발신자 접두어(`홍길동: `), 전화번호 접두어, 대괄호(`[Web발신]`), 단체방 긴 제목 포맷팅 정제 룰 검증 |
+| **`AppUpdateManagerTest`** | 시맨틱 버전 비교 로직(`isNewerVersion`) 무결성 검증 |
+| **`EdgeNotificationTest`** | 알림 엔티티 기본값, 메시지 모델, 빠른 답장 액션 플래그 검증 |
+| **`AppSettingsTest`** | 앱 설정 기본값(패널 크기, 투명도, 엣지 라이팅 등) 검증 |
+| **`SettingsRepositoryTest`** | Robolectric 기반 DataStore 및 SharedPreferences 동기화 동작 검증 |
+
+> [!TIP]
+> GitHub Actions CI 파이프라인(`.github/workflows/release.yml`)에 `testDebugUnitTest`가 자동 연동되어 있어, main 푸시 및 릴리즈 태그 생성 시 단위 테스트가 자동으로 실행 및 검증됩니다.
 
 ---
 
