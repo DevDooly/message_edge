@@ -120,6 +120,16 @@ fun SettingsScreen() {
                 }
             )
 
+            // 삼성 Good Lock 연동 가이드 카드
+            GoodLockIntegrationCard(
+                onTestOpenPanel = {
+                    val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            )
+
             // 엣지 핸들 설정
             EdgeHandleSettingsCard(
                 settings = settings,
@@ -222,6 +232,53 @@ private fun MasterSwitchCard(
                     checkedTrackColor = EdgeCyan.copy(alpha = 0.3f)
                 )
             )
+        }
+    }
+}
+
+@Composable
+private fun GoodLockIntegrationCard(
+    onTestOpenPanel: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.TouchApp,
+                    contentDescription = null,
+                    tint = EdgeCyan,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "삼성 Good Lock (제스처) 연동",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "One Hand Operation +의 제스처에 '알림 엣지 열기'를 등록하면 화면에 핸들을 안 띄우고도 순정처럼 알림 패널을 열 수 있습니다.",
+                color = Color.LightGray,
+                fontSize = 12.sp,
+                lineHeight = 17.sp
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = onTestOpenPanel,
+                colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black)
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("알림 엣지 즉시 열기 테스트", color = Color.Black, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

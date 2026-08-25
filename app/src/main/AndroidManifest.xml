@@ -40,6 +40,24 @@
             </intent-filter>
         </activity>
 
+        <!-- Good Lock / Shortcut용 엣지 패널 열기 투명 액티비티 -->
+        <activity
+            android:name=".ui.OpenPanelActivity"
+            android:exported="true"
+            android:label="@string/open_panel_activity_label"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:noHistory="true"
+            android:excludeFromRecents="true">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.devdooly.notificationedge.OPEN_PANEL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <!-- Notification Listener Service -->
         <service
             android:name=".service.NotificationListener"

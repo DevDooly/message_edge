@@ -66,6 +66,23 @@ class EdgeOverlayService : Service() {
         observeNewNotifications()
     }
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_OPEN_PANEL -> {
+                triggerHaptic()
+                openPanel()
+            }
+            ACTION_CLOSE_PANEL -> {
+                closePanel()
+            }
+            ACTION_TOGGLE_PANEL -> {
+                triggerHaptic()
+                if (isPanelOpen) closePanel() else openPanel()
+            }
+        }
+        return START_STICKY
+    }
+
     private fun startForegroundNotification() {
         val channelId = "notification_edge_service_channel"
         val channelName = "Notification Edge Service"
@@ -402,5 +419,8 @@ class EdgeOverlayService : Service() {
 
     companion object {
         private const val NOTIFICATION_ID = 1001
+        const val ACTION_OPEN_PANEL = "com.devdooly.notificationedge.ACTION_OPEN_PANEL"
+        const val ACTION_CLOSE_PANEL = "com.devdooly.notificationedge.ACTION_CLOSE_PANEL"
+        const val ACTION_TOGGLE_PANEL = "com.devdooly.notificationedge.ACTION_TOGGLE_PANEL"
     }
 }
