@@ -38,10 +38,22 @@ graph TD
 | **`util/CustomFontManager.kt`** | 사용자 기기 내 폰트 파일(`.ttf`, `.otf`, `.ttc`)을 SAF로 복사, 검증, 저장 및 로드하는 폰트 매니저. |
 | **`ui/overlay/EdgePanelContent.kt`** | 엣지 패널의 Compose UI. 알림 카드 목록, 1:1 대화 및 그룹 채팅 분리 렌더링, 빠른 답장 입력창, 바깥 터치/드래그 닫기 처리. |
 | **`ui/overlay/OverlayPanelLayout.kt`** | WindowManager 오버레이 창에서 안드로이드 뒤로가기(`KEYCODE_BACK`) 및 제스처 뒤로가기를 100% 가로채기 위한 커스텀 FrameLayout (`dispatchKeyEventPreIme` 포함). |
-| **`MainActivity.kt`** | `Theme.NoDisplay` 기반의 런처 트램펄린 액티비티. 윈도우 생성 없이 0ms 만에 엣지 서비스를 띄우고 즉시 종료. |
+| **`ui/overlay/EdgePanelActivity.kt`** | 완전 투명 무애니메이션 호스트 액티비티. 안드로이드 OS 레벨의 네비게이션 뒤로가기(하단 소프트키 버튼 및 화면 제스처)를 100.0% 완벽 가로채어 닫기 처리. |
+| **`MainActivity.kt`** | `Theme.NoDisplay` 기반의 런처 트램펄린 액티비티. 윈도우 생성 없이 0ms 만에 `EdgePanelActivity`를 띄우고 즉시 종료. |
 | **`ui/settings/SettingsActivity.kt`** | 앱 설정 화면 전용 액티비티. 엣지 패널 상단의 [⚙️ 설정] 버튼을 눌렀을 때만 열림. |
 | **`ui/OpenPanelActivity.kt`** | Good Lock 및 외부 숏컷 전용 `Theme.NoDisplay` 액티비티. |
 | **`service/OpenPanelReceiver.kt`** | Good Lock, Tasker, 자동화 앱에서 브로드캐스트로 엣지 패널을 여닫는 리시버 (`com.devdooly.notificationedge.OPEN_PANEL`). |
+
+---
+
+## 🧰 2. 프로젝트 전용 Antigravity 스킬 (.agents/skills/)
+
+| 스킬명 | 경로 | 주요 역할 |
+| :--- | :--- | :--- |
+| **`android-overlay-expert`** | [`.agents/skills/android-overlay-expert/SKILL.md`](../.agents/skills/android-overlay-expert/SKILL.md) | 오버레이 윈도우, 투명 호스트 액티비티, `NotificationListenerService`, 안드로이드 8~15 포커스/뒤로가기 제어 런북 |
+| **`compose-ui-profiler`** | [`.agents/skills/compose-ui-profiler/SKILL.md`](../.agents/skills/compose-ui-profiler/SKILL.md) | Jetpack Compose UI 성능 최적화, 불필요한 Recomposition 제거, 120fps 애니메이션 튜닝 |
+| **`android-test-automation`** | [`.agents/skills/android-test-automation/SKILL.md`](../.agents/skills/android-test-automation/SKILL.md) | 단위/회귀 테스트 자동화, Compose UI/DataStore 테스트 작성, 회귀 방지(Regression Defense) |
+| **`app-release-pipeline`** | [`.agents/skills/app-release-pipeline/SKILL.md`](../.agents/skills/app-release-pipeline/SKILL.md) | 버전 판올림 4곳 동기화, GitHub Release 배포 및 인앱 업데이트 무결성 관리 |
 
 ---
 

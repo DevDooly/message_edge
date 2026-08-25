@@ -11,42 +11,45 @@
 
 ---
 
-## 📚 2. 핵심 참조 문서 (Reference Documents)
+## 🧰 2. 프로젝트 전용 Antigravity 스킬 (.agents/skills/)
 
-작업 전 반드시 다음 문서들을 확인하고 가이드를 준수하십시오:
+본 프로젝트에는 전문적인 개발과 회귀 방지를 위해 다음 4가지 전용 스킬이 구축되어 있습니다:
 
-1. **[`docs/DEVELOPMENT_REFERENCE.md`](docs/DEVELOPMENT_REFERENCE.md)**:
-   - 전체 아키텍처 다이어그램 및 주요 컴포넌트 역할
-   - 이전 버전들의 트러블슈팅 내역 및 해결 방식
-   - 표준 빌드, 버전 판올림, Git 배포 명령어 모음
-2. **[`docs/PENDING_ISSUES.md`](docs/PENDING_ISSUES.md)**:
-   - 추후 해결할 기술적 과제 및 미해결 이슈 목록 (예: 유튜브 전체화면 PiP 완화 연구 등)
+| 스킬명 | 경로 | 설명 및 활용 시점 |
+| :--- | :--- | :--- |
+| **`android-overlay-expert`** | [`.agents/skills/android-overlay-expert/SKILL.md`](.agents/skills/android-overlay-expert/SKILL.md) | 오버레이 윈도우, 투명 호스트 액티비티, `NotificationListenerService`, 안드로이드 8~15 포커스/뒤로가기 제어 시 활용 |
+| **`compose-ui-profiler`** | [`.agents/skills/compose-ui-profiler/SKILL.md`](.agents/skills/compose-ui-profiler/SKILL.md) | Jetpack Compose UI 성능 최적화, 불필요한 Recomposition 제거, 120fps 애니메이션 튜닝 시 활용 |
+| **`android-test-automation`** | [`.agents/skills/android-test-automation/SKILL.md`](.agents/skills/android-test-automation/SKILL.md) | 단위/회귀 테스트 자동화, Compose UI/DataStore 테스트 작성, 회귀 방지(Regression Defense) 시 활용 |
+| **`app-release-pipeline`** | [`.agents/skills/app-release-pipeline/SKILL.md`](.agents/skills/app-release-pipeline/SKILL.md) | 버전 판올림 4곳 동기화, GitHub Release 배포 및 인앱 업데이트 무결성 관리 시 활용 |
 
 ---
 
-## 🏗 3. 핵심 아키텍처 및 주의사항
+## 📚 3. 핵심 참조 문서 (Reference Documents)
 
-1. **NoDisplay 트램펄린 아키텍처 (`MainActivity` vs `SettingsActivity`)**:
-   - `MainActivity.kt`는 `Theme.NoDisplay` 테마로 실행되며, 화면을 띄우지 않고 0ms 동기로 `EdgeOverlayService`를 호출 후 즉시 종료됩니다.
-   - 무거운 Compose 설정 UI는 반드시 `SettingsActivity.kt`에서만 구동되어야 합니다.
+1. **[`docs/DEVELOPMENT_REFERENCE.md`](docs/DEVELOPMENT_REFERENCE.md)**: 전체 아키텍처 다이어그램, 이전 버전 트러블슈팅 내역, 빌드 최적화 및 배포 가이드
+2. **[`docs/PENDING_ISSUES.md`](docs/PENDING_ISSUES.md)**: 추후 해결할 기술적 과제 및 미해결 이슈 목록 (예: 유튜브 전체화면 PiP 완화 연구 등)
 
-2. **오버레이 윈도우 및 뒤로가기(Back) 키 처리**:
-   - `EdgeOverlayService.kt`의 윈도우 파라미터는 `FLAG_LAYOUT_IN_SCREEN or FLAG_LAYOUT_NO_LIMITS`를 사용합니다.
-   - `FLAG_NOT_FOCUSABLE`을 부여하면 안드로이드 시스템의 뒤로가기(`KEYCODE_BACK`) 키/제스처가 오버레이 창으로 들어오지 않으므로 주의하십시오.
-   - 뒤로가기 처리는 `OverlayPanelLayout.kt`의 `dispatchKeyEventPreIme` 및 `dispatchKeyEvent`를 통해 보장됩니다.
+---
 
-3. **알림 파싱 및 중복 접두어 제거**:
-   - 메시지 알림을 처리할 때는 반드시 `NotificationTextCleaner.cleanMessageText`를 통과시켜 발신자 이름이나 전화번호가 본문에 중복으로 나타나지 않도록 유지해야 합니다.
+## 🏗 4. 핵심 아키텍처 및 주의사항
+
+1. **엣지 패널 투명 액티비티 아키텍처 (`EdgePanelActivity`)**:
+   - 엣지 패널은 완전 투명 무애니메이션 액티비티(`Theme.NotificationEdge.TranslucentPanel`)인 `EdgePanelActivity`로 구동되어, **안드로이드 OS 레벨의 네비게이션 뒤로가기(하단 소프트키 버튼 및 화면 가장자리 스와이프 제스처)를 100% 보장**합니다.
+   - `MainActivity.kt`는 `Theme.NoDisplay` 무화면 트램펄린으로 0ms에 패널을 실행하고 즉시 종료됩니다.
+   - 무거운 Compose 설정 UI는 `SettingsActivity.kt`에서 구동됩니다.
+
+2. **알림 파싱 및 중복 접두어 제거**:
+   - 메시지 알림은 반드시 `NotificationTextCleaner.cleanMessageText`를 통과시켜 발신자 이름이나 전화번호가 본문에 중복으로 나타나지 않도록 유지합니다.
    - 1:1 대화에서는 본문 발신자 라벨을 생략하고, 단체 카톡방에서만 화자 구분 라벨을 표시합니다.
 
 ---
 
-## 🔄 4. 표준 버전 판올림 절차
+## 🔄 5. 표준 버전 판올림 절차
 
 새로운 기능 추가나 버그 수정 후 릴리즈 시:
 1. `app/build.gradle.kts` (`versionCode`, `versionName`) 수정
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt` (TopAppBar 뱃지, AppUpdateCard, AppInfoCard) 수정
-3. 빌드 검증: `./gradlew compileDebugKotlin assembleRelease`
+3. 빌드 검증: `./gradlew testDebugUnitTest assembleRelease`
 4. 커밋 & 푸시:
    ```bash
    git add .
