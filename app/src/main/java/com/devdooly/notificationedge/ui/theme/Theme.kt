@@ -26,9 +26,10 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun NotificationEdgeTheme(
-    appFont: AppFont = AppFont.SYSTEM_DEFAULT,
+    fontId: String = "default",
     content: @Composable () -> Unit
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val colorScheme = DarkColorScheme
     val view = LocalView.current
     if (!view.isInEditMode && view.context is Activity) {
@@ -41,7 +42,15 @@ fun NotificationEdgeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = createTypography(appFont.toFontFamily()),
+        typography = createTypography(resolveFontFamily(context, fontId)),
         content = content
     )
+}
+
+@Composable
+fun NotificationEdgeTheme(
+    appFont: AppFont,
+    content: @Composable () -> Unit
+) {
+    NotificationEdgeTheme(fontId = appFont.id, content = content)
 }

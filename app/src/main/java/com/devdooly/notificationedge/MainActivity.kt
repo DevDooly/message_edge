@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
             setContent {
                 val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = settings)
                 NotificationEdgeTheme(
-                    appFont = AppFont.fromId(liveSettings.selectedFont)
+                    fontId = liveSettings.selectedFont
                 ) {
                     SettingsScreen()
                 }

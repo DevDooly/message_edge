@@ -1,9 +1,11 @@
 package com.devdooly.notificationedge.ui.theme
 
+import android.content.Context
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
 import com.devdooly.notificationedge.R
+import com.devdooly.notificationedge.util.CustomFontManager
 
 private val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
@@ -69,6 +71,16 @@ enum class AppFont(
             return entries.find { it.id.equals(id, ignoreCase = true) } ?: SYSTEM_DEFAULT
         }
     }
+}
+
+fun resolveFontFamily(context: Context, fontId: String): FontFamily {
+    if (fontId.startsWith("custom:")) {
+        val customFamily = CustomFontManager.loadFontFamily(context, fontId)
+        if (customFamily != null) {
+            return customFamily
+        }
+    }
+    return AppFont.fromId(fontId).toFontFamily()
 }
 
 private fun createGoogleFontFamily(fontName: String): FontFamily {

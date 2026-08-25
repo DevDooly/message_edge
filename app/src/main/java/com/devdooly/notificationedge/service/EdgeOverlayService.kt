@@ -334,7 +334,7 @@ class EdgeOverlayService : Service() {
             lifecycleOwner.attachToView(this)
             setContent {
                 NotificationEdgeTheme(
-                    appFont = AppFont.fromId(currentSettings.selectedFont)
+                    fontId = currentSettings.selectedFont
                 ) {
                     EdgePanelContent(
                         edgeSide = currentSettings.edgeSide,

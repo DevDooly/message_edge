@@ -28,6 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.EdgeSide
@@ -36,6 +39,8 @@ import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.service.EdgeOverlayService
 import com.devdooly.notificationedge.service.NotificationListener
 import com.devdooly.notificationedge.ui.theme.*
+import com.devdooly.notificationedge.util.CustomFontInfo
+import com.devdooly.notificationedge.util.CustomFontManager
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +83,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.7",
+                                text = "v1.2.8",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -230,7 +235,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.7")
+            AppUpdateCard(currentVersionName = "1.2.8")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -378,7 +383,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.7 (Build 27) | Target Android 14",
+                text = "버전 1.2.8 (Build 28) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -1124,8 +1129,32 @@ private fun FontSettingsCard(
     selectedFontId: String,
     onFontSelected: (String) -> Unit
 ) {
+    val context = LocalContext.current
     var isExpanded by remember { mutableStateOf(false) }
-    val currentFont = AppFont.fromId(selectedFontId)
+    var customFonts by remember { mutableStateOf(CustomFontManager.getCustomFonts(context)) }
+
+    // 파일 선택 런처 (.ttf, .otf, .ttc)
+    val fontPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            val result = CustomFontManager.saveCustomFont(context, uri)
+            result.onSuccess { fontInfo ->
+                customFonts = CustomFontManager.getCustomFonts(context)
+                onFontSelected(fontInfo.id)
+                Toast.makeText(context, "폰트가 추가되었습니다: ${fontInfo.displayName}", Toast.LENGTH_SHORT).show()
+            }.onFailure { error ->
+                Toast.makeText(context, "폰트 등록 실패: ${error.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    val currentDisplayName = if (selectedFontId.startsWith("custom:")) {
+        val fileName = selectedFontId.removePrefix("custom:")
+        customFonts.find { it.fileName == fileName }?.displayName ?: fileName
+    } else {
+        AppFont.fromId(selectedFontId).displayName
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
@@ -1148,7 +1177,7 @@ private fun FontSettingsCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "현재: ${currentFont.displayName}",
+                        text = "현재: $currentDisplayName",
                         color = EdgeCyan,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -1193,6 +1222,133 @@ private fun FontSettingsCard(
 
             if (isExpanded) {
                 Spacer(modifier = Modifier.height(14.dp))
+
+                // 폰트 파일 업로드 버튼
+                Button(
+                    onClick = {
+                        fontPickerLauncher.launch(
+                            arrayOf(
+                                "font/*",
+                                "application/x-font-ttf",
+                                "application/x-font-opentype",
+                                "application/octet-stream",
+                                "*/*"
+                            )
+                        )
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan.copy(alpha = 0.2f)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = EdgeCyan)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "내 기기에서 폰트 파일(.ttf, .otf) 불러오기",
+                        color = EdgeCyan,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                }
+
+                // 내가 추가한 폰트 목록
+                if (customFonts.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "내가 추가한 커스텀 폰트 (${customFonts.size})",
+                        color = Color.LightGray,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        customFonts.forEach { customFont ->
+                            val isSelected = customFont.id == selectedFontId
+                            val customFamily = CustomFontManager.loadFontFamily(context, customFont.id) ?: androidx.compose.ui.text.font.FontFamily.Default
+
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) EdgeCyan.copy(alpha = 0.12f) else DarkBackground,
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = if (isSelected) 1.5.dp else 0.5.dp,
+                                    color = if (isSelected) EdgeCyan else Color(0xFF333B4A)
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onFontSelected(customFont.id) }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = customFont.displayName,
+                                            color = if (isSelected) EdgeCyan else Color.White,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            fontSize = 14.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = customFont.fileName,
+                                            color = Color.Gray,
+                                            fontSize = 11.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Notification 알림 123 (Aa 가나다)",
+                                            color = if (isSelected) CloudDancer else Color.LightGray,
+                                            fontSize = 12.sp,
+                                            fontFamily = customFamily
+                                        )
+                                    }
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(
+                                            onClick = {
+                                                CustomFontManager.deleteCustomFont(context, customFont.fileName)
+                                                customFonts = CustomFontManager.getCustomFonts(context)
+                                                if (selectedFontId == customFont.id) {
+                                                    onFontSelected("default")
+                                                }
+                                                Toast.makeText(context, "폰트가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.DeleteOutline,
+                                                contentDescription = "삭제",
+                                                tint = Color.Gray,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        RadioButton(
+                                            selected = isSelected,
+                                            onClick = { onFontSelected(customFont.id) },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = EdgeCyan,
+                                                unselectedColor = Color.Gray
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 기본 제공 폰트 프리셋 목록
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "기본 제공 프리셋 폰트",
+                    color = Color.LightGray,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     AppFont.entries.forEach { fontOption ->
                         val isSelected = fontOption.id == selectedFontId
