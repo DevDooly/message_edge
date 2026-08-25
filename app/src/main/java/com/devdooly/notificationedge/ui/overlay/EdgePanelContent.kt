@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -37,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,18 +64,40 @@ fun EdgePanelContent(
     onOpenSettings: () -> Unit
 ) {
     val context = LocalContext.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     val notifications by NotificationRepository.notifications.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
 
-    // 현재 답장 입력창이 열려있는 알림의 Key (뒤로가기 시 먼저 답장창 닫기 위함)
+    // 현재 답장 입력창이 열려있는 알림의 Key 및 입력 텍스트
     var activeReplyKey by remember { mutableStateOf<String?>(null) }
+    var replyText by remember { mutableStateOf("") }
+    val replyFocusRequester = remember { FocusRequester() }
+
+    val activeNotification = remember(activeReplyKey, notifications) {
+        notifications.firstOrNull { it.key == activeReplyKey }
+    }
+    val activeReplyAction = remember(activeNotification) {
+        activeNotification?.actions?.firstOrNull { it.isReply }
+    }
+
+    // 답장 활성화 시 자동 포커스 및 가상키보드 팝업
+    LaunchedEffect(activeReplyKey) {
+        if (activeReplyKey != null) {
+            delay(120)
+            replyFocusRequester.requestFocus()
+            keyboardController?.show()
+        } else {
+            replyText = ""
+        }
+    }
 
     // 네비게이션 뒤로가기 제스처 / 버튼 처리
     BackHandler(enabled = true) {
         if (activeReplyKey != null) {
-            // 1단계: 답장창이 열려있으면 답장 입력창 먼저 닫기
+            // 1단계: 답장창이 열려있으면 키보드 및 답장 입력창 먼저 닫기
+            keyboardController?.hide()
             activeReplyKey = null
         } else {
             // 2단계: 기본 상태에서는 엣지 패널 전체 닫기
@@ -104,7 +129,7 @@ fun EdgePanelContent(
             }
             .clickable(onClick = onClose)
     ) {
-        // 사이드 슬라이드 패널 (왼쪽/오른쪽 스와이프 드래그 시 닫기)
+        // 사이드 슬라이드 패널
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
@@ -190,13 +215,171 @@ fun EdgePanelContent(
                                         autoDismiss = autoDismissOnOpen,
                                         onClose = onClose
                                     )
-                                },
-                                onSendReply = { action, text ->
-                                    NotificationRepository.sendQuickReply(context, action, text)
                                 }
                             )
                         }
                     }
+                }
+            }
+        }
+
+        // 가상 키보드 바로 상단에 뜨는 고정 플로팅 답장 바 (IME 인셋 위 위치)
+        if (activeNotification != null && activeReplyAction != null) {
+            KeyboardFloatingReplyBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+                    .navigationBarsPadding(),
+                targetName = activeNotification.title.ifBlank { activeNotification.appName },
+                replyText = replyText,
+                focusRequester = replyFocusRequester,
+                onTextChange = { replyText = it },
+                onSend = {
+                    if (replyText.isNotBlank()) {
+                        NotificationRepository.sendQuickReply(context, activeReplyAction, replyText)
+                        replyText = ""
+                        keyboardController?.hide()
+                        activeReplyKey = null
+                    }
+                },
+                onClose = {
+                    replyText = ""
+                    keyboardController?.hide()
+                    activeReplyKey = null
+                }
+            )
+        }
+    }
+}
+
+/**
+ * 가상 키보드 상단에 표시되는 전송 및 입력 바 (엄지손가락 접근성 최적화)
+ */
+@Composable
+private fun KeyboardFloatingReplyBar(
+    modifier: Modifier = Modifier,
+    targetName: String,
+    replyText: String,
+    focusRequester: FocusRequester,
+    onTextChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onClose: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xF0181818),
+        border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.5f)),
+        shadowElevation = 8.dp
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            // 상단 답장 대상 안내 및 닫기 버튼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                        contentDescription = null,
+                        tint = EdgeCyan,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "답장: $targetName",
+                        color = EdgeCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.size(20.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "닫기",
+                        tint = Color.Gray,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // 입력 필드 + 바로 전송 버튼 (키보드 바로 위에서 엄지손가락으로 즉시 탭 가능)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF252525))
+                        .border(0.8.dp, Color(0xFF3A3A3A), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (replyText.isEmpty()) {
+                        Text(
+                            text = "메시지 보내기...",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                    }
+                    BasicTextField(
+                        value = replyText,
+                        onValueChange = onTextChange,
+                        textStyle = TextStyle(
+                            color = Color.White,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal
+                        ),
+                        cursorBrush = SolidColor(EdgeCyan),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = { onSend() }),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        singleLine = true
+                    )
+                }
+
+                // 키보드 상단 전송 버튼 (메시지 보내기 버튼)
+                Button(
+                    onClick = onSend,
+                    enabled = replyText.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = EdgeCyan,
+                        disabledContainerColor = EdgeCyan.copy(alpha = 0.3f)
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+                    modifier = Modifier.height(38.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "전송",
+                        tint = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "전송",
+                        color = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -294,26 +477,12 @@ private fun NotificationCard(
     isReplyActive: Boolean,
     onToggleReply: (Boolean) -> Unit,
     onDismiss: () -> Unit,
-    onClick: () -> Unit,
-    onSendReply: (NotificationActionItem, String) -> Unit
+    onClick: () -> Unit
 ) {
     val replyAction = remember(notification.actions) {
         notification.actions.firstOrNull { it.isReply }
     }
-    var replyText by remember { mutableStateOf("") }
     var isExpandedMessages by remember { mutableStateOf(false) }
-
-    // 자동 포커스 및 가상 키보드 팝업
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-
-    LaunchedEffect(isReplyActive) {
-        if (isReplyActive) {
-            delay(120) // UI 및 스크롤 안정화 후 키보드/포커스 요청
-            focusRequester.requestFocus()
-            keyboardController?.show()
-        }
-    }
 
     val timeString = remember(notification.timestamp) {
         DateUtils.getRelativeTimeSpanString(
@@ -335,7 +504,7 @@ private fun NotificationCard(
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(
             0.5.dp,
-            if (notification.isDismissed) Color(0x22FFFFFF) else GlassBorder
+            if (isReplyActive) EdgeCyan else (if (notification.isDismissed) Color(0x22FFFFFF) else GlassBorder)
         )
     ) {
         Column(
@@ -503,110 +672,30 @@ private fun NotificationCard(
                 )
             }
 
-            // 빠른 답장 버튼 또는 입력창 (글씨 깨짐 방지 및 슬림 인풋 디자인)
+            // 빠른 답장 버튼 (작성 중일 때 하이라이트)
             if (replyAction != null) {
                 Spacer(modifier = Modifier.height(8.dp))
-                if (!isReplyActive) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(EdgeCyan.copy(alpha = 0.15f))
-                            .clickable { onToggleReply(true) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Reply,
-                            contentDescription = "답장",
-                            tint = EdgeCyan,
-                            modifier = Modifier.size(13.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "답장",
-                            color = EdgeCyan,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = 36.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFF1E1E1E))
-                                .border(0.8.dp, EdgeCyan.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 10.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            if (replyText.isEmpty()) {
-                                Text(
-                                    text = "답장 입력...",
-                                    color = Color.Gray,
-                                    fontSize = 12.sp
-                                )
-                            }
-                            BasicTextField(
-                                value = replyText,
-                                onValueChange = { replyText = it },
-                                textStyle = TextStyle(
-                                    color = Color.White,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Normal
-                                ),
-                                cursorBrush = SolidColor(EdgeCyan),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequester),
-                                singleLine = true
-                            )
-                        }
-
-                        // 전송 버튼
-                        IconButton(
-                            onClick = {
-                                if (replyText.isNotBlank()) {
-                                    onSendReply(replyAction, replyText)
-                                    replyText = ""
-                                    onToggleReply(false)
-                                }
-                            },
-                            modifier = Modifier
-                                .size(34.dp)
-                                .background(EdgeCyan, CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Send,
-                                contentDescription = "전송",
-                                tint = Color.Black,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-
-                        // 취소/닫기 버튼
-                        IconButton(
-                            onClick = {
-                                replyText = ""
-                                onToggleReply(false)
-                            },
-                            modifier = Modifier
-                                .size(34.dp)
-                                .background(Color(0xFF2C2C2C), CircleShape)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "취소",
-                                tint = Color.LightGray,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (isReplyActive) EdgeCyan else EdgeCyan.copy(alpha = 0.15f))
+                        .clickable { onToggleReply(!isReplyActive) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                        contentDescription = "답장",
+                        tint = if (isReplyActive) Color.Black else EdgeCyan,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (isReplyActive) "답장 작성 중..." else "답장",
+                        color = if (isReplyActive) Color.Black else EdgeCyan,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
