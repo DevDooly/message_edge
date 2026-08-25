@@ -61,7 +61,8 @@ fun EdgePanelContent(
     panelWidthDp: Int = 280,
     autoDismissOnOpen: Boolean = true,
     onClose: () -> Unit,
-    onOpenSettings: () -> Unit
+    onOpenSettings: () -> Unit,
+    onRequestFocus: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -83,15 +84,17 @@ fun EdgePanelContent(
         activeNotification?.actions?.firstOrNull { it.isReply }
     }
 
-    // 답장 활성화 시 자동 포커스 및 가상키보드 팝업, 비활성화 시 즉시 해제
+    // 답장 활성화 시 윈도우 포커스 부여 후 키보드 팝업, 비활성화 시 윈도우 포커스 해제(유튜브 PiP 방지 유지)
     LaunchedEffect(activeReplyKey) {
         if (activeReplyKey != null) {
+            onRequestFocus(true)
             delay(120)
             replyFocusRequester.requestFocus()
             keyboardController?.show()
         } else {
             focusManager.clearFocus(force = true)
             keyboardController?.hide()
+            onRequestFocus(false)
             replyText = ""
         }
     }

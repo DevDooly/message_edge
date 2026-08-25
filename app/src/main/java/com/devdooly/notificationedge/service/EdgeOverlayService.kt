@@ -288,6 +288,22 @@ class EdgeOverlayService : Service() {
         }
     }
 
+    private fun setPanelFocusable(focusable: Boolean) {
+        val root = panelComposeView ?: return
+        val params = root.layoutParams as? WindowManager.LayoutParams ?: return
+        if (focusable) {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+            params.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        } else {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        }
+        try {
+            windowManager.updateViewLayout(root, params)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun openPanel() {
         if (isPanelOpen) return
         isPanelOpen = true
@@ -299,12 +315,12 @@ class EdgeOverlayService : Service() {
             WindowManager.LayoutParams.TYPE_PHONE
         }
 
+        // 기본 상태에서는 FLAG_NOT_FOCUSABLE을 적용하여 유튜브 등 비디오 재생 앱이 PiP 모드로 튕겨나가지 않도록 보장
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             layoutFlag,
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
@@ -350,6 +366,9 @@ class EdgeOverlayService : Service() {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                             }
                             startActivity(intent)
+                        },
+                        onRequestFocus = { focusable ->
+                            setPanelFocusable(focusable)
                         }
                     )
                 }
@@ -369,9 +388,6 @@ class EdgeOverlayService : Service() {
 
         try {
             windowManager.addView(rootLayout, params)
-            rootLayout.post {
-                rootLayout.requestFocus()
-            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
