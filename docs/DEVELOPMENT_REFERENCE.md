@@ -113,6 +113,12 @@ graph TD
   - `NotificationRepository`에서 동일한 단체방 메시지가 하나의 카드로 완벽 병합 및 대화 누적되도록 개선.
   - `NotificationRepositoryTest.kt`에 단체방 메시지 병합 회귀 테스트 추가 완료.
 
+### 10) 엣지 패널 실행 시 상단 상태바(배터리 바) 및 하단 네비바 완전 투명 유지 (`v1.4.4`)
+* **문제**: `EdgePanelActivity`가 뜰 때 안드로이드 시스템의 대비 강제(Contrast Enforcement) 및 기본 스크림으로 인해 상단 배터리/시계 영역과 하단 제스처 네비바 배경이 불투명한 검정색으로 덮여 원래 화면의 투명함이 깨지는 현상.
+* **해결**:
+  - `Theme.NotificationEdge.TranslucentPanel`에 `windowDrawsSystemBarBackgrounds=true`, `enforceStatusBarContrast=false`, `enforceNavigationBarContrast=false` 속성 추가.
+  - `EdgePanelActivity.kt`에서 `enableEdgeToEdge()`를 투명 스타일(`Color.TRANSPARENT`)로 명시 선언하고, `isStatusBarContrastEnforced = false`, `isNavigationBarContrastEnforced = false`를 코드로 강제 적용하여 상단 배터리바 및 하단 네비바가 완전 투명하게 유지되도록 개선.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
