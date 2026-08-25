@@ -305,123 +305,14 @@ class EdgeOverlayService : Service() {
     }
 
     private fun openPanel() {
-        if (isPanelOpen) return
-        isPanelOpen = true
-
-        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
+        val intent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
-
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            layoutFlag,
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        ).apply {
-            gravity = Gravity.CENTER
-            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-            windowAnimations = 0
-            format = PixelFormat.TRANSLUCENT
-        }
-
-        val lifecycleOwner = OverlayLifecycleOwner()
-        panelLifecycleOwner = lifecycleOwner
-
-        val rootLayout = com.devdooly.notificationedge.util.OverlayPanelLayout(this).apply {
-            setBackgroundColor(AndroidColor.TRANSPARENT)
-            lifecycleOwner.attachToView(this)
-            onBackPressed = {
-                val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
-                imm?.hideSoftInputFromWindow(windowToken, 0)
-                closePanel()
-            }
-        }
-
-        val composeView = ComposeView(this).apply {
-            setOnKeyListener { _, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) {
-                    if (event.action == KeyEvent.ACTION_UP) {
-                        closePanel()
-                    }
-                    true
-                } else false
-            }
-            setBackgroundColor(AndroidColor.TRANSPARENT)
-            lifecycleOwner.attachToView(this)
-            setContent {
-                NotificationEdgeTheme(
-                    fontId = currentSettings.selectedFont
-                ) {
-                    EdgePanelContent(
-                        edgeSide = currentSettings.edgeSide,
-                        panelWidthDp = currentSettings.panelWidthDp,
-                        autoDismissOnOpen = currentSettings.autoDismissOnOpen,
-                        onClose = { closePanel() },
-                        onOpenSettings = {
-                            closePanel()
-                            val intent = Intent(this@EdgeOverlayService, com.devdooly.notificationedge.ui.settings.SettingsActivity::class.java).apply {
-                                putExtra(com.devdooly.notificationedge.ui.settings.SettingsActivity.EXTRA_OPEN_SETTINGS, true)
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                            }
-                            startActivity(intent)
-                        },
-                        onRequestFocus = { focusable ->
-                            setPanelFocusable(focusable)
-                        }
-                    )
-                }
-            }
-        }
-
-        rootLayout.addView(
-            composeView,
-            android.widget.FrameLayout.LayoutParams(
-                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        )
-
-        panelComposeView = rootLayout
-        lifecycleOwner.onCreate()
-
-        try {
-            windowManager.addView(rootLayout, params)
-            rootLayout.post {
-                rootLayout.requestFocus()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        startActivity(intent)
     }
 
     private fun closePanel() {
-        if (!isPanelOpen) return
-        isPanelOpen = false
-
-        val view = panelComposeView
-        val owner = panelLifecycleOwner
-        panelComposeView = null
-        panelLifecycleOwner = null
-
-        if (view != null) {
-            view.visibility = View.GONE
-            view.alpha = 0f
-            try {
-                windowManager.removeViewImmediate(view)
-            } catch (e: Exception) {
-                try {
-                    windowManager.removeView(view)
-                } catch (e2: Exception) {
-                    e2.printStackTrace()
-                }
-            }
-        }
-        owner?.onDestroy()
+        // EdgePanelActivity 자체에서 finish() 처리
     }
 
     private fun showEdgeLighting() {

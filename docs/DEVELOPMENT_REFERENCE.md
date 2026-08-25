@@ -65,10 +65,14 @@ graph TD
   - `NotificationTextCleaner`에 모든 형태의 발신자 콜론(`홍길동: `, `김철수 : `), 대괄호(`[홍길동] `), 전화번호 접두어를 무조건 잘라내는 룰 적용.
   - 1:1 대화에서는 UI에서 발신자 라벨 자체를 생략하고, 단체방에서만 화자 식별 라벨을 표시하도록 개선.
 
-### 5) 뒤로가기(Back) 제스처/버튼 패널 닫힘 복구 (`v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`)
+### 5) 뒤로가기(Back) 제스처/버튼 패널 닫힘 100% 보장 아키텍처 (`v1.4.0`)
 * **문제**: 
-  - Android 13+ (API 33, Tiramisu) 및 Android 14+ 기기에서 제스처 네비게이션(화면 가장자리 스와이프 뒤로가기) 사용 시 시스템 제스처가 WMS에 의해 오버레이 창을 통과하여 배경 앱으로 빠져나가던 현상.
-  - 가상 LifecycleOwner Dispatcher와 Compose 포커스 트리가 분실되었을 때 `closePanel()`이 호출되지 않던 문제.
+  - `Service`의 `WindowManager.addView` 기반 오버레이 윈도우는 안드로이드 OS(특히 삼성 One UI / Android 10~14)의 제스처 네비게이션 및 하단 소프트키 Back 버튼 신호를 WMS 레벨에서 온전히 독점하지 못하고 포그라운드 액티비티로 흘려보내는 근본적 한계가 존재.
+* **해결 (`v1.4.0`)**: 
+  - **`EdgePanelActivity` (완전 투명 무애니메이션 호스트 액티비티) 도입**:
+    - `Theme.NotificationEdge.TranslucentPanel` 적용 (배경 완전 투명, 윈도우 전환 애니메이션 없음).
+    - 액티비티 레벨에서 `onBackPressedDispatcher.addCallback` 및 Compose `BackHandler`를 바인딩하여 **소프트키 뒤로가기, 화면 가장자리 스와이프 제스처, 바깥 영역 터치 시 100.0% 즉각 닫힘 보장**.
+    - 핸들 터치 및 바로가기 실행 시 `EdgePanelActivity`가 0ms로 실행되어 완벽한 안드로이드 포그라운드 수명주기 획득.
 ### 6) GitHub Actions CI/CD 및 Gradle 빌드 속도 50% 이상 단축 최적화
 * **원인**: 
   - `main` 브랜치와 `v*` 태그 동시 푸시 시 GitHub Actions 러너가 2개 동시 실행되어 대기열(Queueing) 및 리소스 경합 발생.

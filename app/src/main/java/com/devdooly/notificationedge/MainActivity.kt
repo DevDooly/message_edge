@@ -22,14 +22,10 @@ class MainActivity : Activity() {
         val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
 
         if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {
-            val serviceIntent = Intent(this, EdgeOverlayService::class.java).apply {
-                action = EdgeOverlayService.ACTION_OPEN_PANEL
+            val panelIntent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
+            startActivity(panelIntent)
         } else {
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
                 if (openSettings) putExtra(SettingsActivity.EXTRA_OPEN_SETTINGS, true)

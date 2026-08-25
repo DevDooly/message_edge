@@ -61,6 +61,15 @@
             android:noHistory="false"
             android:excludeFromRecents="false" />
 
+        <!-- 엣지 패널 투명 액티비티 (네비게이션 뒤로가기 100% 보장) -->
+        <activity
+            android:name=".ui.overlay.EdgePanelActivity"
+            android:exported="false"
+            android:theme="@style/Theme.NotificationEdge.TranslucentPanel"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:excludeFromRecents="true" />
+
         <!-- Good Lock / Shortcut용 엣지 패널 열기 무화면(NoDisplay) 액티비티 (유튜브 PiP 전환 방지) -->
         <activity
             android:name=".ui.OpenPanelActivity"

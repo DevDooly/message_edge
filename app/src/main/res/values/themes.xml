@@ -7,6 +7,20 @@
         <item name="android:windowIsFloating">false</item>
     </style>
 
+    <!-- 엣지 패널 전용 완전 투명 무애니메이션 액티비티 테마 (시스템 뒤로가기 100% 보장) -->
+    <style name="Theme.NotificationEdge.TranslucentPanel" parent="Theme.NotificationEdge">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
     <!-- Good Lock / Launcher 실행 시 화면 깜빡임 없이 0초 만에 닫히는 완전 투명 무애니메이션 테마 -->
     <style name="Theme.NotificationEdge.TranslucentLauncher" parent="Theme.NotificationEdge">
         <item name="android:windowIsTranslucent">true</item>
