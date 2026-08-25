@@ -15,8 +15,8 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -30,9 +30,7 @@ import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
-import com.devdooly.notificationedge.ui.overlay.EdgePanelContent
-import com.devdooly.notificationedge.ui.theme.AppFont
-import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
+import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,6 +39,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+/**
+ * 화면 측면 플로팅 핸들(Handle) 및 엣지 라이팅(Edge Lighting)을 백그라운드에서 관리하는 포그라운드 서비스
+ */
 class EdgeOverlayService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -48,14 +49,10 @@ class EdgeOverlayService : Service() {
     private lateinit var settingsRepository: SettingsRepository
 
     private var handleView: View? = null
-    private var panelComposeView: View? = null
     private var lightingComposeView: ComposeView? = null
-
-    private var panelLifecycleOwner: OverlayLifecycleOwner? = null
     private var lightingLifecycleOwner: OverlayLifecycleOwner? = null
 
     private var currentSettings = AppSettings()
-    private var isPanelOpen = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -76,11 +73,11 @@ class EdgeOverlayService : Service() {
                 openPanel()
             }
             ACTION_CLOSE_PANEL -> {
-                closePanel()
+                // EdgePanelActivity가 알아서 finish() 처리
             }
             ACTION_TOGGLE_PANEL -> {
                 triggerHaptic()
-                if (isPanelOpen) closePanel() else openPanel()
+                openPanel()
             }
         }
         return START_STICKY
@@ -130,7 +127,6 @@ class EdgeOverlayService : Service() {
                     updateHandleView()
                 } else {
                     removeHandleView()
-                    closePanel()
                 }
             }
         }
@@ -149,14 +145,20 @@ class EdgeOverlayService : Service() {
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun triggerHaptic() {
         if (!currentSettings.hapticFeedbackEnabled) return
         try {
-            val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                vibratorManager?.defaultVibrator?.vibrate(
+                    VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE)
+                )
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
                 vibrator?.vibrate(VibrationEffect.createOneShot(40, VibrationEffect.DEFAULT_AMPLITUDE))
             } else {
-                @Suppress("DEPRECATION")
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
                 vibrator?.vibrate(40)
             }
         } catch (e: Exception) {
@@ -288,31 +290,11 @@ class EdgeOverlayService : Service() {
         }
     }
 
-    private fun setPanelFocusable(focusable: Boolean) {
-        val root = panelComposeView ?: return
-        val params = root.layoutParams as? WindowManager.LayoutParams ?: return
-        if (focusable) {
-            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
-            params.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-        } else {
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        }
-        try {
-            windowManager.updateViewLayout(root, params)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     private fun openPanel() {
-        val intent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
+        val intent = Intent(this, EdgePanelActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
         startActivity(intent)
-    }
-
-    private fun closePanel() {
-        // EdgePanelActivity 자체에서 finish() 처리
     }
 
     private fun showEdgeLighting() {
@@ -386,7 +368,6 @@ class EdgeOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeHandleView()
-        closePanel()
         removeEdgeLighting()
         serviceScope.cancel()
     }

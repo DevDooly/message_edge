@@ -98,6 +98,13 @@ graph TD
 ### 7) 메시지 및 알림 수신 시각 개별 표시 (`v1.4.1`)
 * **개선**: 대화형 알림의 각 말풍선 메시지 옆 및 일반 알림 본문 우측 하단에 한국어 12시간제('오후 3:24' 또는 'M/d a h:mm') 수신 시각(`formatMessageTime`)을 표시하여 언제 수신된 메시지인지 직관적으로 파악 가능하도록 개선.
 
+### 8) 소스 전반 리팩토링 및 클린 아키텍처 정리 (`v1.4.2`)
+* **개선**:
+  - `EdgeOverlayService.kt`의 미사용 레거시 필드(`panelComposeView`, `isPanelOpen`, `setPanelFocusable`) 정리 및 진동 API 최신화(`VibratorManager`).
+  - `Divider` ➔ Material3 표준 `HorizontalDivider` 교체.
+  - `ActivityUtils.kt`를 도입하여 API 34+ `overrideActivityTransition` 및 0ms 무애니메이션 전환 완벽 지원.
+  - `ActivityUtilsTest.kt` 단위 테스트 추가로 무결성 검증 강화.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

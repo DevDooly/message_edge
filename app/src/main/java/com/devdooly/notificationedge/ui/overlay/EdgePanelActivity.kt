@@ -60,15 +60,13 @@ class EdgePanelActivity : ComponentActivity() {
 
     private fun closeAndFinish() {
         finish()
-        @Suppress("DEPRECATION")
-        overridePendingTransition(0, 0)
+        com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
     }
 
     override fun onPause() {
         super.onPause()
         if (isFinishing) {
-            @Suppress("DEPRECATION")
-            overridePendingTransition(0, 0)
+            com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
         }
     }
 }

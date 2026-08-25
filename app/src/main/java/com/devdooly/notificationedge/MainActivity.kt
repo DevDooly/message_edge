@@ -35,7 +35,7 @@ class MainActivity : Activity() {
         }
 
         finish()
-        overridePendingTransition(0, 0)
+        com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
     }
 
     companion object {

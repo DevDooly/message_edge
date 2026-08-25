@@ -112,6 +112,7 @@ class NotificationListener : NotificationListenerService() {
 
         // 대화형 알림(카카오톡, 문자 등 MessagingStyle) 메시지 추출
         val messagesList = mutableListOf<com.devdooly.notificationedge.data.model.MessageItem>()
+        @Suppress("DEPRECATION")
         val rawMessages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
         if (rawMessages != null) {
             for (raw in rawMessages) {
@@ -121,6 +122,7 @@ class NotificationListener : NotificationListenerService() {
                     // 발신자 이름 추출 (Android P Person 객체, bundle, sender 문자열 등 모두 지원)
                     var msgSender: String? = raw.getCharSequence("sender")?.toString()
                     if (msgSender == null) {
+                        @Suppress("DEPRECATION")
                         val personObj = raw.get("sender_person")
                         if (personObj is android.os.Bundle) {
                             msgSender = personObj.getCharSequence("name")?.toString()
