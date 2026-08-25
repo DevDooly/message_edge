@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +35,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -112,10 +118,33 @@ fun EdgePanelContent(
         }
     }
 
+    val rootFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        try {
+            rootFocusRequester.requestFocus()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     // 전체 화면 배경 (완전 투명, 바깥 터치 및 왼쪽/오른쪽 드래그 시 닫기)
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .focusRequester(rootFocusRequester)
+            .focusable()
+            .onPreviewKeyEvent { keyEvent ->
+                if ((keyEvent.key == Key.Back || keyEvent.key == Key.Escape) && keyEvent.type == KeyEventType.KeyUp) {
+                    if (activeReplyKey != null) {
+                        focusManager.clearFocus(force = true)
+                        keyboardController?.hide()
+                        activeReplyKey = null
+                    } else {
+                        onClose()
+                    }
+                    true
+                } else false
+            }
             .background(Color.Transparent)
             .pointerInput(Unit) {
                 detectHorizontalDragGestures(
