@@ -209,6 +209,8 @@ private fun NotificationCard(
         notification.actions.firstOrNull { it.isReply }
     }
 
+    var isExpandedMessages by remember { mutableStateOf(false) }
+
     val timeString = remember(notification.timestamp) {
         DateUtils.getRelativeTimeSpanString(
             notification.timestamp,
@@ -223,9 +225,14 @@ private fun NotificationCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = DarkCardBackground),
+        colors = CardDefaults.cardColors(
+            containerColor = if (notification.isDismissed) Color(0x991E1E1E) else DarkCardBackground
+        ),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, GlassBorder)
+        border = androidx.compose.foundation.BorderStroke(
+            0.5.dp,
+            if (notification.isDismissed) Color(0x22FFFFFF) else GlassBorder
+        )
     ) {
         Column(
             modifier = Modifier
@@ -268,6 +275,21 @@ private fun NotificationCard(
                     modifier = Modifier.weight(1f)
                 )
 
+                if (notification.isDismissed) {
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = Color(0x33888888)
+                    ) {
+                        Text(
+                            text = "보관됨",
+                            color = Color.LightGray,
+                            fontSize = 9.sp,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
+
                 Text(
                     text = timeString,
                     color = Color.Gray,
@@ -303,9 +325,15 @@ private fun NotificationCard(
                 )
             }
 
-            // 알림 본문 또는 대화 내역
+            // 알림 본문 또는 대화 내역 (과거 내역 확장 지원)
             if (notification.messages.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
+                val displayMessages = if (isExpandedMessages) {
+                    notification.messages
+                } else {
+                    notification.messages.takeLast(3)
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -314,7 +342,30 @@ private fun NotificationCard(
                         .padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    notification.messages.takeLast(4).forEach { msg ->
+                    if (notification.messages.size > 3) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isExpandedMessages = !isExpandedMessages }
+                                .padding(vertical = 2.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (isExpandedMessages) "▲ 최근 대화만 접기" else "▼ 이전 대화 ${notification.messages.size - 3}개 더보기",
+                                color = EdgeCyan,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = "총 ${notification.messages.size}개",
+                                color = Color.Gray,
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+
+                    displayMessages.forEach { msg ->
                         Row(verticalAlignment = Alignment.Top) {
                             Text(
                                 text = "${msg.sender}: ",
@@ -326,7 +377,7 @@ private fun NotificationCard(
                                 text = msg.text,
                                 color = Color.White,
                                 fontSize = 12.sp,
-                                maxLines = 2,
+                                maxLines = if (isExpandedMessages) 6 else 2,
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
@@ -339,7 +390,7 @@ private fun NotificationCard(
                     color = Color(0xFFDDDDDD),
                     fontSize = 13.sp,
                     lineHeight = 17.sp,
-                    maxLines = 4,
+                    maxLines = 6,
                     overflow = TextOverflow.Ellipsis
                 )
             }

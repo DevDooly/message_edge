@@ -56,7 +56,7 @@ class NotificationListener : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
         if (sbn == null) return
-        NotificationRepository.removeNotification(sbn.key)
+        NotificationRepository.markAsDismissed(sbn.key)
     }
 
     private fun parseAndAddNotification(sbn: StatusBarNotification) {

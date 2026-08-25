@@ -31,5 +31,6 @@ data class EdgeNotification(
     val contentIntent: PendingIntent? = null,
     val actions: List<NotificationActionItem> = emptyList(),
     val isClearable: Boolean = true,
-    val isGroupHeader: Boolean = false
+    val isGroupHeader: Boolean = false,
+    val isDismissed: Boolean = false
 )
