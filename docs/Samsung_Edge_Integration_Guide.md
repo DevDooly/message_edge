@@ -30,7 +30,7 @@
 #### 상세 설정 단계:
 
 1. **앱 설치**:
-   - Galaxy Store에서 `Good Lock` 앱과 `One Hand Operation +` 모듈을 설치합니다.
+   - [Google Play Store - One Hand Operation +](https://play.google.com/store/apps/details?id=com.samsung.android.sidegesturepad) 또는 Galaxy Store에서 `Good Lock` 앱과 `One Hand Operation +` 모듈을 설치합니다.
 
 2. **핸들 선택**:
    - `One Hand Operation +` 실행 후 상단 스위치를 켭니다.

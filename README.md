@@ -34,7 +34,7 @@
 
 화면에 별도 핸들을 띄우지 않고, 갤럭시 제스처만으로 알림 엣지를 즉시 호출하는 가장 깔끔한 방법입니다.
 
-1. **앱 설치**: Galaxy Store에서 `Good Lock` 및 `One Hand Operation +` 모듈을 설치합니다.
+1. **앱 설치**: [Google Play Store](https://play.google.com/store/apps/details?id=com.samsung.android.sidegesturepad) 또는 Galaxy Store에서 `One Hand Operation +` 및 `Good Lock`을 설치합니다.
 2. **핸들 선택**: `One Hand Operation +` 실행 후 `오른쪽 핸들` (또는 왼쪽 핸들)을 선택합니다.
 3. **제스처 지정**: 기본 엣지와 겹치지 않는 제스처(예: `대각선 아래로` 또는 `대각선 아래로 길게 당기기`)를 선택합니다.
 4. **동작 등록**: 제스처 동작 목록에서 `애플리케이션 실행` ➔ `Notification Edge`를 선택합니다.
