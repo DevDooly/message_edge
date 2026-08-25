@@ -33,5 +33,6 @@ data class EdgeNotification(
     val actions: List<NotificationActionItem> = emptyList(),
     val isClearable: Boolean = true,
     val isGroupHeader: Boolean = false,
-    val isDismissed: Boolean = false
+    val isDismissed: Boolean = false,
+    val debugExtrasDump: String? = null
 )

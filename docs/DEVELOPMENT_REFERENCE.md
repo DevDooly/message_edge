@@ -126,6 +126,12 @@ graph TD
   - `NotificationCard` 상단 헤더에 `카카오톡 › 단체방이름` 경로 표시 및 제목 앞 `[단체방]` 청록색 뱃지를 부여하여 단체방 식별 시인성 극대화.
   - `MessengerNotificationParserTest.kt` 단위 테스트 스위트 추가 완료.
 
+### 12) 알림 원본 데이터(Bundle Extras) 실시간 인스펙터 및 원클릭 복사 기능 탑재 (`v1.4.6`)
+* **개선**:
+  - `EdgeNotification.kt` 및 `NotificationListener.kt`에 `debugExtrasDump` 필드 및 전용 덤프 로직 구축.
+  - `EdgePanelContent.kt`: 각 알림 카드 하단에 `[데이터 복사]` 버튼을 추가하여 수신된 알림의 모든 Bundle Key-Value 데이터를 클립보드에 원클릭 복사 가능.
+  - `SettingsScreen.kt`: `NotificationDebugDumpCard`를 탑재하여 최근 수신된 알림들의 원본 extras 구조를 한눈에 조회하고 `[전체 복사]`할 수 있는 디버그 인스펙터 지원.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

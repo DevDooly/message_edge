@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.app.RemoteInput
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.devdooly.notificationedge.data.model.EdgeNotification
@@ -130,6 +131,8 @@ class NotificationListener : NotificationListenerService() {
             )
         }
 
+        val extrasDump = dumpExtras(extras, sbn)
+
         val edgeNotification = EdgeNotification(
             key = sbn.key,
             id = sbn.id,
@@ -143,9 +146,52 @@ class NotificationListener : NotificationListenerService() {
             timestamp = sbn.postTime,
             contentIntent = contentIntent,
             actions = actionsList,
-            isClearable = sbn.isClearable
+            isClearable = sbn.isClearable,
+            debugExtrasDump = extrasDump
         )
 
         NotificationRepository.addOrUpdateNotification(edgeNotification)
+    }
+
+    private fun dumpExtras(extras: Bundle, sbn: StatusBarNotification): String {
+        val sb = StringBuilder()
+        sb.append("=== [Notification Extras Debug Dump] ===\n")
+        sb.append("Package: ").append(sbn.packageName).append("\n")
+        sb.append("Key: ").append(sbn.key).append("\n")
+        sb.append("Id: ").append(sbn.id).append("\n")
+        sb.append("PostTime: ").append(sbn.postTime).append("\n")
+        sb.append("Tag: ").append(sbn.tag).append("\n")
+        sb.append("--- Extras Keys & Values ---\n")
+
+        for (key in extras.keySet()) {
+            val value = extras.get(key)
+            when (value) {
+                is CharSequence -> sb.append("• ").append(key).append(" (CharSequence): \"").append(value).append("\"\n")
+                is Array<*> -> {
+                    sb.append("• ").append(key).append(" (Array[").append(value.size).append("]):\n")
+                    value.forEachIndexed { i, item ->
+                        if (item is Bundle) {
+                            sb.append("    [").append(i).append("] (Bundle): { ")
+                            for (bKey in item.keySet()) {
+                                sb.append(bKey).append("=\"").append(item.get(bKey)).append("\", ")
+                            }
+                            sb.append("}\n")
+                        } else {
+                            sb.append("    [").append(i).append("]: \"").append(item).append("\"\n")
+                        }
+                    }
+                }
+                is Bundle -> {
+                    sb.append("• ").append(key).append(" (Bundle): { ")
+                    for (bKey in value.keySet()) {
+                        sb.append(bKey).append("=\"").append(value.get(bKey)).append("\", ")
+                    }
+                    sb.append("}\n")
+                }
+                else -> sb.append("• ").append(key).append(" (").append(value?.javaClass?.simpleName ?: "null").append("): \"").append(value).append("\"\n")
+            }
+        }
+        sb.append("=========================================")
+        return sb.toString()
     }
 }

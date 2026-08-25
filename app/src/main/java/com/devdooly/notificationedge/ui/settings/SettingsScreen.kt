@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -83,7 +84,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.4.5",
+                                text = "v1.4.6",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -234,8 +235,11 @@ fun SettingsScreen() {
                 }
             }
 
+            // 알림 원본 데이터(Bundle Extras) 실시간 덤프 및 복사 카드 (단체방/메신저 분석용)
+            NotificationDebugDumpCard()
+
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.4.5")
+            AppUpdateCard(currentVersionName = "1.4.6")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -383,7 +387,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.4.5 (Build 46) | Target Android 14",
+                text = "버전 1.4.6 (Build 47) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -394,6 +398,132 @@ private fun AppInfoCard() {
                 color = Color.Gray,
                 fontSize = 11.sp
             )
+        }
+    }
+}
+
+@Composable
+private fun NotificationDebugDumpCard() {
+    val context = LocalContext.current
+    val notifications by com.devdooly.notificationedge.data.repository.NotificationRepository.notifications.collectAsState()
+    val dumpableList = remember(notifications) {
+        notifications.filter { !it.debugExtrasDump.isNullOrBlank() }.take(10)
+    }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF333333))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = null,
+                        tint = EdgeCyan,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "알림 원본 데이터 인스펙터",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
+                }
+
+                if (dumpableList.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            val allDumps = dumpableList.joinToString("\n\n") { 
+                                "[${it.appName}] ${it.title}\n${it.debugExtrasDump}" 
+                            }
+                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                            val clip = android.content.ClipData.newPlainText("All Notification Dumps", allDumps)
+                            clipboard?.setPrimaryClip(clip)
+                            android.widget.Toast.makeText(context, "최근 ${dumpableList.size}개 알림 원본 데이터가 모두 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_LONG).show()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                        modifier = Modifier.height(30.dp)
+                    ) {
+                        Text("전체 복사", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "카카오톡 단체방 알림이 올 때 알림 내부의 모든 Key-Value 원본 데이터를 확인하고 복사할 수 있습니다. 복사된 내용을 채팅창에 공유해주시면 즉시 완벽한 맞춤 파서를 제작해 드립니다.",
+                color = Color.Gray,
+                fontSize = 12.sp,
+                lineHeight = 16.sp
+            )
+
+            if (dumpableList.isEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "(아직 수신된 알림이 없습니다. 카카오톡 메시지를 받으신 후 확인해주세요)",
+                    color = Color.DarkGray,
+                    fontSize = 11.sp
+                )
+            } else {
+                Spacer(modifier = Modifier.height(10.dp))
+                dumpableList.take(3).forEach { notif ->
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF1E1E1E),
+                        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color(0xFF3A3A3A)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "[${notif.appName}] ${notif.title}",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1
+                                )
+                                Button(
+                                    onClick = {
+                                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                                        val clip = android.content.ClipData.newPlainText("Notification Debug Dump", notif.debugExtrasDump)
+                                        clipboard?.setPrimaryClip(clip)
+                                        android.widget.Toast.makeText(context, "'${notif.title}' 알림 데이터가 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_SHORT).show()
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
+                                    shape = RoundedCornerShape(6.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                                    modifier = Modifier.height(26.dp)
+                                ) {
+                                    Text("복사", color = EdgeCyan, fontSize = 11.sp)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = notif.debugExtrasDump?.take(180) ?: "",
+                                color = Color.Gray,
+                                fontSize = 10.sp,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }

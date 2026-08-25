@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
@@ -874,30 +875,70 @@ private fun NotificationCard(
                 }
             }
 
-            // 빠른 답장 버튼 (작성 중일 때 하이라이트)
-            if (replyAction != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(if (isReplyActive) EdgeCyan else EdgeCyan.copy(alpha = 0.15f))
-                        .clickable { onToggleReply(!isReplyActive) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Reply,
-                        contentDescription = "답장",
-                        tint = if (isReplyActive) Color.Black else EdgeCyan,
-                        modifier = Modifier.size(13.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = if (isReplyActive) "답장 작성 중..." else "답장",
-                        color = if (isReplyActive) Color.Black else EdgeCyan,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+            // 하단 액션 버튼 영역 (빠른 답장 + 디버그 데이터 복사)
+            val context = androidx.compose.ui.platform.LocalContext.current
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                if (replyAction != null) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(if (isReplyActive) EdgeCyan else EdgeCyan.copy(alpha = 0.15f))
+                            .clickable { onToggleReply(!isReplyActive) }
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Reply,
+                            contentDescription = "답장",
+                            tint = if (isReplyActive) Color.Black else EdgeCyan,
+                            modifier = Modifier.size(13.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (isReplyActive) "답장 작성 중..." else "답장",
+                            color = if (isReplyActive) Color.Black else EdgeCyan,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.width(1.dp))
+                }
+
+                // 디버그 데이터 복사 버튼 (단체방/알림 원본 분석용)
+                if (!notification.debugExtrasDump.isNullOrBlank()) {
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF2C2C2C))
+                            .clickable {
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText("Notification Debug Dump", notification.debugExtrasDump)
+                                clipboard?.setPrimaryClip(clip)
+                                android.widget.Toast.makeText(context, "알림 원본 데이터가 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                            .padding(horizontal = 7.dp, vertical = 3.5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = "데이터 복사",
+                            tint = Color.Gray,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "데이터 복사",
+                            color = Color.LightGray,
+                            fontSize = 10.sp
+                        )
+                    }
                 }
             }
         }
