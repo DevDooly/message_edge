@@ -668,6 +668,15 @@ private fun NotificationCard(
                         }
                     }
 
+                    // 그룹 단체방(참여자가 2명 이상이거나 타이틀과 발신자가 다른 경우)인지 판별
+                    val isGroupChat = remember(notification.title, notification.messages) {
+                        val distinctSenders = notification.messages
+                            .map { it.sender.trim() }
+                            .filter { it.isNotBlank() && it != "나" }
+                            .distinct()
+                        distinctSenders.size > 1 || (notification.title.isNotBlank() && distinctSenders.any { it != notification.title.trim() })
+                    }
+
                     displayMessages.forEach { msg ->
                         val isMine = msg.isFromUser || msg.sender == "나"
                         val displayMsgText = remember(msg.text, msg.sender, notification.title) {
@@ -677,6 +686,9 @@ private fun NotificationCard(
                                 msg.sender
                             )
                         }
+                        // 1:1 대화이거나 상단 타이틀과 동일한 발신자면 '이름: ' 라벨 숨김 (중복 제거)
+                        val shouldShowSenderLabel = !isMine && isGroupChat && msg.sender.isNotBlank() && msg.sender.trim() != notification.title.trim()
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -685,12 +697,14 @@ private fun NotificationCard(
                             verticalAlignment = Alignment.Top
                         ) {
                             if (!isMine) {
-                                Text(
-                                    text = "${msg.sender}: ",
-                                    color = EdgeCyan,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                                if (shouldShowSenderLabel) {
+                                    Text(
+                                        text = "${msg.sender}: ",
+                                        color = EdgeCyan,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
                                 Text(
                                     text = displayMsgText,
                                     color = Color.White,

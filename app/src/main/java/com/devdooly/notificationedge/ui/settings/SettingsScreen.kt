@@ -83,7 +83,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.3.4",
+                                text = "v1.3.5",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -235,7 +235,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.3.4")
+            AppUpdateCard(currentVersionName = "1.3.5")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -383,7 +383,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.3.4 (Build 34) | Target Android 14",
+                text = "버전 1.3.5 (Build 35) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium

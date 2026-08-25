@@ -13,17 +13,10 @@ object NotificationTextCleaner {
         if (text.isNullOrBlank()) return ""
         var cleaned = text.trim()
 
-        // 1. 발신자(Sender) 중복 접두어 제거
-        if (!sender.isNullOrBlank()) {
-            cleaned = removeSenderPrefix(cleaned, sender.trim())
-        }
+        // 1. 발신자(Sender) 또는 제목(Title) 기반 중복 접두어 제거 (콜론, 대괄호, 줄바꿈 등)
+        cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
 
-        // 2. 제목(Title) 중복 접두어 제거
-        if (!title.isNullOrBlank()) {
-            cleaned = removeSenderPrefix(cleaned, title.trim())
-        }
-
-        // 3. 전화번호 중복 접두어 제거 (예: "010-1234-5678: 안녕하세요", "01012345678 - 내용")
+        // 2. 전화번호 중복 접두어 제거 (예: "010-1234-5678: 안녕하세요", "01012345678 안녕하세요")
         val phoneRegex = Regex("""^(\+?82[-. ]?10[-. ]?\d{4}[-. ]?\d{4}|01[016789][-. ]?\d{3,4}[-. ]?\d{4}|\d{2,4}[-. ]?\d{3,4}[-. ]?\d{4})[:：\s\-]*""")
         val phoneMatch = phoneRegex.find(cleaned)
         if (phoneMatch != null) {
@@ -34,39 +27,84 @@ object NotificationTextCleaner {
             }
         }
 
+        // 3. 2차 정리 (전화번호 제거 후 다시 이름 접두어가 남아있을 경우)
+        cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
+
         return cleaned
     }
 
     /**
-     * 텍스트 시작 부분에 특정 이름/발신자 접두어가 있으면 제거
+     * 본문 시작 부분의 발신자/제목 이름 접두어 판별 및 잘라내기
      */
-    private fun removeSenderPrefix(content: String, name: String): String {
-        if (name.isBlank() || content.isBlank()) return content
-        val escapedName = Regex.escape(name)
+    private fun removeDuplicateNamePrefix(content: String, title: String?, sender: String?): String {
+        var result = content.trim()
+        if (result.isBlank()) return ""
 
-        // 1) "이름: 내용" or "이름 : 내용" or "이름- 내용"
-        // 2) "[이름] 내용" or "(이름) 내용" or "<이름> 내용"
-        // 3) "이름\n내용"
-        val patterns = listOf(
-            Regex("""^$escapedName\s*[:：\-]\s*""", RegexOption.IGNORE_CASE),
-            Regex("""^\[$escapedName\]\s*[:：\-]?\s*""", RegexOption.IGNORE_CASE),
-            Regex("""^\($escapedName\)\s*[:：\-]?\s*""", RegexOption.IGNORE_CASE),
-            Regex("""^<$escapedName>\s*[:：\-]?\s*""", RegexOption.IGNORE_CASE),
-            Regex("""^$escapedName\s*\n+\s*""", RegexOption.IGNORE_CASE)
-        )
-
-        var result = content
-        for (pattern in patterns) {
-            val match = pattern.find(result)
-            if (match != null && match.range.first == 0) {
-                val remainder = result.substring(match.range.last + 1).trim()
+        // A) "이름: 내용" 또는 "[이름]: 내용" 또는 "(이름): 내용" 패턴
+        val colonMatch = Regex("""^([^:\n]{1,35})[:：\-]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(result)
+        if (colonMatch != null) {
+            val rawPrefix = colonMatch.groupValues[1].trim()
+            val cleanPrefix = rawPrefix
+                .removeSurrounding("[", "]")
+                .removeSurrounding("(", ")")
+                .removeSurrounding("<", ">")
+                .trim()
+            if (isMatchingName(cleanPrefix, title, sender) || cleanPrefix.isEmpty()) {
+                val remainder = colonMatch.groupValues[2].trim()
                 if (remainder.isNotEmpty()) {
                     result = remainder
                 }
-                break
             }
         }
+
+        // B) "[이름] 내용" 또는 "(이름) 내용" 패턴 (콜론 없음)
+        val bracketMatch = Regex("""^[\[\(<]([^\]\)>]{1,35})[\]\)>]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(result)
+        if (bracketMatch != null) {
+            val rawPrefix = bracketMatch.groupValues[1].trim()
+            if (isMatchingName(rawPrefix, title, sender)) {
+                val remainder = bracketMatch.groupValues[2].trim()
+                if (remainder.isNotEmpty()) {
+                    result = remainder
+                }
+            }
+        }
+
+        // C) "이름\n내용" 패턴
+        val newlineMatch = Regex("""^([^\n]{1,35})\n+\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(result)
+        if (newlineMatch != null) {
+            val rawPrefix = newlineMatch.groupValues[1].trim()
+                .removeSurrounding("[", "]")
+                .removeSurrounding("(", ")")
+            if (isMatchingName(rawPrefix, title, sender)) {
+                val remainder = newlineMatch.groupValues[2].trim()
+                if (remainder.isNotEmpty()) {
+                    result = remainder
+                }
+            }
+        }
+
         return result
+    }
+
+    /**
+     * 접두어 이름이 알림 Title 또는 Sender와 일치/유사한지 검사
+     */
+    private fun isMatchingName(prefix: String, title: String?, sender: String?): Boolean {
+        if (prefix.isBlank()) return false
+        val p = prefix.trim().lowercase()
+
+        val t = title?.trim()?.lowercase()
+        val s = sender?.trim()?.lowercase()
+
+        if (t != null && t.isNotBlank()) {
+            if (p == t || t.contains(p) || p.contains(t)) return true
+        }
+
+        if (s != null && s.isNotBlank()) {
+            if (p == s || s.contains(p) || p.contains(s)) return true
+        }
+
+        return false
     }
 
     /**
