@@ -105,6 +105,14 @@ graph TD
   - `ActivityUtils.kt`를 도입하여 API 34+ `overrideActivityTransition` 및 0ms 무애니메이션 전환 완벽 지원.
   - `ActivityUtilsTest.kt` 단위 테스트 추가로 무결성 검증 강화.
 
+### 9) 카카오톡 및 메신저 단체톡방 방 이름/발신자 분리 및 알림 병합 정상화 (`v1.4.3`)
+* **문제**: 카카오톡 단체방 알림 수신 시 안드로이드 OS는 `EXTRA_SUB_TEXT`에 단체방 이름을 넣고 `EXTRA_TITLE`에 메시지 발신자 이름을 넣는데, 기존 코드가 `rawTitle`(발신자 이름)을 카드 제목으로 채택하여 동일한 단체방임에도 발신자마다 카드가 분리되어 쪼개지는 현상 발생.
+* **해결**:
+  - `NotificationListener.kt`에서 `EXTRA_CONVERSATION_TITLE`, 카카오톡의 `EXTRA_SUB_TEXT`, `EXTRA_IS_GROUP_CONVERSATION`을 정밀 검사하여 **실제 단체방 이름(Room Title)**을 카드의 대표 `title`로 추출.
+  - 보낸 사람 이름은 개별 `MessageItem.sender`로 정상 매핑.
+  - `NotificationRepository`에서 동일한 단체방 메시지가 하나의 카드로 완벽 병합 및 대화 누적되도록 개선.
+  - `NotificationRepositoryTest.kt`에 단체방 메시지 병합 회귀 테스트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
