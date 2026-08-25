@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+  width="1024" height="1024" viewBox="0 0 1024 1024">
+
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#F8F6F2"/>
+    <stop offset="0.56" stop-color="#F0EEE9"/>
+    <stop offset="1" stop-color="#E8E5DE"/>
+  </linearGradient>
+
+  <radialGradient id="auraA" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#82D8D0" stop-opacity="0.46"/>
+    <stop offset="1" stop-color="#82D8D0" stop-opacity="0"/>
+  </radialGradient>
+
+  <radialGradient id="auraB" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#A9A6EA" stop-opacity="0.34"/>
+    <stop offset="1" stop-color="#A9A6EA" stop-opacity="0"/>
+  </radialGradient>
+
+  <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#0F131A"/>
+    <stop offset="0.58" stop-color="#1A1F29"/>
+    <stop offset="1" stop-color="#252B36"/>
+  </linearGradient>
+
+  <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#77D9D0"/>
+    <stop offset="0.48" stop-color="#F0EEE9"/>
+    <stop offset="1" stop-color="#A9A6EA"/>
+  </linearGradient>
+
+  <filter id="panelShadow" x="-40%" y="-40%" width="180%" height="190%">
+    <feDropShadow dx="0" dy="30" stdDeviation="30"
+      flood-color="#0B0E14" flood-opacity="0.28"/>
+  </filter>
+
+  <filter id="handleShadow" x="-70%" y="-70%" width="240%" height="240%">
+    <feDropShadow dx="0" dy="12" stdDeviation="16"
+      flood-color="#0B0E14" flood-opacity="0.22"/>
+  </filter>
+
+  <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+    <feGaussianBlur stdDeviation="26"/>
+  </filter>
+</defs>
+
+
+<g id="Layer_Background_CloudDancer">
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <ellipse cx="814" cy="294" rx="315" ry="315" fill="url(#auraA)"/>
+  <ellipse cx="826" cy="758" rx="350" ry="350" fill="url(#auraB)"/>
+</g>
+
+
+<g id="Layer_Edge_Light">
+  <path d="M812 244 C860 314 868 396 868 512 C868 628 860 710 812 780"
+        fill="none" stroke="url(#edge)" stroke-width="76" stroke-linecap="round"
+        opacity="0.17" filter="url(#glow)"/>
+  <path d="M812 244 C860 314 868 396 868 512 C868 628 860 710 812 780"
+        fill="none" stroke="url(#edge)" stroke-width="34" stroke-linecap="round"/>
+</g>
+
+<g id="Layer_Message_Panel" filter="url(#panelShadow)">
+  <path d="M286 262 H638
+           C714 262 766 314 766 390 V602
+           C766 678 714 730 638 730
+           H468 L342 824
+           C326 836 305 824 309 803
+           L324 730 H286
+           C210 730 158 678 158 602 V390
+           C158 314 210 262 286 262 Z"
+        fill="url(#ink)" stroke="#FFFFFF" stroke-opacity="0.035" stroke-width="5"/>
+  <path d="M298 285 H628 C696 285 739 328 739 392"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.10"
+        stroke-width="10" stroke-linecap="round"/>
+</g>
+
+<g id="Layer_Notification_Content">
+  <circle cx="306" cy="412" r="31" fill="#82D8D0"/>
+  <circle cx="306" cy="412" r="11" fill="#F0EEE9"/>
+  <rect x="360" y="385" width="250" height="54" rx="27" fill="#F0EEE9"/>
+  <rect x="278" y="498" width="336" height="54" rx="27"
+        fill="#F0EEE9" fill-opacity="0.91"/>
+  <rect x="278" y="592" width="226" height="54" rx="27"
+        fill="#F0EEE9" fill-opacity="0.58"/>
+</g>
+
+<g id="Layer_Gesture_Handle" filter="url(#handleShadow)">
+  <rect x="787" y="416" width="96" height="192" rx="48" fill="url(#edge)"/>
+  <path d="M805 442 C818 428 852 428 865 442"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.45"
+        stroke-width="8" stroke-linecap="round"/>
+  <path d="M850 478 L814 512 L850 546"
+        fill="none" stroke="#161B23" stroke-width="24"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+
+</svg>

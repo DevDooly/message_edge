@@ -1,11 +1,30 @@
-# 🎨 Notification Edge 앱 아이콘 후보 리스트 (Icon Concepts)
+# 🎨 Notification Edge 앱 아이콘 (Official Icon & Concepts)
 
-Notification Edge 앱의 세련되고 트렌디한 런처 아이콘 디자인 후보군 5종입니다.  
-디자인 스타일 및 시인성, 구글 플레이 스토어 등록 적합성을 고려하여 제작되었습니다.
+## 🌟 공식 적용 아이콘: Edge Whisper (v1.2.5+)
+
+Notification Edge 앱의 최종 공식 런처 아이콘으로 채택 및 적용된 **Edge Whisper** 아이콘 팩입니다.
+
+<p align="center">
+  <img src="icons/preview/notification_edge_edge_whisper_preview.png" width="480" alt="Edge Whisper Preview" style="border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);" />
+</p>
+
+* **디자인 컨셉**:
+  * **말풍선 실루엣**: 메시지 및 실시간 빠른 답장 상징
+  * **3개의 알림 행과 상태 점**: 최근 알림 목록
+  * **오른쪽 라이트 레일**: 화면 테두리 엣지 라이팅
+  * **중앙 제스처 핸들 & 화살표**: 화면 가장자리에서 안쪽으로 당기는 스와이프 제스처
+* **지원 규격**:
+  * Android 8.0+ Adaptive Icon (기기별 원형/스퀴클/물방울 마스크 완벽 지원)
+  * Android 13+ Themed Monochrome Icon (머티리얼 유 다이내믹 테마 지원)
+  * Google Play Store 512x512 공식 스토어 등록 아이콘
+* 📂 **자산 경로**:
+  * 마스터 SVG: [`docs/icons/master/notification_edge_edge_whisper_master.svg`](icons/master/notification_edge_edge_whisper_master.svg)
+  * Play Store 512px: [`docs/icons/play_store/notification_edge_edge_whisper_512.png`](icons/play_store/notification_edge_edge_whisper_512.png)
+  * 1024px Master PNG: [`docs/icons/master/notification_edge_edge_whisper_1024.png`](icons/master/notification_edge_edge_whisper_1024.png)
 
 ---
 
-## 🏆 디자인 후보 5종 비교 및 상세
+## 🏆 기획 디자인 후보군 5종 리스트
 
 | 번호 | 컨셉명 | 스타일 | 추천도 | 주요 특징 |
 | :---: | :--- | :--- | :---: | :--- |

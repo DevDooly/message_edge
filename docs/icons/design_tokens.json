@@ -1,0 +1,42 @@
+{
+  "concept_name": "Edge Whisper",
+  "app": "Notification Edge",
+  "pantone_reference": {
+    "name": "Cloud Dancer",
+    "code": "PANTONE 11-4201",
+    "digital_srgb_approximation": "#F0EEE9",
+    "rgb": [
+      240,
+      238,
+      233
+    ],
+    "note": "Use Pantone Connect or a physical swatch for exact media-specific matching."
+  },
+  "palette": {
+    "cloud_dancer": "#F0EEE9",
+    "cloud_highlight": "#F8F6F2",
+    "cloud_shadow": "#E8E5DE",
+    "graphite_950": "#0F131A",
+    "graphite_800": "#252B36",
+    "aqueous_aqua": "#82D8D0",
+    "quiet_periwinkle": "#A9A6EA"
+  },
+  "artboard": {
+    "master_px": [
+      1024,
+      1024
+    ],
+    "play_store_px": [
+      512,
+      512
+    ],
+    "adaptive_dp": [
+      108,
+      108
+    ],
+    "adaptive_safe_zone_dp": [
+      66,
+      66
+    ]
+  }
+}

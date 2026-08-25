@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+
+    <group
+        android:pivotX="512"
+        android:pivotY="512"
+        android:scaleX="0.84"
+        android:scaleY="0.84">
+
+        <path
+            android:pathData="M286,262 H638 C714,262 766,314 766,390 V602 C766,678 714,730 638,730 H468 L342,824 C326,836 305,824 309,803 L324,730 H286 C210,730 158,678 158,602 V390 C158,314 210,262 286,262 Z"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="58"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:pathData="M306,387 A25,25 0,1 1,306,437 A25,25 0,1 1,306,387"
+            android:fillColor="#FFFFFFFF" />
+
+        <path
+            android:pathData="M360,412 H610"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="48"
+            android:strokeLineCap="round" />
+
+        <path
+            android:pathData="M278,525 H614"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="48"
+            android:strokeLineCap="round" />
+
+        <path
+            android:pathData="M278,619 H504"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="48"
+            android:strokeLineCap="round" />
+
+        <path
+            android:pathData="M812,244 C860,314 868,396 868,512 C868,628 860,710 812,780"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="38"
+            android:strokeLineCap="round" />
+
+        <path
+            android:pathData="M835,416 C861.51,416 883,437.49 883,464 V560 C883,586.51 861.51,608 835,608 C808.49,608 787,586.51 787,560 V464 C787,437.49 808.49,416 835,416 Z"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="24"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+
+        <path
+            android:pathData="M850,478 L814,512 L850,546"
+            android:fillColor="#00000000"
+            android:strokeColor="#FFFFFFFF"
+            android:strokeWidth="24"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+    </group>
+</vector>
