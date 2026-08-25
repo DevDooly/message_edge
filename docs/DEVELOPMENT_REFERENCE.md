@@ -65,9 +65,14 @@ graph TD
   - `NotificationTextCleaner`에 모든 형태의 발신자 콜론(`홍길동: `, `김철수 : `), 대괄호(`[홍길동] `), 전화번호 접두어를 무조건 잘라내는 룰 적용.
   - 1:1 대화에서는 UI에서 발신자 라벨 자체를 생략하고, 단체방에서만 화자 식별 라벨을 표시하도록 개선.
 
-### 5) 뒤로가기(Back) 제스처/버튼 패널 닫힘 복구 (`v1.3.6`, `v1.3.7`)
-* **문제**: 윈도우 플래그 설정에 따라 시스템 제스처 뒤로가기가 오버레이 창을 건너뛰고 배경 앱으로 흘러가던 현상.
-* **해결**: `OverlayPanelLayout`에 `dispatchKeyEventPreIme`와 `dispatchKeyEvent`를 적용하고 표준 전체화면 오버레이 포커스를 부여하여 뒤로가기 키/제스처를 100% 즉시 수신/닫힘 처리.
+### 5) 뒤로가기(Back) 제스처/버튼 패널 닫힘 복구 (`v1.3.6`, `v1.3.7`, `v1.3.8`, `v1.3.9`)
+* **문제**: 
+  - Android 13+ (API 33, Tiramisu) 및 Android 14+ 기기에서 제스처 네비게이션(화면 가장자리 스와이프 뒤로가기) 사용 시 시스템 제스처가 WMS에 의해 오버레이 창을 통과하여 배경 앱으로 빠져나가던 현상.
+  - 가상 LifecycleOwner Dispatcher와 Compose 포커스 트리가 분실되었을 때 `closePanel()`이 호출되지 않던 문제.
+* **해결**: 
+  - **`OnBackInvokedDispatcher` 연동 (`v1.3.9`)**: Android 13/14 시스템 제스처를 `OverlayPanelLayout`에서 `registerOnBackInvokedCallback(PRIORITY_OVERLAY)`로 직접 가로채어 패널 즉시 닫기.
+  - **Compose `onPreviewKeyEvent` 연동 (`v1.3.9`)**: Compose 내부 포커스에서도 최상단 `onPreviewKeyEvent`로 `Key.Back`/`Key.Escape`를 가로채어 `onClose()` 호출.
+  - `OverlayPanelLayout`의 `onBackPressed` 콜백에서 Dispatcher 조건 없이 `closePanel()` 다이렉트 호출.
 
 ---
 
