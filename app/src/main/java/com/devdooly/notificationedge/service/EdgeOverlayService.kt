@@ -31,6 +31,8 @@ import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
 import com.devdooly.notificationedge.ui.overlay.EdgePanelContent
+import com.devdooly.notificationedge.ui.theme.AppFont
+import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -331,20 +333,24 @@ class EdgeOverlayService : Service() {
             setBackgroundColor(AndroidColor.TRANSPARENT)
             lifecycleOwner.attachToView(this)
             setContent {
-                EdgePanelContent(
-                    edgeSide = currentSettings.edgeSide,
-                    panelWidthDp = currentSettings.panelWidthDp,
-                    autoDismissOnOpen = currentSettings.autoDismissOnOpen,
-                    onClose = { closePanel() },
-                    onOpenSettings = {
-                        closePanel()
-                        val intent = Intent(this@EdgeOverlayService, MainActivity::class.java).apply {
-                            putExtra(MainActivity.EXTRA_OPEN_SETTINGS, true)
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                NotificationEdgeTheme(
+                    appFont = AppFont.fromId(currentSettings.selectedFont)
+                ) {
+                    EdgePanelContent(
+                        edgeSide = currentSettings.edgeSide,
+                        panelWidthDp = currentSettings.panelWidthDp,
+                        autoDismissOnOpen = currentSettings.autoDismissOnOpen,
+                        onClose = { closePanel() },
+                        onOpenSettings = {
+                            closePanel()
+                            val intent = Intent(this@EdgeOverlayService, MainActivity::class.java).apply {
+                                putExtra(MainActivity.EXTRA_OPEN_SETTINGS, true)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            }
+                            startActivity(intent)
                         }
-                        startActivity(intent)
-                    }
-                )
+                    )
+                }
             }
         }
 

@@ -26,6 +26,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun NotificationEdgeTheme(
+    appFont: AppFont = AppFont.SYSTEM_DEFAULT,
     content: @Composable () -> Unit
 ) {
     val colorScheme = DarkColorScheme
@@ -40,7 +41,7 @@ fun NotificationEdgeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = createTypography(appFont.toFontFamily()),
         content = content
     )
 }

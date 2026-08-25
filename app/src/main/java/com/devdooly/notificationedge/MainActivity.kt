@@ -7,10 +7,13 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.service.EdgeOverlayService
 import com.devdooly.notificationedge.ui.settings.SettingsScreen
+import com.devdooly.notificationedge.ui.theme.AppFont
 import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -52,7 +55,10 @@ class MainActivity : ComponentActivity() {
             )
             enableEdgeToEdge()
             setContent {
-                NotificationEdgeTheme {
+                val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = settings)
+                NotificationEdgeTheme(
+                    appFont = AppFont.fromId(liveSettings.selectedFont)
+                ) {
                     SettingsScreen()
                 }
             }

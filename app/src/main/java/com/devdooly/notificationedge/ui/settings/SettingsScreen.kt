@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.6",
+                                text = "v1.2.7",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -199,6 +199,12 @@ fun SettingsScreen() {
                 }
             )
 
+            // 글꼴 및 폰트 설정 (한영 혼용 가독성 최적화)
+            FontSettingsCard(
+                selectedFontId = settings.selectedFont,
+                onFontSelected = { scope.launch { settingsRepo.updateSelectedFont(it) } }
+            )
+
             // 햅틱 진동 피드백
             Card(
                 colors = CardDefaults.cardColors(containerColor = DarkSurface),
@@ -224,7 +230,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.6")
+            AppUpdateCard(currentVersionName = "1.2.7")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -372,7 +378,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.6 (Build 26) | Target Android 14",
+                text = "버전 1.2.7 (Build 27) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -1107,6 +1113,140 @@ private fun ColorPaletteRow(
                         tint = if (colorHex == 0xFFFFFFFF) Color.Black else Color.White,
                         modifier = Modifier.size(18.dp)
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FontSettingsCard(
+    selectedFontId: String,
+    onFontSelected: (String) -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+    val currentFont = AppFont.fromId(selectedFontId)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = DarkSurface),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isExpanded = !isExpanded },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "글꼴 및 폰트 설정 (Font)",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "현재: ${currentFont.displayName}",
+                        color = EdgeCyan,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                IconButton(onClick = { isExpanded = !isExpanded }) {
+                    Icon(
+                        imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                        contentDescription = if (isExpanded) "접기" else "더보기",
+                        tint = Color.LightGray
+                    )
+                }
+            }
+
+            // 한영 혼용 정렬 보정 안내 문구
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                color = DarkBackground,
+                shape = RoundedCornerShape(8.dp),
+                border = androidx.compose.foundation.BorderStroke(0.5.dp, GlassBorder),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.TextFields,
+                        contentDescription = null,
+                        tint = EdgeCyan,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "한글/영문 혼용 시 수직 기준선(Baseline)과 패딩을 보정하여 고르게 표시합니다.",
+                        color = Color.Gray,
+                        fontSize = 11.sp,
+                        lineHeight = 15.sp
+                    )
+                }
+            }
+
+            if (isExpanded) {
+                Spacer(modifier = Modifier.height(14.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    AppFont.entries.forEach { fontOption ->
+                        val isSelected = fontOption.id == selectedFontId
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (isSelected) EdgeCyan.copy(alpha = 0.12f) else DarkBackground,
+                            border = androidx.compose.foundation.BorderStroke(
+                                width = if (isSelected) 1.5.dp else 0.5.dp,
+                                color = if (isSelected) EdgeCyan else Color(0xFF333B4A)
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onFontSelected(fontOption.id) }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = fontOption.displayName,
+                                        color = if (isSelected) EdgeCyan else Color.White,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        fontSize = 14.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = fontOption.description,
+                                        color = Color.Gray,
+                                        fontSize = 11.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    // 폰트 실시간 적용 미리보기 샘플
+                                    Text(
+                                        text = "Notification 알림 123 (Aa 한글 폰트)",
+                                        color = if (isSelected) CloudDancer else Color.LightGray,
+                                        fontSize = 12.sp,
+                                        fontFamily = fontOption.toFontFamily()
+                                    )
+                                }
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = { onFontSelected(fontOption.id) },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = EdgeCyan,
+                                        unselectedColor = Color.Gray
+                                    )
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

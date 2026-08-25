@@ -20,6 +20,7 @@ data class AppSettings(
     val edgeLightingDurationMs: Long = 3000L,
     val edgeLightingColor: Long = 0xFF82D8D0,
     val edgeLightingCornerRadiusDp: Int = 32,
+    val selectedFont: String = "default",
     val hapticFeedbackEnabled: Boolean = true,
     val excludedPackages: Set<String> = emptySet()
 )

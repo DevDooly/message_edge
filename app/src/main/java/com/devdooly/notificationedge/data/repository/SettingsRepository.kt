@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.devdooly.notificationedge.data.model.AppSettings
@@ -33,6 +34,7 @@ class SettingsRepository(private val context: Context) {
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
         val EDGE_LIGHTING_CORNER_RADIUS_DP = intPreferencesKey("edge_lighting_corner_radius_dp")
+        val SELECTED_FONT = stringPreferencesKey("selected_font")
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
     }
@@ -54,6 +56,7 @@ class SettingsRepository(private val context: Context) {
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF82D8D0,
             edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
+            selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: "default",
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
             excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet()
         )
@@ -115,6 +118,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateEdgeLightingCornerRadiusDp(radius: Int) {
         context.dataStore.edit { it[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] = radius.coerceIn(0, 60) }
+    }
+
+    suspend fun updateSelectedFont(fontId: String) {
+        context.dataStore.edit { it[PreferencesKeys.SELECTED_FONT] = fontId }
     }
 
     suspend fun updateHapticEnabled(enabled: Boolean) {
