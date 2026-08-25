@@ -122,7 +122,7 @@ object NotificationRepository {
     }
 
     /**
-     * 채팅방으로 이동하거나 앱 실행
+     * 채팅방으로 이동하거나 앱 실행 (유튜브/유튜브 뮤직 등 미디어 재생 중단 방지)
      */
     fun openNotificationApp(
         context: Context,
@@ -130,9 +130,17 @@ object NotificationRepository {
         autoDismiss: Boolean = true,
         onClose: () -> Unit
     ) {
+        // 1. 오버레이 윈도우를 먼저 닫아 윈도우 포커스를 정상적으로 시스템/타깃 앱에 반환
+        onClose()
+
+        // 2. 옵션이 켜져 있는 경우 해당 메시지 그룹을 알림 목록에서 자동 삭제
+        if (autoDismiss) {
+            removeNotification(notification.key)
+        }
+
         var launched = false
 
-        // 1. PendingIntent(특정 채팅방으로 이동) 실행 시도
+        // 3. PendingIntent(특정 채팅방으로 이동) 실행 시도
         if (notification.contentIntent != null) {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -150,11 +158,12 @@ object NotificationRepository {
             }
         }
 
-        // 2. PendingIntent가 실패하거나 없는 경우 해당 앱의 런처 실행
+        // 4. PendingIntent가 실패하거나 없는 경우 해당 앱의 런처 실행 (기존 태스크 유지)
         if (!launched) {
             try {
                 val launchIntent = context.packageManager.getLaunchIntentForPackage(notification.packageName)?.apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    // 미디어 재생 태스크를 초기화하지 않고 그대로 포그라운드로 복귀
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 }
                 if (launchIntent != null) {
                     context.startActivity(launchIntent)
@@ -164,13 +173,6 @@ object NotificationRepository {
                 e.printStackTrace()
             }
         }
-
-        // 옵션이 켜져 있는 경우 해당 메시지 그룹을 알림 목록에서 자동 삭제
-        if (autoDismiss) {
-            removeNotification(notification.key)
-        }
-
-        onClose()
     }
 
     fun sendQuickReply(

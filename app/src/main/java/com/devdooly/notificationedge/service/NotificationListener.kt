@@ -67,9 +67,17 @@ class NotificationListener : NotificationListenerService() {
         val notification = sbn.notification ?: return
         val extras = notification.extras ?: return
 
-        // 지속적 알림(Ongoing) 필터링 - 포그라운드 서비스 등
-        val isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0
+        // 1. 지속적 알림(Ongoing) 및 고정 알림 필터링
+        val isOngoing = (notification.flags and Notification.FLAG_ONGOING_EVENT) != 0 ||
+                (notification.flags and Notification.FLAG_NO_CLEAR) != 0
         if (isOngoing) return
+
+        // 2. 미디어 재생 제어 알림 필터링 (YouTube, YouTube Music, Spotify 등의 MediaSession / Transport)
+        val isMediaTransport = notification.category == Notification.CATEGORY_TRANSPORT ||
+                notification.category == Notification.CATEGORY_SERVICE ||
+                extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||
+                extras.containsKey("android.mediaSession")
+        if (isMediaTransport) return
 
         val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
             ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()
