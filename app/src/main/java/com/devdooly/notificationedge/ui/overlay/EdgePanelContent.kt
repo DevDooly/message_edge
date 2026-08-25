@@ -5,6 +5,7 @@ import android.text.format.DateUtils
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,20 +49,55 @@ fun EdgePanelContent(
 ) {
     val context = LocalContext.current
     val notifications by NotificationRepository.notifications.collectAsState()
+    var dragOffsetX by remember { mutableFloatStateOf(0f) }
 
-    // 전체 화면 배경 (완전 투명, 바깥 터치 시 닫기)
+    // 전체 화면 배경 (완전 투명, 바깥 터치 및 왼쪽/오른쪽 드래그 시 닫기)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Transparent)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { dragOffsetX = 0f },
+                    onHorizontalDrag = { _, dragAmount ->
+                        dragOffsetX += dragAmount
+                        if (dragOffsetX < -40f || dragOffsetX > 40f) {
+                            onClose()
+                        }
+                    },
+                    onDragEnd = {
+                        if (kotlin.math.abs(dragOffsetX) > 30f) {
+                            onClose()
+                        }
+                        dragOffsetX = 0f
+                    }
+                )
+            }
             .clickable(onClick = onClose)
     ) {
-        // 사이드 슬라이드 패널
+        // 사이드 슬라이드 패널 (왼쪽/오른쪽 스와이프 드래그 시 닫기)
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(340.dp)
                 .align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragOffsetX = 0f },
+                        onHorizontalDrag = { _, dragAmount ->
+                            dragOffsetX += dragAmount
+                            if (dragOffsetX < -40f || dragOffsetX > 40f) {
+                                onClose()
+                            }
+                        },
+                        onDragEnd = {
+                            if (kotlin.math.abs(dragOffsetX) > 30f) {
+                                onClose()
+                            }
+                            dragOffsetX = 0f
+                        }
+                    )
+                }
                 .clickable(enabled = false) {}, // 클릭 전파 방지
             color = GlassBackground,
             shape = if (edgeSide == EdgeSide.RIGHT) {
