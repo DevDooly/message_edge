@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.1.2",
+                                text = "v1.1.3",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -170,6 +170,7 @@ fun SettingsScreen() {
                 onPositionChange = { scope.launch { settingsRepo.updateHandlePositionRatio(it) } },
                 onHeightChange = { scope.launch { settingsRepo.updateHandleHeightDp(it) } },
                 onPanelWidthChange = { scope.launch { settingsRepo.updatePanelWidthDp(it) } },
+                onAutoDismissToggle = { scope.launch { settingsRepo.updateAutoDismissOnOpen(it) } },
                 onColorChange = { scope.launch { settingsRepo.updateHandleColor(it) } },
                 onAlphaChange = { scope.launch { settingsRepo.updateHandleAlpha(it) } },
                 onVisibleToggle = { scope.launch { settingsRepo.updateHandleVisible(it) } }
@@ -221,7 +222,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.1.2")
+            AppUpdateCard(currentVersionName = "1.1.3")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -369,7 +370,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.1.2 (Build 12) | Target Android 14",
+                text = "버전 1.1.3 (Build 13) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -774,6 +775,7 @@ private fun EdgeHandleSettingsCard(
     onPositionChange: (Float) -> Unit,
     onHeightChange: (Int) -> Unit,
     onPanelWidthChange: (Int) -> Unit,
+    onAutoDismissToggle: (Boolean) -> Unit,
     onColorChange: (Long) -> Unit,
     onAlphaChange: (Float) -> Unit,
     onVisibleToggle: (Boolean) -> Unit
@@ -791,7 +793,7 @@ private fun EdgeHandleSettingsCard(
             )
             Spacer(modifier = Modifier.height(14.dp))
 
-            // 패널 가로 너비 (슬림/와이드 조절)
+            // 패널 가로 너비 (5dp 단위 조절)
             Text(
                 "알림 패널 가로 너비 (${settings.panelWidthDp} dp)",
                 color = Color.LightGray,
@@ -802,11 +804,31 @@ private fun EdgeHandleSettingsCard(
                 value = settings.panelWidthDp.toFloat(),
                 onValueChange = { onPanelWidthChange(it.toInt()) },
                 valueRange = 220f..360f,
+                steps = 27,
                 colors = SliderDefaults.colors(
                     thumbColor = EdgeCyan,
                     activeTrackColor = EdgeCyan
                 )
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 채팅방 이동 시 해당 알림 자동 삭제 (기본값 ON)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("채팅방 이동 시 알림 자동 삭제", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text("메시지를 터치해 해당 앱/채팅방으로 이동하면 알림 목록에서 자동으로 삭제합니다", color = Color.Gray, fontSize = 11.sp)
+                }
+                Switch(
+                    checked = settings.autoDismissOnOpen,
+                    onCheckedChange = onAutoDismissToggle,
+                    colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -885,7 +907,7 @@ private fun EdgeHandleSettingsCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 핸들 크기 (높이)
+            // 핸들 크기 (높이, 5dp 단위 조절)
             Text(
                 "핸들 높이 길이 (${settings.handleHeightDp} dp)",
                 color = Color.LightGray,
@@ -895,6 +917,7 @@ private fun EdgeHandleSettingsCard(
                 value = settings.handleHeightDp.toFloat(),
                 onValueChange = { onHeightChange(it.toInt()) },
                 valueRange = 50f..200f,
+                steps = 29,
                 colors = SliderDefaults.colors(
                     thumbColor = EdgeCyan,
                     activeTrackColor = EdgeCyan

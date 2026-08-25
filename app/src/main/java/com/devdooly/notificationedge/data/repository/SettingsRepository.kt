@@ -28,6 +28,7 @@ class SettingsRepository(private val context: Context) {
         val HANDLE_VISIBLE = booleanPreferencesKey("handle_visible")
         val LAUNCH_DIRECT_TO_PANEL = booleanPreferencesKey("launch_direct_to_panel")
         val PANEL_WIDTH_DP = intPreferencesKey("panel_width_dp")
+        val AUTO_DISMISS_ON_OPEN = booleanPreferencesKey("auto_dismiss_on_open")
         val EDGE_LIGHTING_ENABLED = booleanPreferencesKey("edge_lighting_enabled")
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
@@ -47,6 +48,7 @@ class SettingsRepository(private val context: Context) {
             isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
             launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
             panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: 280,
+            autoDismissOnOpen = prefs[PreferencesKeys.AUTO_DISMISS_ON_OPEN] ?: true,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
@@ -68,11 +70,13 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updateHandleWidthDp(width: Int) {
-        context.dataStore.edit { it[PreferencesKeys.HANDLE_WIDTH_DP] = width.coerceIn(4, 24) }
+        val snapped = (width / 5) * 5
+        context.dataStore.edit { it[PreferencesKeys.HANDLE_WIDTH_DP] = snapped.coerceIn(5, 25) }
     }
 
     suspend fun updateHandleHeightDp(height: Int) {
-        context.dataStore.edit { it[PreferencesKeys.HANDLE_HEIGHT_DP] = height.coerceIn(40, 250) }
+        val snapped = (height / 5) * 5
+        context.dataStore.edit { it[PreferencesKeys.HANDLE_HEIGHT_DP] = snapped.coerceIn(40, 250) }
     }
 
     suspend fun updateHandleColor(color: Long) {
@@ -92,7 +96,12 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updatePanelWidthDp(width: Int) {
-        context.dataStore.edit { it[PreferencesKeys.PANEL_WIDTH_DP] = width.coerceIn(220, 360) }
+        val snapped = (width / 5) * 5
+        context.dataStore.edit { it[PreferencesKeys.PANEL_WIDTH_DP] = snapped.coerceIn(220, 360) }
+    }
+
+    suspend fun updateAutoDismissOnOpen(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.AUTO_DISMISS_ON_OPEN] = enabled }
     }
 
     suspend fun updateEdgeLightingEnabled(enabled: Boolean) {

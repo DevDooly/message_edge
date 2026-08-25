@@ -45,6 +45,7 @@ import com.devdooly.notificationedge.ui.theme.GlassBorder
 fun EdgePanelContent(
     edgeSide: EdgeSide,
     panelWidthDp: Int = 280,
+    autoDismissOnOpen: Boolean = true,
     onClose: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -142,7 +143,12 @@ fun EdgePanelContent(
                                 notification = notification,
                                 onDismiss = { NotificationRepository.dismissNotification(notification.key) },
                                 onClick = {
-                                    NotificationRepository.openNotificationApp(context, notification, onClose)
+                                    NotificationRepository.openNotificationApp(
+                                        context = context,
+                                        notification = notification,
+                                        autoDismiss = autoDismissOnOpen,
+                                        onClose = onClose
+                                    )
                                 },
                                 onSendReply = { action, text ->
                                     NotificationRepository.sendQuickReply(context, action, text)

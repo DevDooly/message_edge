@@ -123,7 +123,12 @@ object NotificationRepository {
     /**
      * 채팅방으로 이동하거나 앱 실행
      */
-    fun openNotificationApp(context: Context, notification: EdgeNotification, onClose: () -> Unit) {
+    fun openNotificationApp(
+        context: Context,
+        notification: EdgeNotification,
+        autoDismiss: Boolean = true,
+        onClose: () -> Unit
+    ) {
         var launched = false
 
         // 1. PendingIntent(특정 채팅방으로 이동) 실행 시도
@@ -157,6 +162,11 @@ object NotificationRepository {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+
+        // 옵션이 켜져 있는 경우 해당 메시지 그룹을 알림 목록에서 자동 삭제
+        if (autoDismiss) {
+            removeNotification(notification.key)
         }
 
         onClose()
