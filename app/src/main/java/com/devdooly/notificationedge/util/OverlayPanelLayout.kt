@@ -5,12 +5,12 @@ import android.view.KeyEvent
 import android.widget.FrameLayout
 
 /**
- * WindowManager 오버레이 윈도우에서 안드로이드 시스템 뒤로가기(BackKey) 이벤트를
- * 100% 신뢰성 있게 가로채기 위한 루트 레이아웃
+ * WindowManager 오버레이 윈도우에서 안드로이드 시스템 뒤로가기(BackKey/제스처) 이벤트를
+ * 100% 가로채어 패널을 즉시 닫기 위한 루트 레이아웃
  */
 class OverlayPanelLayout(context: Context) : FrameLayout(context) {
 
-    var onBackPressed: (() -> Boolean)? = null
+    var onBackPressed: (() -> Unit)? = null
 
     init {
         isFocusable = true
@@ -20,11 +20,9 @@ class OverlayPanelLayout(context: Context) : FrameLayout(context) {
     override fun dispatchKeyEventPreIme(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (event.action == KeyEvent.ACTION_UP) {
-                val handled = onBackPressed?.invoke() ?: false
-                if (handled) return true
-            } else if (event.action == KeyEvent.ACTION_DOWN) {
-                return true
+                onBackPressed?.invoke()
             }
+            return true
         }
         return super.dispatchKeyEventPreIme(event)
     }
@@ -32,10 +30,9 @@ class OverlayPanelLayout(context: Context) : FrameLayout(context) {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (event.action == KeyEvent.ACTION_UP) {
-                val handled = onBackPressed?.invoke() ?: false
-                return if (handled) true else super.dispatchKeyEvent(event)
+                onBackPressed?.invoke()
             }
-            return true // ACTION_DOWN 소비하여 하위/배경 윈도우로 빠져나가지 않도록 방지
+            return true
         }
         return super.dispatchKeyEvent(event)
     }

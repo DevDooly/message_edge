@@ -338,10 +338,7 @@ class EdgeOverlayService : Service() {
             onBackPressed = {
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
                 imm?.hideSoftInputFromWindow(windowToken, 0)
-                if (!lifecycleOwner.handleOnBackPressed()) {
-                    closePanel()
-                }
-                true
+                closePanel()
             }
         }
 
