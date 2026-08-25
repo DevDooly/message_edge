@@ -65,6 +65,7 @@ fun EdgePanelContent(
 ) {
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
     val notifications by NotificationRepository.notifications.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -82,21 +83,24 @@ fun EdgePanelContent(
         activeNotification?.actions?.firstOrNull { it.isReply }
     }
 
-    // 답장 활성화 시 자동 포커스 및 가상키보드 팝업
+    // 답장 활성화 시 자동 포커스 및 가상키보드 팝업, 비활성화 시 즉시 해제
     LaunchedEffect(activeReplyKey) {
         if (activeReplyKey != null) {
             delay(120)
             replyFocusRequester.requestFocus()
             keyboardController?.show()
         } else {
+            focusManager.clearFocus(force = true)
+            keyboardController?.hide()
             replyText = ""
         }
     }
 
-    // 네비게이션 뒤로가기 제스처 / 버튼 처리
+    // 네비게이션 뒤로가기 제스처 / 버튼 처리 (키보드 및 답장 모드 먼저 닫기)
     BackHandler(enabled = true) {
         if (activeReplyKey != null) {
-            // 1단계: 답장창이 열려있으면 키보드 및 답장 입력창 먼저 닫기
+            // 1단계: 답장창/키보드가 열려있으면 포커스 해제 및 가상키보드 닫기
+            focusManager.clearFocus(force = true)
             keyboardController?.hide()
             activeReplyKey = null
         } else {
@@ -244,12 +248,14 @@ fun EdgePanelContent(
                             replyText = replyText
                         )
                         replyText = ""
+                        focusManager.clearFocus(force = true)
                         keyboardController?.hide()
                         activeReplyKey = null
                     }
                 },
                 onClose = {
                     replyText = ""
+                    focusManager.clearFocus(force = true)
                     keyboardController?.hide()
                     activeReplyKey = null
                 }

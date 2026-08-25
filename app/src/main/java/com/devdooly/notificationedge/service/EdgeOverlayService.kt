@@ -316,8 +316,10 @@ class EdgeOverlayService : Service() {
             lifecycleOwner.attachToComposeView(this)
             isFocusable = true
             isFocusableInTouchMode = true
-            setOnKeyListener { _, keyCode, event ->
+            setOnKeyListener { view, keyCode, event ->
                 if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+                    imm?.hideSoftInputFromWindow(view.windowToken, 0)
                     if (!lifecycleOwner.handleOnBackPressed()) {
                         closePanel()
                     }
