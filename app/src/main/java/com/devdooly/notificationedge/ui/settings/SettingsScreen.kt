@@ -78,7 +78,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.1.1",
+                                text = "v1.1.2",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -163,12 +163,13 @@ fun SettingsScreen() {
                 }
             )
 
-            // 엣지 핸들 설정
+            // 엣지 핸들 및 패널 설정
             EdgeHandleSettingsCard(
                 settings = settings,
                 onSideChange = { scope.launch { settingsRepo.updateEdgeSide(it) } },
                 onPositionChange = { scope.launch { settingsRepo.updateHandlePositionRatio(it) } },
                 onHeightChange = { scope.launch { settingsRepo.updateHandleHeightDp(it) } },
+                onPanelWidthChange = { scope.launch { settingsRepo.updatePanelWidthDp(it) } },
                 onColorChange = { scope.launch { settingsRepo.updateHandleColor(it) } },
                 onAlphaChange = { scope.launch { settingsRepo.updateHandleAlpha(it) } },
                 onVisibleToggle = { scope.launch { settingsRepo.updateHandleVisible(it) } }
@@ -220,7 +221,7 @@ fun SettingsScreen() {
             }
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.1.1")
+            AppUpdateCard(currentVersionName = "1.1.2")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -368,7 +369,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.1.1 (Build 11) | Target Android 14",
+                text = "버전 1.1.2 (Build 12) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -772,6 +773,7 @@ private fun EdgeHandleSettingsCard(
     onSideChange: (EdgeSide) -> Unit,
     onPositionChange: (Float) -> Unit,
     onHeightChange: (Int) -> Unit,
+    onPanelWidthChange: (Int) -> Unit,
     onColorChange: (Long) -> Unit,
     onAlphaChange: (Float) -> Unit,
     onVisibleToggle: (Boolean) -> Unit
@@ -782,12 +784,31 @@ private fun EdgeHandleSettingsCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "엣지 핸들 설정",
+                text = "엣지 핸들 및 패널 레이아웃",
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(14.dp))
+
+            // 패널 가로 너비 (슬림/와이드 조절)
+            Text(
+                "알림 패널 가로 너비 (${settings.panelWidthDp} dp)",
+                color = Color.LightGray,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium
+            )
+            Slider(
+                value = settings.panelWidthDp.toFloat(),
+                onValueChange = { onPanelWidthChange(it.toInt()) },
+                valueRange = 220f..360f,
+                colors = SliderDefaults.colors(
+                    thumbColor = EdgeCyan,
+                    activeTrackColor = EdgeCyan
+                )
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 핸들 보이기 / 숨기기 (제스처 전용)
             Row(

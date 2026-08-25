@@ -315,6 +315,7 @@ class EdgeOverlayService : Service() {
             setContent {
                 EdgePanelContent(
                     edgeSide = currentSettings.edgeSide,
+                    panelWidthDp = currentSettings.panelWidthDp,
                     onClose = { closePanel() },
                     onOpenSettings = {
                         closePanel()

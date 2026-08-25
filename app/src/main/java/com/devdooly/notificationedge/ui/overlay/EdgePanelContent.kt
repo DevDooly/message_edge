@@ -44,6 +44,7 @@ import com.devdooly.notificationedge.ui.theme.GlassBorder
 @Composable
 fun EdgePanelContent(
     edgeSide: EdgeSide,
+    panelWidthDp: Int = 280,
     onClose: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
@@ -79,7 +80,7 @@ fun EdgePanelContent(
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(340.dp)
+                .width(panelWidthDp.dp)
                 .align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(

@@ -27,6 +27,7 @@ class SettingsRepository(private val context: Context) {
         val HANDLE_ALPHA = floatPreferencesKey("handle_alpha")
         val HANDLE_VISIBLE = booleanPreferencesKey("handle_visible")
         val LAUNCH_DIRECT_TO_PANEL = booleanPreferencesKey("launch_direct_to_panel")
+        val PANEL_WIDTH_DP = intPreferencesKey("panel_width_dp")
         val EDGE_LIGHTING_ENABLED = booleanPreferencesKey("edge_lighting_enabled")
         val EDGE_LIGHTING_DURATION_MS = longPreferencesKey("edge_lighting_duration_ms")
         val EDGE_LIGHTING_COLOR = longPreferencesKey("edge_lighting_color")
@@ -45,6 +46,7 @@ class SettingsRepository(private val context: Context) {
             handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
             isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
             launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
+            panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: 280,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
             edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF00E5FF,
@@ -87,6 +89,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateLaunchDirectToPanel(direct: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] = direct }
+    }
+
+    suspend fun updatePanelWidthDp(width: Int) {
+        context.dataStore.edit { it[PreferencesKeys.PANEL_WIDTH_DP] = width.coerceIn(220, 360) }
     }
 
     suspend fun updateEdgeLightingEnabled(enabled: Boolean) {
