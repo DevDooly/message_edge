@@ -306,6 +306,7 @@ class EdgeOverlayService : Service() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.CENTER
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
         }
 
         val lifecycleOwner = OverlayLifecycleOwner()

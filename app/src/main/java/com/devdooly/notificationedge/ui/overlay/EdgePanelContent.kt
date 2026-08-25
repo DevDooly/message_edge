@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -26,11 +27,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,6 +49,8 @@ import com.devdooly.notificationedge.ui.theme.DarkCardBackground
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
 import com.devdooly.notificationedge.ui.theme.GlassBackground
 import com.devdooly.notificationedge.ui.theme.GlassBorder
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun EdgePanelContent(
@@ -56,6 +62,8 @@ fun EdgePanelContent(
 ) {
     val context = LocalContext.current
     val notifications by NotificationRepository.notifications.collectAsState()
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
 
     // 현재 답장 입력창이 열려있는 알림의 Key (뒤로가기 시 먼저 답장창 닫기 위함)
@@ -148,11 +156,12 @@ fun EdgePanelContent(
                     EmptyNotificationView(onOpenSettings = onOpenSettings)
                 } else {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = 16.dp)
+                        contentPadding = PaddingValues(bottom = if (activeReplyKey != null) 360.dp else 24.dp)
                     ) {
                         items(
                             items = notifications,
@@ -163,6 +172,15 @@ fun EdgePanelContent(
                                 isReplyActive = (activeReplyKey == notification.key),
                                 onToggleReply = { open ->
                                     activeReplyKey = if (open) notification.key else null
+                                    if (open) {
+                                        // 답장 누른 카드를 화면 최상단으로 자동 스크롤
+                                        val index = notifications.indexOfFirst { it.key == notification.key }
+                                        if (index >= 0) {
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index, scrollOffset = 0)
+                                            }
+                                        }
+                                    }
                                 },
                                 onDismiss = { NotificationRepository.dismissNotification(notification.key) },
                                 onClick = {
@@ -284,6 +302,18 @@ private fun NotificationCard(
     }
     var replyText by remember { mutableStateOf("") }
     var isExpandedMessages by remember { mutableStateOf(false) }
+
+    // 자동 포커스 및 가상 키보드 팝업
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(isReplyActive) {
+        if (isReplyActive) {
+            delay(120) // UI 및 스크롤 안정화 후 키보드/포커스 요청
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
+    }
 
     val timeString = remember(notification.timestamp) {
         DateUtils.getRelativeTimeSpanString(
@@ -531,7 +561,9 @@ private fun NotificationCard(
                                     fontWeight = FontWeight.Normal
                                 ),
                                 cursorBrush = SolidColor(EdgeCyan),
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(focusRequester),
                                 singleLine = true
                             )
                         }
