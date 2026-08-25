@@ -361,8 +361,8 @@ class EdgeOverlayService : Service() {
                         onClose = { closePanel() },
                         onOpenSettings = {
                             closePanel()
-                            val intent = Intent(this@EdgeOverlayService, MainActivity::class.java).apply {
-                                putExtra(MainActivity.EXTRA_OPEN_SETTINGS, true)
+                            val intent = Intent(this@EdgeOverlayService, com.devdooly.notificationedge.ui.settings.SettingsActivity::class.java).apply {
+                                putExtra(com.devdooly.notificationedge.ui.settings.SettingsActivity.EXTRA_OPEN_SETTINGS, true)
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                             }
                             startActivity(intent)

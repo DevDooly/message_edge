@@ -30,7 +30,7 @@ class OpenPanelReceiver : BroadcastReceiver() {
                 context.startService(serviceIntent)
             }
         } else {
-            val settingsIntent = Intent(context, MainActivity::class.java).apply {
+            val settingsIntent = Intent(context, com.devdooly.notificationedge.ui.settings.SettingsActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(settingsIntent)

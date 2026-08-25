@@ -1,78 +1,26 @@
 package com.devdooly.notificationedge
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.service.EdgeOverlayService
-import com.devdooly.notificationedge.ui.settings.SettingsScreen
-import com.devdooly.notificationedge.ui.theme.AppFont
-import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import com.devdooly.notificationedge.ui.settings.SettingsActivity
 
-class MainActivity : ComponentActivity() {
-
-    private lateinit var settingsRepository: SettingsRepository
+/**
+ * 런처 아이콘 / Good Lock / 제스처 실행 시 윈도우 생성 없이 0.0001초 만에 엣지 패널을 띄우는 무화면 트램펄린 액티비티
+ * (유튜브/비디오 재생 중 실행해도 윈도우 전환이 발생하지 않아 PiP 전환이 100% 발생하지 않음)
+ */
+class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
-        settingsRepository = SettingsRepository(applicationContext)
-
-        // 1. 오버레이 권한이 있고, 설정 화면 요청이 아니며, 바로 열기 모드가 활성화된 경우:
-        // 비동기 코루틴 없이 0ms 동기로 즉시 서비스 호출하고 액티비티 즉시 종료 (유튜브 PiP 전환 100% 방지)
-        if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {
-            val serviceIntent = Intent(this, EdgeOverlayService::class.java).apply {
-                action = EdgeOverlayService.ACTION_OPEN_PANEL
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent)
-            } else {
-                startService(serviceIntent)
-            }
-            super.onCreate(savedInstanceState)
-            finish()
-            @Suppress("DEPRECATION")
-            overridePendingTransition(0, 0)
-            return
-        }
-
         super.onCreate(savedInstanceState)
 
-        lifecycleScope.launch {
-            val settings = settingsRepository.settingsFlow.first()
-
-            // 2. 설정 화면 표시
-            setTheme(R.style.Theme_NotificationEdge)
-            window.setLayout(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            enableEdgeToEdge()
-            setContent {
-                val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = settings)
-                NotificationEdgeTheme(
-                    fontId = liveSettings.selectedFont
-                ) {
-                    SettingsScreen()
-                }
-            }
-
-            checkAndStartService()
-        }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
+        val settingsRepository = SettingsRepository(applicationContext)
         val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
+
         if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {
             val serviceIntent = Intent(this, EdgeOverlayService::class.java).apply {
                 action = EdgeOverlayService.ACTION_OPEN_PANEL
@@ -82,31 +30,16 @@ class MainActivity : ComponentActivity() {
             } else {
                 startService(serviceIntent)
             }
-            finish()
-            @Suppress("DEPRECATION")
-            overridePendingTransition(0, 0)
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        checkAndStartService()
-    }
-
-    private fun checkAndStartService() {
-        if (Settings.canDrawOverlays(this)) {
-            lifecycleScope.launch {
-                val settings = settingsRepository.settingsFlow.first()
-                if (settings.isServiceEnabled) {
-                    val serviceIntent = Intent(this@MainActivity, EdgeOverlayService::class.java)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(serviceIntent)
-                    } else {
-                        startService(serviceIntent)
-                    }
-                }
+        } else {
+            val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
+                if (openSettings) putExtra(SettingsActivity.EXTRA_OPEN_SETTINGS, true)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
+            startActivity(settingsIntent)
         }
+
+        finish()
+        overridePendingTransition(0, 0)
     }
 
     companion object {

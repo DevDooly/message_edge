@@ -29,7 +29,7 @@ class OpenPanelActivity : Activity() {
             }
         } else {
             Toast.makeText(this, "Notification Edge 권한 설정이 필요합니다.", Toast.LENGTH_SHORT).show()
-            val settingsIntent = Intent(this, MainActivity::class.java).apply {
+            val settingsIntent = Intent(this, com.devdooly.notificationedge.ui.settings.SettingsActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             startActivity(settingsIntent)
