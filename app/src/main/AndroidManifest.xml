@@ -49,23 +49,32 @@
             </intent-filter>
         </activity>
 
-        <!-- Good Lock / Shortcut용 엣지 패널 열기 투명 액티비티 -->
+        <!-- Good Lock / Shortcut용 엣지 패널 열기 무화면(NoDisplay) 액티비티 (유튜브 PiP 전환 방지) -->
         <activity
             android:name=".ui.OpenPanelActivity"
             android:exported="true"
             android:label="@string/open_panel_activity_label"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:theme="@android:style/Theme.NoDisplay"
+            android:taskAffinity=""
+            android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.intent.action.CREATE_SHORTCUT" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+
+        <!-- Good Lock (One Hand Operation +) / Tasker / Broadcast Intent용 무액티비티 리시버 (미디어 재생 완벽 유지) -->
+        <receiver
+            android:name=".service.OpenPanelReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.devdooly.notificationedge.OPEN_PANEL" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="com.devdooly.notificationedge.CLOSE_PANEL" />
+                <action android:name="com.devdooly.notificationedge.TOGGLE_PANEL" />
             </intent-filter>
-        </activity>
+        </receiver>
 
         <!-- Notification Listener Service -->
         <service

@@ -33,6 +33,7 @@ class MainActivity : ComponentActivity() {
 
             // 1. 오버레이 권한이 있고, 설정 화면 요청이 아니며, 바로 열기 모드가 활성화된 경우
             if (!openSettings && Settings.canDrawOverlays(this@MainActivity) && settings.launchDirectToPanel) {
+                setVisible(false)
                 val serviceIntent = Intent(this@MainActivity, EdgeOverlayService::class.java).apply {
                     action = EdgeOverlayService.ACTION_OPEN_PANEL
                 }
