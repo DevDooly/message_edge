@@ -24,10 +24,10 @@ import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 class EdgePanelActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 완전 투명 Edge-to-Edge 활성화 (상단 배터리/상태바 및 하단 네비바의 불투명/검정색 틴트 차단)
+        // 완전 투명 Zero-Scrim Edge-to-Edge 활성화 (상단 배터리/상태바 및 하단 네비바의 불투명/검정색 틴트 차단)
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
 
@@ -38,6 +38,11 @@ class EdgePanelActivity : ComponentActivity() {
             window.isStatusBarContrastEnforced = false
             window.isNavigationBarContrastEnforced = false
         }
+
+        // 상태바 및 네비게이션바 아이콘 색상 고정 (다크 스타일로 유지하여 색상 반전/깜빡임 차단)
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.isAppearanceLightStatusBars = false
+        insetsController.isAppearanceLightNavigationBars = false
 
         // OS 레벨의 뒤로가기 콜백 등록 (100% 보장)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

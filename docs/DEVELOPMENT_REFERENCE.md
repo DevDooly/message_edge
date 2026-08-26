@@ -163,6 +163,13 @@ graph TD
   - 일반 알림은 제목과 본문만 깔끔하게 1회씩 렌더링되어 의미 없는 발신자 중복 및 가짜 단체방 뱃지가 완벽하게 제거됨.
   - `MessengerNotificationParserTest.kt`에 토스증권 실제 덤프 기반 회귀 테스트 추가 완료.
 
+### 18) 상단 상태표시줄 Zero-Scrim 완전 투명화 및 하단 네비게이션바 버튼 색상 유지 (`v1.4.13`)
+* **문제**: 엣지 패널 열기 시 상단 상태표시줄(배터리, 시계)에 불투명한 틴트(Scrim)가 여전히 남고, 하단 네비게이션바 버튼(뒤로가기, 홈, 최근앱) 색상이 흰색/검정색으로 반전되던 현상.
+* **해결**:
+  - `EdgePanelActivity.kt`의 `enableEdgeToEdge()`를 `SystemBarStyle.dark(Color.TRANSPARENT)`로 명속하여 시스템 레벨의 불투명 스크림 주입을 완전 차단.
+  - `WindowInsetsControllerCompat`를 통해 `isAppearanceLightStatusBars = false`, `isAppearanceLightNavigationBars = false`를 명시 적용하여 네비게이션바 버튼 색상이 반전되지 않고 일관된 다크 스타일로 완벽 유지.
+  - `themes.xml`에 `windowLightStatusBar = false`, `windowLightNavigationBar = false`를 추가하여 삼성 One UI와의 완벽한 투명도 호환성 확보.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
