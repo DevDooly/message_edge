@@ -252,6 +252,12 @@ graph TD
   - `NotificationTextCleaner.kt`: `http://`, `https://`, `ftp://` 등 URL 링크 스킴을 보존하여 메시지 본문 훼손 방지.
   - `MessengerNotificationParserTest.kt`에 1건 메시지 단체방 및 URL 본문 회귀 테스트 케이스 추가 완료 (총 37개 단위 테스트 100% 통과).
 
+### 30) 1:1 대화 답장 후 단체방 뱃지 오인 버그 수정 (`v1.0.9`, Build 109)
+* **문제**:
+  - 1:1 개인 대화(예: "용선정")에서 사용자가 퀵 답장을 보냈을 때 `EdgePanelContent.kt`의 UI 단체방 뱃지 판별 로직이 `messages.any { it.sender != title }`을 검사하면서 본인 메시지("나")가 상대방 이름과 다르다는 이유로 단체방 뱃지를 표시하던 현상.
+* **해결**:
+  - `EdgePanelContent.kt`: UI에서 자체 휴리스틱을 돌리지 않고, 파서가 OS 명시 플래그(`android.isGroupConversation`)와 대화 상대를 검증하여 완성한 진실값인 `notification.isGroupChat`을 100% 직접 사용하도록 수정.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -260,9 +266,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.8`)
-   - `AppUpdateCard(currentVersionName = "1.0.8")`
-   - `AppInfoCard` (예: `버전 1.0.8 (Build 108) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.9`)
+   - `AppUpdateCard(currentVersionName = "1.0.9")`
+   - `AppInfoCard` (예: `버전 1.0.9 (Build 109) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

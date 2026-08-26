@@ -670,11 +670,7 @@ private fun NotificationCard(
             // 알림 제목 (단체방 이름 또는 발신자 이름)
             if (notification.title.isNotBlank()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val isGroup = notification.isGroupChat ||
-                            notification.subText != null ||
-                            notification.title.contains("(") ||
-                            notification.title.contains(",") ||
-                            notification.messages.any { it.sender.isNotBlank() && it.sender != notification.title }
+                    val isGroup = notification.isGroupChat
 
                     if (isGroup) {
                         Surface(
