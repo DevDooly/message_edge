@@ -9,6 +9,7 @@ import androidx.test.core.app.ApplicationProvider
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -170,5 +171,22 @@ class MessengerNotificationParserTest {
         assertEquals("김수환", result.currentSender)
         assertEquals("브레이크가 고장나서 가장자리로 달리려던걸까", result.cleanText)
         assertEquals(1, result.messages.size)
+    }
+
+    @Test
+    fun `toss securities non-chat notification should not be parsed as group chat and should have empty messages`() {
+        val sbn = createMockSbn(
+            packageName = "viva.republica.toss",
+            title = "KODEX SK하이닉스단일종목레버리지 📈",
+            text = "주식 가격이 5% 올랐어요(10,590원)",
+            subText = "토스증권"
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertFalse(result.isGroupChat)
+        assertNull(result.groupRoomName)
+        assertEquals("KODEX SK하이닉스단일종목레버리지 📈", result.roomTitle)
+        assertEquals("주식 가격이 5% 올랐어요(10,590원)", result.cleanText)
+        assertTrue(result.messages.isEmpty())
     }
 }

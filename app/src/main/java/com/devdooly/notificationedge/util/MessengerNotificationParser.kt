@@ -44,6 +44,18 @@ object MessengerNotificationParser {
             ?: ""
 
         val isKakaoTalk = packageName == "com.kakao.talk"
+        val template = extras.getCharSequence("android.template")?.toString()
+            ?: extras.getCharSequence("androidx.core.app.extra.COMPAT_TEMPLATE")?.toString()
+            ?: ""
+        val hasMessages = extras.get("android.messages") != null
+        val isMessagingStyle = template.contains("MessagingStyle") || hasMessages
+        val isMessengerApp = isKakaoTalk ||
+                packageName.contains("telegram") ||
+                packageName.contains("line") ||
+                packageName.contains("discord") ||
+                packageName.contains("mms") ||
+                packageName.contains("message") ||
+                packageName.contains("chat")
 
         // 1. 카카오톡 특화 정밀 분석
         if (isKakaoTalk) {
@@ -60,15 +72,47 @@ object MessengerNotificationParser {
         }
 
         // 2. 일반 메신저 (MessagingStyle / Telegram / Line / SMS) 분석
-        return parseGenericMessenger(
+        if (isMessagingStyle || isMessengerApp) {
+            return parseGenericMessenger(
+                rawTitle = rawTitle,
+                rawText = rawText,
+                subText = subText,
+                summaryText = summaryText,
+                conversationTitle = conversationTitle,
+                isGroupConversation = isGroupConversation,
+                extras = extras,
+                postTime = sbn.postTime
+            )
+        }
+
+        // 3. 일반 단일 알림 (토스증권, 알리익스프레스, 시스템 알림 등 - 대화형이 아님)
+        return parseSingleNotification(
             rawTitle = rawTitle,
             rawText = rawText,
-            subText = subText,
-            summaryText = summaryText,
-            conversationTitle = conversationTitle,
-            isGroupConversation = isGroupConversation,
-            extras = extras,
-            postTime = sbn.postTime
+            subText = subText
+        )
+    }
+
+    /**
+     * 일반 단일 알림 파서 (중복 발신자 라벨 및 가짜 단체방 방지)
+     */
+    private fun parseSingleNotification(
+        rawTitle: String,
+        rawText: String,
+        subText: String?
+    ): ParsedNotificationData {
+        val cleanText = NotificationTextCleaner.cleanMessageText(
+            text = rawText,
+            title = rawTitle,
+            sender = ""
+        )
+        return ParsedNotificationData(
+            roomTitle = rawTitle,
+            groupRoomName = null,
+            isGroupChat = false,
+            currentSender = rawTitle,
+            cleanText = cleanText,
+            messages = emptyList()
         )
     }
 
