@@ -149,6 +149,7 @@ class NotificationListener : NotificationListenerService() {
             contentIntent = contentIntent,
             actions = actionsList,
             isClearable = sbn.isClearable,
+            isGroupChat = parsed.isGroupChat,
             debugExtrasDump = extrasDump
         )
 

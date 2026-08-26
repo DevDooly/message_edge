@@ -665,13 +665,13 @@ private fun NotificationCard(
             // 알림 제목 (단체방 이름 또는 발신자 이름)
             if (notification.title.isNotBlank()) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val isGroupChat = notification.messages.isNotEmpty() && (
+                    val isGroup = notification.isGroupChat ||
                             notification.subText != null ||
                             notification.title.contains("(") ||
                             notification.title.contains(",") ||
                             notification.messages.any { it.sender.isNotBlank() && it.sender != notification.title }
-                    )
-                    if (isGroupChat) {
+
+                    if (isGroup) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
                             color = EdgeCyan.copy(alpha = 0.18f),
@@ -739,13 +739,13 @@ private fun NotificationCard(
                         }
                     }
 
-                    // 그룹 단체방(참여자가 2명 이상이거나 타이틀과 발신자가 다른 경우)인지 판별
-                    val isGroupChat = remember(notification.title, notification.messages) {
-                        val distinctSenders = notification.messages
-                            .map { it.sender.trim() }
-                            .filter { it.isNotBlank() && it != "나" }
-                            .distinct()
-                        distinctSenders.size > 1 || (notification.title.isNotBlank() && distinctSenders.any { it != notification.title.trim() })
+                    // 그룹 단체방 판별
+                    val isGroupChat = remember(notification.isGroupChat, notification.title, notification.messages) {
+                        notification.isGroupChat ||
+                                notification.subText != null ||
+                                notification.title.contains("(") ||
+                                notification.title.contains(",") ||
+                                notification.messages.map { it.sender.trim() }.filter { it.isNotBlank() && it != "나" }.distinct().size > 1
                     }
 
                     displayMessages.forEach { msg ->
@@ -757,8 +757,8 @@ private fun NotificationCard(
                                 msg.sender
                             )
                         }
-                        // 1:1 대화이거나 상단 타이틀과 동일한 발신자면 '이름: ' 라벨 숨김 (중복 제거)
-                        val shouldShowSenderLabel = !isMine && isGroupChat && msg.sender.isNotBlank() && msg.sender.trim() != notification.title.trim()
+                        // 단체방이면 무조건 보낸사람 표시, 1:1 대화에서는 타이틀과 다를 때 표시
+                        val shouldShowSenderLabel = !isMine && msg.sender.isNotBlank() && (isGroupChat || msg.sender.trim() != notification.title.trim())
 
                         Row(
                             modifier = Modifier

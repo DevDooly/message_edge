@@ -34,5 +34,6 @@ data class EdgeNotification(
     val isClearable: Boolean = true,
     val isGroupHeader: Boolean = false,
     val isDismissed: Boolean = false,
+    val isGroupChat: Boolean = false,
     val debugExtrasDump: String? = null
 )
