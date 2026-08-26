@@ -270,16 +270,6 @@ graph TD
 * **해결**:
   - `EdgePanelContent.kt`: `notification.isDismissed` 조건부로 렌더링되던 `"보관됨"` 뱃지 UI 컴포넌트 제거.
 
-### 33) Non-Activity 순수 윈도우 오버레이 아키텍처 전면 개편 (유튜브 PiP 원천 차단) (`v1.2.0`, Build 120)
-* **배경 및 원인**:
-  - Android 12 (API 31)+의 `setAutoEnterEnabled(true)`는 포그라운드 액티비티(유튜브 등)가 다른 액티비티(`startActivity`)로 포커스를 잃는 순간 OS 수준에서 강제로 PiP 모드로 전환됨. `Theme.NoDisplay`나 트램펄린 액티비티로도 이를 우회할 수 없었음.
-* **해결 (무액티비티 Non-Activity 트리거 체계)**:
-  - `EdgeOverlayService.kt`: `EdgePanelActivity` 호출을 완전히 제거하고, `WindowManager.addView(ComposeView, TYPE_APPLICATION_OVERLAY)`를 통해 순수 시스템 윈도우 레이어에 `EdgePanelContent` 렌더링.
-  - `EdgeTileService.kt`: 상단바 빠른 설정(Quick Settings) 타일 서비스 신설 (`onClick` 시 `ACTION_TOGGLE_PANEL` 서비스 인텐트 전송).
-  - `OpenPanelReceiver.kt`: Good Lock(OHO+)/루틴/Tasker용 무액티비티 브로드캐스트(`ACTION_OPEN_PANEL`, `ACTION_TOGGLE_PANEL`) 지원.
-  - `MainActivity.kt`: 홈 런처 아이콘 터치 시 설정 및 대시보드 화면(`SettingsActivity`)으로 바로 진입하도록 고정.
-  - 불필요한 트램펄린 액티비티(`EdgePanelActivity`, `OpenPanelActivity`) 완전 삭제.
-
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -288,9 +278,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.0`)
-   - `AppUpdateCard(currentVersionName = "1.2.0")`
-   - `AppInfoCard` (예: `버전 1.2.0 (Build 120) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.1.1`)
+   - `AppUpdateCard(currentVersionName = "1.1.1")`
+   - `AppInfoCard` (예: `버전 1.1.1 (Build 111) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

@@ -17,8 +17,8 @@ class OpenPanelReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (Settings.canDrawOverlays(context)) {
             val serviceAction = when (intent.action) {
-                ACTION_CLOSE_PANEL, "com.devdooly.notificationedge.ACTION_CLOSE_PANEL" -> EdgeOverlayService.ACTION_CLOSE_PANEL
-                ACTION_TOGGLE_PANEL, "com.devdooly.notificationedge.ACTION_TOGGLE_PANEL" -> EdgeOverlayService.ACTION_TOGGLE_PANEL
+                ACTION_CLOSE_PANEL -> EdgeOverlayService.ACTION_CLOSE_PANEL
+                ACTION_TOGGLE_PANEL -> EdgeOverlayService.ACTION_TOGGLE_PANEL
                 else -> EdgeOverlayService.ACTION_OPEN_PANEL
             }
             val serviceIntent = Intent(context, EdgeOverlayService::class.java).apply {
