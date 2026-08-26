@@ -61,11 +61,12 @@
             android:noHistory="false"
             android:excludeFromRecents="false" />
 
-        <!-- 엣지 패널 투명 액티비티 (네비게이션 뒤로가기 100% 보장) -->
+        <!-- 엣지 패널 투명 액티비티 (네비게이션 뒤로가기 100% 보장 및 키보드 adjustResize) -->
         <activity
             android:name=".ui.overlay.EdgePanelActivity"
             android:exported="false"
             android:theme="@style/Theme.NotificationEdge.TranslucentPanel"
+            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTop"
             android:noHistory="true"
             android:excludeFromRecents="true" />

@@ -238,7 +238,7 @@ fun EdgePanelContent(
                             .fillMaxSize()
                             .weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = if (activeReplyKey != null) 360.dp else 24.dp)
+                        contentPadding = PaddingValues(bottom = if (activeReplyKey != null) 90.dp else 24.dp)
                     ) {
                         items(
                             items = notifications,
@@ -250,11 +250,10 @@ fun EdgePanelContent(
                                 onToggleReply = { open ->
                                     activeReplyKey = if (open) notification.key else null
                                     if (open) {
-                                        // 답장 누른 카드를 화면 최상단으로 자동 스크롤
                                         val index = notifications.indexOfFirst { it.key == notification.key }
                                         if (index >= 0) {
                                             coroutineScope.launch {
-                                                listState.animateScrollToItem(index, scrollOffset = 0)
+                                                listState.animateScrollToItem(index)
                                             }
                                         }
                                     }
