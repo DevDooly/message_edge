@@ -258,6 +258,12 @@ graph TD
 * **해결**:
   - `EdgePanelContent.kt`: UI에서 자체 휴리스틱을 돌리지 않고, 파서가 OS 명시 플래그(`android.isGroupConversation`)와 대화 상대를 검증하여 완성한 진실값인 `notification.isGroupChat`을 100% 직접 사용하도록 수정.
 
+### 31) 퀵 답장 가상키보드 엔터키를 줄바꿈(Multiline Newline)으로 전환 (`v1.1.0`, Build 110)
+* **요구사항**:
+  - 퀵 답장 입력창에서 가상키보드의 엔터키가 전송(`ImeAction.Send`)으로 되어 있어 장문 작성 시 줄바꿈이 불가능했던 현상 개선.
+* **해결**:
+  - `EdgePanelContent.kt`: `KeyboardFloatingReplyBar`의 `BasicTextField` 옵션을 `imeAction = ImeAction.Default`, `singleLine = false`, `maxLines = 4`로 변경하여 가상키보드의 엔터키(Return)를 누르면 자연스럽게 줄바꿈이 수행되도록 변경. 전송은 우측의 [전송] 버튼으로 명확히 분리.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -266,9 +272,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.9`)
-   - `AppUpdateCard(currentVersionName = "1.0.9")`
-   - `AppInfoCard` (예: `버전 1.0.9 (Build 109) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.1.0`)
+   - `AppUpdateCard(currentVersionName = "1.1.0")`
+   - `AppInfoCard` (예: `버전 1.1.0 (Build 110) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

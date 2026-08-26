@@ -408,11 +408,9 @@ private fun KeyboardFloatingReplyBar(
                             capitalization = KeyboardCapitalization.Sentences,
                             autoCorrectEnabled = true,
                             keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Send
+                            imeAction = ImeAction.Default
                         ),
-                        keyboardActions = KeyboardActions(
-                            onSend = { onSend() }
-                        ),
+                        singleLine = false,
                         maxLines = 4
                     )
                 }
