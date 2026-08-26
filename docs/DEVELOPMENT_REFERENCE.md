@@ -289,6 +289,14 @@ graph TD
 * **해결**:
   - `NotificationTextCleaner.kt`: `isTimeFormat`(예: `"오전 7:10"`, `"오후 11:30"`, `"07:10"` 등) 패턴 검사를 추가하여 시간 형식 문자열은 콜론 접두어 분리 대상에서 완벽히 보호.
 
+### 36) Gmail 그룹 서머리(FLAG_GROUP_SUMMARY) 중복 알림 필터링 및 하이픈 본문 보존 (`v1.2.4`, Build 124)
+* **원인 및 문제**:
+  - Gmail(`com.google.android.gm`) 등 그룹 알림을 사용하는 앱에서 개별 메일 알림과 함께 `FLAG_GROUP_SUMMARY` 알림이 동시에 발행되어 동일한 이벤트가 2건씩 중복 생성되던 문제.
+  - 본문에 `sign-in`, `log-in` 등 하이픈(`-`)이 포함된 단어가 있을 때 접두어 클리너가 단어를 쪼개어 앞부분을 잘라내던 버그.
+* **해결**:
+  - `NotificationListener.kt`: `(notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0` 알림을 필터링하여 상태바 그룹 요약 알림의 중복 등록을 원천 차단.
+  - `NotificationTextCleaner.kt`: 콜론/대시 접두어 정규식에서 하이픈(`-`)이 단어 내부(`sign-in`)에 있을 때는 분리하지 않고 공백으로 둘러싸인 구분자(`\s+-\s+`)일 때만 처리하도록 안전화.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -297,9 +305,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.3`)
-   - `AppUpdateCard(currentVersionName = "1.2.3")`
-   - `AppInfoCard` (예: `버전 1.2.3 (Build 123) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.4`)
+   - `AppUpdateCard(currentVersionName = "1.2.4")`
+   - `AppInfoCard` (예: `버전 1.2.4 (Build 124) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

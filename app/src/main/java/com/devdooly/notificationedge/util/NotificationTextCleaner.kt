@@ -31,13 +31,13 @@ object NotificationTextCleaner {
             // 2. 제목/발신자 이름 매칭 기반 접두어 제거
             cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
 
-            // 3. 범용 발신자 콜론 접두어 무조건 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장]: 회의시작")
-            val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})[:：\-]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+            // 3. 범용 발신자 콜론 접두어 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장] - 회의시작")
+            val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})([:：]|\s+-\s+)\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
             if (genericColon != null) {
                 val prefix = genericColon.groupValues[1].trim()
                 val isPrefixTime = Regex("""(?:오전|오후|AM|PM|am|pm|\d)$""").containsMatchIn(prefix)
                 if (!prefix.equals("http", ignoreCase = true) && !prefix.equals("https", ignoreCase = true) && !isPrefixTime) {
-                    val contentAfterColon = genericColon.groupValues[2].trim()
+                    val contentAfterColon = genericColon.groupValues[3].trim()
                     if (contentAfterColon.isNotEmpty()) {
                         cleaned = contentAfterColon
                     }
@@ -65,7 +65,7 @@ object NotificationTextCleaner {
         if (result.isBlank()) return ""
 
         // A) "이름: 내용" 또는 "[이름]: 내용" 또는 "(이름): 내용" 패턴
-        val colonMatch = Regex("""^([^:\n]{1,35})[:：\-]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(result)
+        val colonMatch = Regex("""^([^:\n]{1,35})([:：]|\s+-\s+)\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(result)
         if (colonMatch != null) {
             val rawPrefix = colonMatch.groupValues[1].trim()
             val cleanPrefix = rawPrefix
@@ -74,7 +74,7 @@ object NotificationTextCleaner {
                 .removeSurrounding("<", ">")
                 .trim()
             if (isMatchingName(cleanPrefix, title, sender) || cleanPrefix.isEmpty()) {
-                val remainder = colonMatch.groupValues[2].trim()
+                val remainder = colonMatch.groupValues[3].trim()
                 if (remainder.isNotEmpty()) {
                     result = remainder
                 }

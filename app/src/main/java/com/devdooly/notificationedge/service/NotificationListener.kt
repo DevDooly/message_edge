@@ -75,7 +75,11 @@ class NotificationListener : NotificationListenerService() {
                 (notification.flags and Notification.FLAG_NO_CLEAR) != 0
         if (isOngoing) return
 
-        // 2. 미디어 재생 제어 알림 필터링 (YouTube, YouTube Music, Spotify 등의 MediaSession / Transport)
+        // 2. 그룹 요약(Group Summary) 알림 필터링 (Gmail, 카카오톡 등에서 개별 알림과 함께 발생하는 묶음 서머리 중복 방지)
+        val isGroupSummary = (notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0
+        if (isGroupSummary) return
+
+        // 3. 미디어 재생 제어 알림 필터링 (YouTube, YouTube Music, Spotify 등의 MediaSession / Transport)
         val isMediaTransport = notification.category == Notification.CATEGORY_TRANSPORT ||
                 notification.category == Notification.CATEGORY_SERVICE ||
                 extras.containsKey(Notification.EXTRA_MEDIA_SESSION) ||

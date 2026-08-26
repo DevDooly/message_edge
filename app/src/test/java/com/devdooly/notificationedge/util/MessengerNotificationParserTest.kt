@@ -531,4 +531,25 @@ class MessengerNotificationParserTest {
         assertEquals("오전 7:10", result.cleanText)
         assertTrue(result.messages.isEmpty())
     }
+
+    @Test
+    fun `gmail email notification should extract sender as title and email body cleanly without group chat flag`() {
+        val sbn = createMockSbn(
+            packageName = "com.google.android.gm",
+            title = "OpenAI",
+            text = "New sign-in to your OpenAI account",
+            subText = "sunhongyi@gmail.com"
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "메일",
+            tickerText = "OpenAI"
+        )
+
+        assertFalse(result.isGroupChat)
+        assertEquals("OpenAI", result.roomTitle)
+        assertEquals("New sign-in to your OpenAI account", result.cleanText)
+        assertTrue(result.messages.isEmpty())
+    }
 }
