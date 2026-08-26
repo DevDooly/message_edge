@@ -283,6 +283,12 @@ graph TD
   - `EdgePanelContent.kt`: `replyAction == null`이고 단일 메시지만 있는 단방향 정보성 알림은 대화 버블 대신 일반 알림 텍스트 레이아웃으로 깔끔하게 단일 렌더링.
   - `NotificationTextCleaner.kt`: 발신자명과 제목이 동일한 경우 발신자 레이블 중복 노출 방지.
 
+### 35) 시간 포맷(오전/오후 HH:mm) 콜론 접두어 파괴 방지 및 시계 알람 본문 보존 (`v1.2.3`, Build 123)
+* **원인 및 문제**:
+  - 삼성 시계 앱(`com.sec.android.app.clockpackage`) 알림(예: `title = "곧 울릴 알람을 끌까요?"`, `text = "오전 7:10"`)에서 `genericColon` 정규식이 콜론(`:`) 앞의 `"오전 7"`을 발신자 이름으로 잘못 인식하여 앞부분을 잘라내고 `"10"`만 남기던 버그.
+* **해결**:
+  - `NotificationTextCleaner.kt`: `isTimeFormat`(예: `"오전 7:10"`, `"오후 11:30"`, `"07:10"` 등) 패턴 검사를 추가하여 시간 형식 문자열은 콜론 접두어 분리 대상에서 완벽히 보호.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -291,9 +297,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.2`)
-   - `AppUpdateCard(currentVersionName = "1.2.2")`
-   - `AppInfoCard` (예: `버전 1.2.2 (Build 122) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.3`)
+   - `AppUpdateCard(currentVersionName = "1.2.3")`
+   - `AppInfoCard` (예: `버전 1.2.3 (Build 123) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

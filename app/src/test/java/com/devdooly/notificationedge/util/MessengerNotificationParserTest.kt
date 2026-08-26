@@ -511,4 +511,24 @@ class MessengerNotificationParserTest {
         assertEquals(1, result.messages.size)
         assertEquals("Gemini Spark 설정", result.messages[0].sender)
     }
+
+    @Test
+    fun `samsung clock upcoming alarm notification should keep title and preserve full time text`() {
+        val sbn = createMockSbn(
+            packageName = "com.sec.android.app.clockpackage",
+            title = "곧 울릴 알람을 끌까요?",
+            text = "오전 7:10"
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "곧 울릴 알람",
+            tickerText = "오전 7:10"
+        )
+
+        assertFalse(result.isGroupChat)
+        assertEquals("곧 울릴 알람을 끌까요?", result.roomTitle)
+        assertEquals("오전 7:10", result.cleanText)
+        assertTrue(result.messages.isEmpty())
+    }
 }

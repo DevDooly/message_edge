@@ -24,7 +24,10 @@ object NotificationTextCleaner {
                 cleaned.startsWith("https://", ignoreCase = true) ||
                 cleaned.startsWith("ftp://", ignoreCase = true)
 
-        if (!isUrl) {
+        // 시간 형식(예: "오전 7:10", "오후 11:30", "07:10", "14:20 PM", "오전 7:10 ~ 오전 8:00") 보호
+        val isTimeFormat = Regex("""^(?:(?:오전|오후|AM|PM|am|pm)\s*)?\d{1,2}[:：]\d{2}""").find(cleaned) != null
+
+        if (!isUrl && !isTimeFormat) {
             // 2. 제목/발신자 이름 매칭 기반 접두어 제거
             cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
 
@@ -32,7 +35,8 @@ object NotificationTextCleaner {
             val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})[:：\-]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
             if (genericColon != null) {
                 val prefix = genericColon.groupValues[1].trim()
-                if (!prefix.equals("http", ignoreCase = true) && !prefix.equals("https", ignoreCase = true)) {
+                val isPrefixTime = Regex("""(?:오전|오후|AM|PM|am|pm|\d)$""").containsMatchIn(prefix)
+                if (!prefix.equals("http", ignoreCase = true) && !prefix.equals("https", ignoreCase = true) && !isPrefixTime) {
                     val contentAfterColon = genericColon.groupValues[2].trim()
                     if (contentAfterColon.isNotEmpty()) {
                         cleaned = contentAfterColon
