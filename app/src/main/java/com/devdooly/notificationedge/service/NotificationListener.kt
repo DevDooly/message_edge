@@ -199,7 +199,16 @@ class NotificationListener : NotificationListenerService() {
                         if (item is Bundle) {
                             sb.append("    [").append(i).append("] (Bundle): { ")
                             for (bKey in item.keySet()) {
-                                sb.append(bKey).append("=\"").append(item.get(bKey)).append("\", ")
+                                val bVal = item.get(bKey)
+                                if (bVal is Bundle) {
+                                    sb.append(bKey).append("={ ")
+                                    for (innerKey in bVal.keySet()) {
+                                        sb.append(innerKey).append("=\"").append(bVal.get(innerKey)).append("\", ")
+                                    }
+                                    sb.append("}, ")
+                                } else {
+                                    sb.append(bKey).append("=\"").append(bVal).append("\", ")
+                                }
                             }
                             sb.append("}\n")
                         } else {

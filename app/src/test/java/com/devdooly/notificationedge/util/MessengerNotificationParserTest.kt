@@ -193,6 +193,34 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk group chat with system channel like 알림 받지 않는 메시지 should be ignored and fallback to sender`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "김동관")
+            putCharSequence("text", "속도 3, 4 정도로 걸음 유리는")
+            putLong("time", 1787719594782L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김동관",
+            text = "속도 3, 4 정도로 걸음 유리는",
+            isGroupConversation = true,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "알림 받지 않는 메시지"
+        )
+
+        assertTrue(result.isGroupChat)
+        assertEquals("김동관", result.roomTitle) // 시스템 채널명 "알림 받지 않는 메시지"는 무시되어 발신자 이름 유지
+        assertEquals("김동관", result.currentSender)
+        assertEquals("속도 3, 4 정도로 걸음 유리는", result.cleanText)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",

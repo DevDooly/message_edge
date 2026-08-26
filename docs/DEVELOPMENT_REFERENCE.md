@@ -211,6 +211,14 @@ graph TD
   - `MessengerNotificationParser.kt`: 안드로이드 `NotificationChannel`에 등록된 실제 채팅방 이름(예: "11단톡") 및 티커 텍스트 패턴을 분석하여 단체방 제목으로 최우선 매핑.
   - `MessengerNotificationParserTest.kt`에 11단톡 실제 카카오톡 덤프 기반 회귀 테스트 추가 완료.
 
+### 25) 카카오톡 무음 알림용 시스템 채널("알림 받지 않는 메시지") 필터링 및 메시지 내부 번들 정밀 탐색 (`v1.0.4`, Build 104)
+* **문제**:
+  - 카카오톡 단체방 알림이 무음 설정된 경우 채널명이 `"알림 받지 않는 메시지"`로 들어와 이것이 단체방 타이틀로 오인되어 표시되던 문제.
+* **해결**:
+  - `MessengerNotificationParser.kt`: `isInvalidChannelName`을 대폭 강화하여 `"알림"`, `"메시지"`, `"notification"` 등이 포함된 시스템 기본 채널명을 완벽히 필터링(무시)하고 발신자명/참여자 목록으로 안전하게 폴백.
+  - `MessagingStyle` 메시지 번들 내부의 `extras`를 재귀 탐색하여 방 이름 메타데이터를 추가 추출하도록 개선.
+  - `MessengerNotificationParserTest.kt`에 시스템 채널명 필터링 회귀 테스트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -219,9 +227,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.3`)
-   - `AppUpdateCard(currentVersionName = "1.0.3")`
-   - `AppInfoCard` (예: `버전 1.0.3 (Build 103) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.4`)
+   - `AppUpdateCard(currentVersionName = "1.0.4")`
+   - `AppInfoCard` (예: `버전 1.0.4 (Build 104) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

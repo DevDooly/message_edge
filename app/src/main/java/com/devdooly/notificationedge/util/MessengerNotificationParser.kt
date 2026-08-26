@@ -212,6 +212,34 @@ object MessengerNotificationParser {
             }
         }
 
+        // H) MessagingStyle 메시지 내부의 bundle extras에서 방 이름 탐색
+        if (groupName == null) {
+            @Suppress("DEPRECATION")
+            val rawMessages = extras.getParcelableArray(Notification.EXTRA_MESSAGES)
+            if (rawMessages != null) {
+                for (raw in rawMessages) {
+                    if (raw is Bundle) {
+                        val innerExtras = raw.getBundle("extras")
+                        if (innerExtras != null) {
+                            for (key in innerExtras.keySet()) {
+                                val v = innerExtras.getString(key)?.trim()
+                                if (!v.isNullOrBlank() && !isInvalidChannelName(v) && v != rawTitle) {
+                                    if (key.contains("room", ignoreCase = true) ||
+                                        key.contains("title", ignoreCase = true) ||
+                                        key.contains("chat", ignoreCase = true) ||
+                                        key.contains("group", ignoreCase = true)) {
+                                        groupName = v
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                        if (groupName != null) break
+                    }
+                }
+            }
+        }
+
         // MessagingStyle 메시지 리스트 추출 (본인 메시지 isFromUser = true 태깅)
         val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime, selfDisplayName)
 
@@ -447,21 +475,20 @@ object MessengerNotificationParser {
     private fun isInvalidChannelName(channelName: String?): Boolean {
         if (channelName.isNullOrBlank()) return true
         val lower = channelName.lowercase().trim()
-        return lower == "카카오톡" ||
-                lower == "kakaotalk" ||
-                lower == "kakao" ||
-                lower == "알림" ||
-                lower == "notification" ||
-                lower == "notifications" ||
-                lower == "일반" ||
-                lower == "기타" ||
-                lower == "기본" ||
-                lower == "default" ||
-                lower == "미분류" ||
-                lower == "채널" ||
-                lower == "메시지" ||
-                lower == "message" ||
-                lower == "messages"
+        return lower.contains("알림") ||
+                lower.contains("메시지") ||
+                lower.contains("message") ||
+                lower.contains("notification") ||
+                lower.contains("카카오톡") ||
+                lower.contains("kakaotalk") ||
+                lower.contains("kakao") ||
+                lower.contains("기타") ||
+                lower.contains("기본") ||
+                lower.contains("default") ||
+                lower.contains("미분류") ||
+                lower.contains("채널") ||
+                lower.contains("direct") ||
+                lower.contains("대화")
     }
 
     private fun extractGroupNameFromTicker(tickerText: String?, rawTitle: String): String? {
