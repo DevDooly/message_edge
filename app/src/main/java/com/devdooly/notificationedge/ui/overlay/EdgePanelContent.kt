@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -272,45 +274,48 @@ fun EdgePanelContent(
                         }
                     }
                 }
-
-                // 가상 키보드 바로 상단에 착 달라붙는 플로팅 답장 바
-                if (activeNotification != null && activeReplyAction != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    KeyboardFloatingReplyBar(
-                        modifier = Modifier.fillMaxWidth(),
-                        targetName = activeNotification.title.ifBlank { activeNotification.appName },
-                        replyText = replyText,
-                        focusRequester = replyFocusRequester,
-                        onTextChange = { replyText = it },
-                        onSend = {
-                            if (replyText.isNotBlank()) {
-                                NotificationRepository.sendQuickReply(
-                                    context = context,
-                                    notificationKey = activeNotification.key,
-                                    action = activeReplyAction,
-                                    replyText = replyText
-                                )
-                                replyText = ""
-                                focusManager.clearFocus(force = true)
-                                keyboardController?.hide()
-                                activeReplyKey = null
-                            }
-                        },
-                        onClose = {
-                            replyText = ""
-                            focusManager.clearFocus(force = true)
-                            keyboardController?.hide()
-                            activeReplyKey = null
-                        }
-                    )
-                }
             }
+        }
+
+        // 가상 키보드 가로 길이에 맞춰 화면 전체 폭(Full Width)으로 가상키보드 바로 위에 착 달라붙는 플로팅 답장 바
+        if (activeNotification != null && activeReplyAction != null) {
+            KeyboardFloatingReplyBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+                    .navigationBarsPadding(),
+                targetName = activeNotification.title.ifBlank { activeNotification.appName },
+                replyText = replyText,
+                focusRequester = replyFocusRequester,
+                onTextChange = { replyText = it },
+                onSend = {
+                    if (replyText.isNotBlank()) {
+                        NotificationRepository.sendQuickReply(
+                            context = context,
+                            notificationKey = activeNotification.key,
+                            action = activeReplyAction,
+                            replyText = replyText
+                        )
+                        replyText = ""
+                        focusManager.clearFocus(force = true)
+                        keyboardController?.hide()
+                        activeReplyKey = null
+                    }
+                },
+                onClose = {
+                    replyText = ""
+                    focusManager.clearFocus(force = true)
+                    keyboardController?.hide()
+                    activeReplyKey = null
+                }
+            )
         }
     }
 }
 
 /**
- * 가상 키보드 상단에 표시되는 전송 및 입력 바 (엄지손가락 접근성 최적화)
+ * 가상 키보드 상단에 표시되는 전송 및 입력 바 (화면 전체 가로 폭, 엄지손가락 접근성 최적화)
  */
 @Composable
 private fun KeyboardFloatingReplyBar(
@@ -323,15 +328,17 @@ private fun KeyboardFloatingReplyBar(
     onClose: () -> Unit
 ) {
     Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xF0181818),
-        border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.5f)),
-        shadowElevation = 8.dp
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
+        color = Color(0xF5181818),
+        border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.6f)),
+        shadowElevation = 12.dp
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+        ) {
             // 상단 답장 대상 안내 및 닫기 버튼
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -343,13 +350,13 @@ private fun KeyboardFloatingReplyBar(
                         imageVector = Icons.AutoMirrored.Filled.Reply,
                         contentDescription = null,
                         tint = EdgeCyan,
-                        modifier = Modifier.size(13.dp)
+                        modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "답장: $targetName",
                         color = EdgeCyan,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -357,59 +364,60 @@ private fun KeyboardFloatingReplyBar(
                 }
                 IconButton(
                     onClick = onClose,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = "닫기",
                         tint = Color.Gray,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // 입력 필드 + 바로 전송 버튼 (키보드 바로 위에서 엄지손가락으로 즉시 탭 가능)
+            // 입력 필드 + 전송 버튼
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .heightIn(min = 38.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(Color(0xFF252525))
-                        .border(0.8.dp, Color(0xFF3A3A3A), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    contentAlignment = Alignment.CenterStart
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF282828))
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
                     if (replyText.isEmpty()) {
                         Text(
-                            text = "메시지 보내기...",
+                            text = "메시지를 입력하세요...",
                             color = Color.Gray,
-                            fontSize = 13.sp
+                            fontSize = 14.sp
                         )
                     }
                     BasicTextField(
                         value = replyText,
                         onValueChange = onTextChange,
-                        textStyle = TextStyle(
-                            color = Color.White,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Normal
-                        ),
-                        cursorBrush = SolidColor(EdgeCyan),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                        keyboardActions = KeyboardActions(onSend = { onSend() }),
                         modifier = Modifier
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
-                        singleLine = true
+                        textStyle = TextStyle(color = Color.White, fontSize = 14.sp),
+                        cursorBrush = SolidColor(EdgeCyan),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            autoCorrectEnabled = true,
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Send
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSend = { onSend() }
+                        ),
+                        maxLines = 4
                     )
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 // 키보드 상단 전송 버튼 (메시지 보내기 버튼)
                 Button(
