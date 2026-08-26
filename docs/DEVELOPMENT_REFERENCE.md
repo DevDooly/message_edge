@@ -177,6 +177,12 @@ graph TD
   - `transparentStatusBar == true`일 때는 `window.statusBarColor`를 `Color.TRANSPARENT`로 명확하게 설정하도록 개선.
   - `EdgePanelActivity.kt`에서 `transparentStatusBar = true`를 전달하여 상단 상태표시줄의 100% 완전 투명도 완벽 보장.
 
+### 20) 시스템 테마(다크/라이트) 연동 상태표시줄/네비바 텍스트 및 아이콘 색상 원본 유지 (`v1.4.15`)
+* **문제**: 상태바는 투명해졌으나, 상태바 글씨(시간, 배터리)와 네비바 아이콘이 흰색으로 강제되어 라이트 모드 기기에서 글씨 색상이 바뀌던 현상.
+* **해결**:
+  - `EdgePanelActivity.kt`에서 `resources.configuration.uiMode`를 실시간 감지하여 시스템이 라이트 모드일 때는 `SystemBarStyle.light` 및 `isAppearanceLightStatusBars = true` (검정 글씨), 다크 모드일 때는 `SystemBarStyle.dark` 및 `isAppearanceLightStatusBars = false` (흰색 글씨)로 완벽하게 동기화.
+  - `Theme.kt`의 `transparentStatusBar` 모드에서 `isAppearanceLightStatusBars`를 덮어쓰지 않도록 격리하여 원래 사용자의 스마트폰 상태바 글씨 색상이 100% 그대로 유지되도록 해결.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

@@ -40,8 +40,8 @@ fun NotificationEdgeTheme(
                 window.statusBarColor = android.graphics.Color.TRANSPARENT
             } else {
                 window.statusBarColor = colorScheme.background.toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
             }
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
 

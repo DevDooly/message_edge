@@ -24,10 +24,12 @@ import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 class EdgePanelActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 완전 투명 Zero-Scrim Edge-to-Edge 활성화 (상단 배터리/상태바 및 하단 네비바의 불투명/검정색 틴트 차단)
+        val isSystemDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
+
+        // 완전 투명 Zero-Scrim Edge-to-Edge 활성화 및 시스템 테마(다크/라이트)에 맞춘 아이콘 색상 동기화
         enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+            statusBarStyle = if (isSystemDark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT),
+            navigationBarStyle = if (isSystemDark) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
 
@@ -39,10 +41,10 @@ class EdgePanelActivity : ComponentActivity() {
             window.isNavigationBarContrastEnforced = false
         }
 
-        // 상태바 및 네비게이션바 아이콘 색상 고정 (다크 스타일로 유지하여 색상 반전/깜빡임 차단)
+        // 상태바 및 네비게이션바 글씨/아이콘 색상을 시스템 원래 테마와 100% 동일하게 유지 (라이트 모드: 검정 글씨, 다크 모드: 흰색 글씨)
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-        insetsController.isAppearanceLightStatusBars = false
-        insetsController.isAppearanceLightNavigationBars = false
+        insetsController.isAppearanceLightStatusBars = !isSystemDark
+        insetsController.isAppearanceLightNavigationBars = !isSystemDark
 
         // OS 레벨의 뒤로가기 콜백 등록 (100% 보장)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
