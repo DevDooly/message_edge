@@ -82,20 +82,31 @@ class NotificationListener : NotificationListenerService() {
                 extras.containsKey("android.mediaSession")
         if (isMediaTransport) return
 
-        // NotificationChannel 및 Ticker 정보 추출 (카카오톡 단체방 제목 등 조회용)
+        // NotificationChannel 및 Ranking 정보 추출 (카카오톡 단체방 제목 / ShortcutInfo 등 조회용)
         var channelObj: android.app.NotificationChannel? = null
+        var rankingShortcutInfo: android.content.pm.ShortcutInfo? = null
+        var rankingIsConversation: Boolean? = null
         val channelName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val ranking = Ranking()
             if (currentRanking?.getRanking(sbn.key, ranking) == true) {
                 channelObj = ranking.channel
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    rankingShortcutInfo = ranking.conversationShortcutInfo
+                    rankingIsConversation = ranking.isConversation
+                }
                 ranking.channel?.name?.toString()?.trim()
             } else null
         } else null
         val tickerText = notification.tickerText?.toString()?.trim()
 
-        // ShortcutId 기반 LauncherApps 단체방 라벨 조회 (안드로이드 One UI Conversations 표준)
+        // 1. Ranking 객체에서 제공하는 OS 공인 ShortcutInfo 라벨 조회 (API 30+)
+        val rankingShortcutLabel = rankingShortcutInfo?.shortLabel?.toString()?.trim()
+            ?: rankingShortcutInfo?.longLabel?.toString()?.trim()
+
+        // 2. ShortcutId 기반 LauncherApps 단체방 라벨 조회 (안드로이드 One UI Conversations 보조 탐색)
         val shortcutId = notification.shortcutId
-        val shortcutLabel = getShortcutLabel(packageName, shortcutId)
+        val (launcherShortcutLabel, launcherDebugInfo) = getShortcutInfoWithDebug(packageName, shortcutId)
+        val effectiveShortcutLabel = if (!rankingShortcutLabel.isNullOrBlank()) rankingShortcutLabel else launcherShortcutLabel
 
         // RemoteViews (One UI 상태창에 실제 렌더링된 텍스트 계층 리플렉션 분석)
         val cvTexts = extractTextsFromRemoteViews(notification.contentView)
@@ -108,7 +119,7 @@ class NotificationListener : NotificationListenerService() {
             channelName = channelName,
             tickerText = tickerText,
             viewTexts = allViewTexts,
-            shortcutLabel = shortcutLabel
+            shortcutLabel = effectiveShortcutLabel
         )
 
         // 내용이 없는 빈 알림은 무시
@@ -161,7 +172,17 @@ class NotificationListener : NotificationListenerService() {
 
         val finalTitle = if (formattedTitle.isNotBlank()) formattedTitle else appName
 
-        val extrasDump = dumpExtras(extras, sbn, channelObj, allViewTexts, shortcutLabel)
+        val extrasDump = dumpExtras(
+            extras = extras,
+            sbn = sbn,
+            channel = channelObj,
+            viewTexts = allViewTexts,
+            rankingShortcutInfo = rankingShortcutInfo,
+            rankingIsConversation = rankingIsConversation,
+            launcherShortcutLabel = launcherShortcutLabel,
+            launcherDebugInfo = launcherDebugInfo,
+            effectiveShortcutLabel = effectiveShortcutLabel
+        )
 
         val edgeNotification = EdgeNotification(
             key = sbn.key,
@@ -185,13 +206,15 @@ class NotificationListener : NotificationListenerService() {
     }
 
     /**
-     * LauncherApps를 통해 안드로이드 시스템에 등록된 바로가기(Shortcut / Conversation) 라벨 조회
+     * LauncherApps를 통해 안드로이드 시스템에 등록된 바로가기(Shortcut / Conversation) 라벨 및 디버그 정보 조회
      */
-    private fun getShortcutLabel(packageName: String, shortcutId: String?): String? {
-        if (shortcutId.isNullOrBlank()) return null
+    private fun getShortcutInfoWithDebug(packageName: String, shortcutId: String?): Pair<String?, String> {
+        if (shortcutId.isNullOrBlank()) return Pair(null, "shortcutId is null/blank")
         return try {
             val launcherApps = getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
-            if (launcherApps != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+            if (launcherApps == null) {
+                Pair(null, "LauncherApps service unavailable")
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
                 val query = android.content.pm.LauncherApps.ShortcutQuery().apply {
                     setPackage(packageName)
                     setShortcutIds(listOf(shortcutId))
@@ -206,10 +229,13 @@ class NotificationListener : NotificationListenerService() {
                 val shortcut = shortcuts?.firstOrNull()
                 val label = shortcut?.shortLabel?.toString()?.trim()
                     ?: shortcut?.longLabel?.toString()?.trim()
-                if (!label.isNullOrBlank()) label else null
-            } else null
+                val count = shortcuts?.size ?: 0
+                Pair(if (!label.isNullOrBlank()) label else null, "shortcutsFound=$count, label=$label, id=${shortcut?.id}")
+            } else {
+                Pair(null, "SDK < 25 (N_MR1)")
+            }
         } catch (e: Exception) {
-            null
+            Pair(null, "Exception: ${e.javaClass.simpleName}: ${e.message}")
         }
     }
 
@@ -247,7 +273,11 @@ class NotificationListener : NotificationListenerService() {
         sbn: StatusBarNotification,
         channel: android.app.NotificationChannel?,
         viewTexts: List<String>,
-        shortcutLabel: String?
+        rankingShortcutInfo: android.content.pm.ShortcutInfo?,
+        rankingIsConversation: Boolean?,
+        launcherShortcutLabel: String?,
+        launcherDebugInfo: String,
+        effectiveShortcutLabel: String?
     ): String {
         val sb = StringBuilder()
         sb.append("=== [Notification Full Debug Dump] ===\n")
@@ -261,8 +291,19 @@ class NotificationListener : NotificationListenerService() {
         if (sbn.notification.shortcutId != null) {
             sb.append("ShortcutId: \"").append(sbn.notification.shortcutId).append("\"\n")
         }
-        if (shortcutLabel != null) {
-            sb.append("ShortcutLabel: \"").append(shortcutLabel).append("\"\n")
+        if (rankingIsConversation != null) {
+            sb.append("RankingIsConversation: ").append(rankingIsConversation).append("\n")
+        }
+        if (rankingShortcutInfo != null) {
+            sb.append("RankingShortcut.id: \"").append(rankingShortcutInfo.id).append("\"\n")
+            sb.append("RankingShortcut.shortLabel: \"").append(rankingShortcutInfo.shortLabel).append("\"\n")
+            sb.append("RankingShortcut.longLabel: \"").append(rankingShortcutInfo.longLabel).append("\"\n")
+        } else {
+            sb.append("RankingShortcutInfo: null\n")
+        }
+        sb.append("LauncherApps.Debug: ").append(launcherDebugInfo).append("\n")
+        if (effectiveShortcutLabel != null) {
+            sb.append("EffectiveShortcutLabel: \"").append(effectiveShortcutLabel).append("\"\n")
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             sb.append("ChannelId: ").append(sbn.notification.channelId).append("\n")

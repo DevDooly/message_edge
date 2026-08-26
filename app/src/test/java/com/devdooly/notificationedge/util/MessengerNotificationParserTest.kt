@@ -333,6 +333,34 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk group chat single message dump with isGroupConversation true should remain group chat`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "임현석")
+            putCharSequence("text", "https://bbs.ruliweb.com/community/board/300143/read/76449446")
+            putLong("time", 1787725624792L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "임현석",
+            text = "https://bbs.ruliweb.com/community/board/300143/read/76449446",
+            isGroupConversation = true, // 단체방!
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "알림 받지 않는 메시지"
+        )
+
+        assertTrue(result.isGroupChat) // 단체방 플래그 확실히 true!
+        assertEquals("임현석", result.currentSender)
+        assertEquals("https://bbs.ruliweb.com/community/board/300143/read/76449446", result.cleanText)
+        assertEquals(1, result.messages.size)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",

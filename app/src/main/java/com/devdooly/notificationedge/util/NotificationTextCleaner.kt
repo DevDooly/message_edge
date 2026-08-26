@@ -19,24 +19,34 @@ object NotificationTextCleaner {
             ""
         ).trim()
 
-        // 2. 제목/발신자 이름 매칭 기반 접두어 제거
-        cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
+        // URL 링크(http://, https:// 등)로 시작하는 경우 접두어 콜론 자르기 제외
+        val isUrl = cleaned.startsWith("http://", ignoreCase = true) ||
+                cleaned.startsWith("https://", ignoreCase = true) ||
+                cleaned.startsWith("ftp://", ignoreCase = true)
 
-        // 3. 범용 발신자 콜론 접두어 무조건 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장]: 회의시작")
-        val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})[:：\-]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
-        if (genericColon != null) {
-            val contentAfterColon = genericColon.groupValues[2].trim()
-            if (contentAfterColon.isNotEmpty()) {
-                cleaned = contentAfterColon
+        if (!isUrl) {
+            // 2. 제목/발신자 이름 매칭 기반 접두어 제거
+            cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
+
+            // 3. 범용 발신자 콜론 접두어 무조건 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장]: 회의시작")
+            val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})[:：\-]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+            if (genericColon != null) {
+                val prefix = genericColon.groupValues[1].trim()
+                if (!prefix.equals("http", ignoreCase = true) && !prefix.equals("https", ignoreCase = true)) {
+                    val contentAfterColon = genericColon.groupValues[2].trim()
+                    if (contentAfterColon.isNotEmpty()) {
+                        cleaned = contentAfterColon
+                    }
+                }
             }
-        }
 
-        // 4. 대괄호 접두어 제거 (예: "[홍길동] 안녕하세요", "[Web발신] 택배가 도착했습니다")
-        val genericBracket = Regex("""^\[[가-힣a-zA-Z0-9_\.\s]{1,20}\]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
-        if (genericBracket != null) {
-            val contentAfterBracket = genericBracket.groupValues[1].trim()
-            if (contentAfterBracket.isNotEmpty()) {
-                cleaned = contentAfterBracket
+            // 4. 대괄호 접두어 제거 (예: "[홍길동] 안녕하세요", "[Web발신] 택배가 도착했습니다")
+            val genericBracket = Regex("""^\[[가-힣a-zA-Z0-9_\.\s]{1,20}\]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+            if (genericBracket != null) {
+                val contentAfterBracket = genericBracket.groupValues[1].trim()
+                if (contentAfterBracket.isNotEmpty()) {
+                    cleaned = contentAfterBracket
+                }
             }
         }
 

@@ -243,6 +243,15 @@ graph TD
   - `MessengerNotificationParser.kt`: `hasIsGroupKey == true`일 때 안드로이드 OS가 명시한 `isGroupConversation` 플래그를 100% 최우선 신뢰하여 `isGroup = false` 및 `groupName = null`로 엄격 처리.
   - `MessengerNotificationParserTest.kt`에 1:1 카카오톡 실전 덤프 회귀 테스트 케이스 추가 완료.
 
+### 29) Ranking.conversationShortcutInfo 연동 및 URL 링크 콜론 정제 보호 (`v1.0.8`, Build 108)
+* **문제**:
+  - `LauncherApps.getShortcuts()`는 타사 앱 권한 정책상 NLS에서 직접 접근이 제한될 수 있어 `Ranking.conversationShortcutInfo`(API 30+ 공인 API)를 통한 직접 조회가 필요했음.
+  - 메시지 본문이 URL 링크(`https://...`)로 시작할 때 콜론 접두사 정제기가 `https:`를 발신자로 오인하여 잘라내던 현상.
+* **해결**:
+  - `NotificationListener.kt`: `Ranking.conversationShortcutInfo` 및 `Ranking.isConversation`을 연동하여 OS가 인증한 대화 ShortcutInfo 라벨을 1순위로 추출하고, `LauncherApps` 디버그 상세 정보와 함께 덤프에 출력.
+  - `NotificationTextCleaner.kt`: `http://`, `https://`, `ftp://` 등 URL 링크 스킴을 보존하여 메시지 본문 훼손 방지.
+  - `MessengerNotificationParserTest.kt`에 1건 메시지 단체방 및 URL 본문 회귀 테스트 케이스 추가 완료 (총 37개 단위 테스트 100% 통과).
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -251,9 +260,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.7`)
-   - `AppUpdateCard(currentVersionName = "1.0.7")`
-   - `AppInfoCard` (예: `버전 1.0.7 (Build 107) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.8`)
+   - `AppUpdateCard(currentVersionName = "1.0.8")`
+   - `AppInfoCard` (예: `버전 1.0.8 (Build 108) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
