@@ -149,8 +149,13 @@ graph TD
 * **개선**:
   - `EdgeNotification` 모델에 `isGroupChat` 필드를 추가하여 단체방 상태를 100% 명확하게 바인딩.
   - `EdgePanelContent.kt`에서 단체방(`isGroupChat == true`)인 경우 카드 타이틀과 발신자명이 동일하더라도 숨기지 않고, 모든 말풍선 앞에 **`[발신자명]: ` (예: `김수환: `, `윤창빈: `)**을 무조건 청록색(`EdgeCyan`) 굵은 글씨로 노출하여 단체방에서 누가 보낸 메시지인지 즉각 식별 가능하도록 개선.
-  - **플로팅 답장 바 키보드 연동 정상화**: `AndroidManifest.xml`의 `EdgePanelActivity`에 `windowSoftInputMode="adjustResize"`를 명시하고 `LazyColumn`의 과도한 스크롤 점프를 완화하여, 답장 버튼을 눌렀을 때 입력 바가 화면 위로 치솟지 않고 가상 키보드 바로 위에 정확하게 위치하도록 개선.
   - **UI 시안 및 표준 명칭 사전 구축**: `docs/UI_SPECIFICATION.md`를 신규 생성하여 전체 화면 다이어그램, 구성 요소별 공식 명칭 및 프롬프트 명령 템플릿 완비.
+
+### 16) 플로팅 답장 바 레이아웃 패널 컬럼 내장 및 키보드 상단 100% 밀착 고정 (`v1.4.10`)
+* **문제**: 답장 버튼 클릭 시 `KeyboardFloatingReplyBar`가 루트 뷰 계층에 독립 배치되어 있어 가상 키보드와 연동되지 않고 상단 메시지 영역으로 솟구치던 현상.
+* **해결**:
+  - `EdgePanelContent.kt`의 사이드 `Surface` 패널에 `.imePadding()`을 직접 적용하고, `KeyboardFloatingReplyBar`를 `Surface` 내부의 `Column` 최하단으로 내장.
+  - `LazyColumn`에 `weight(1f)`를 부여하여 키보드가 올라올 때 메시지 리스트가 자연스럽게 키보드 윗공간에 맞춰 스크롤되고, 답장 창은 가상 키보드 바로 위에 100% 착 달라붙어 고정되도록 완벽 해결.
 
 ---
 

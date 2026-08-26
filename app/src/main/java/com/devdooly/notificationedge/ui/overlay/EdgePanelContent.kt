@@ -178,12 +178,13 @@ fun EdgePanelContent(
                 }
             )
     ) {
-        // 사이드 슬라이드 패널 (상태바의 배터리/시계/알림 정보 및 네비바를 가리지 않도록 인셋 패딩 적용)
+        // 사이드 슬라이드 패널 (상태바의 배터리/시계/알림 정보 및 네비바를 가리지 않도록 인셋 패딩 적용 및 키보드 imePadding 연동)
         Surface(
             modifier = Modifier
                 .fillMaxHeight()
                 .statusBarsPadding()
                 .navigationBarsPadding()
+                .imePadding()
                 .padding(vertical = 6.dp)
                 .width(panelWidthDp.dp)
                 .align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
@@ -235,10 +236,10 @@ fun EdgePanelContent(
                     LazyColumn(
                         state = listState,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
                             .weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = PaddingValues(bottom = if (activeReplyKey != null) 90.dp else 24.dp)
+                        contentPadding = PaddingValues(bottom = 12.dp)
                     ) {
                         items(
                             items = notifications,
@@ -271,42 +272,39 @@ fun EdgePanelContent(
                         }
                     }
                 }
-            }
-        }
 
-        // 가상 키보드 바로 상단에 뜨는 고정 플로팅 답장 바 (IME 인셋 위 위치)
-        if (activeNotification != null && activeReplyAction != null) {
-            KeyboardFloatingReplyBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .imePadding()
-                    .navigationBarsPadding(),
-                targetName = activeNotification.title.ifBlank { activeNotification.appName },
-                replyText = replyText,
-                focusRequester = replyFocusRequester,
-                onTextChange = { replyText = it },
-                onSend = {
-                    if (replyText.isNotBlank()) {
-                        NotificationRepository.sendQuickReply(
-                            context = context,
-                            notificationKey = activeNotification.key,
-                            action = activeReplyAction,
-                            replyText = replyText
-                        )
-                        replyText = ""
-                        focusManager.clearFocus(force = true)
-                        keyboardController?.hide()
-                        activeReplyKey = null
-                    }
-                },
-                onClose = {
-                    replyText = ""
-                    focusManager.clearFocus(force = true)
-                    keyboardController?.hide()
-                    activeReplyKey = null
+                // 가상 키보드 바로 상단에 착 달라붙는 플로팅 답장 바
+                if (activeNotification != null && activeReplyAction != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    KeyboardFloatingReplyBar(
+                        modifier = Modifier.fillMaxWidth(),
+                        targetName = activeNotification.title.ifBlank { activeNotification.appName },
+                        replyText = replyText,
+                        focusRequester = replyFocusRequester,
+                        onTextChange = { replyText = it },
+                        onSend = {
+                            if (replyText.isNotBlank()) {
+                                NotificationRepository.sendQuickReply(
+                                    context = context,
+                                    notificationKey = activeNotification.key,
+                                    action = activeReplyAction,
+                                    replyText = replyText
+                                )
+                                replyText = ""
+                                focusManager.clearFocus(force = true)
+                                keyboardController?.hide()
+                                activeReplyKey = null
+                            }
+                        },
+                        onClose = {
+                            replyText = ""
+                            focusManager.clearFocus(force = true)
+                            keyboardController?.hide()
+                            activeReplyKey = null
+                        }
+                    )
                 }
-            )
+            }
         }
     }
 }
