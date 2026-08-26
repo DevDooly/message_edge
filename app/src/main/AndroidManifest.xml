@@ -37,15 +37,12 @@
         android:theme="@style/Theme.NotificationEdge"
         tools:targetApi="34">
         
-        <!-- 런처 메인 엔트리 포인트 (유튜브 PiP 전환 방지를 위한 무화면 NoDisplay 트램펄린) -->
+        <!-- 런처 메인 엔트리 포인트 (설정 및 대시보드 화면으로 이동) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:taskAffinity=""
-            android:launchMode="singleInstance"
-            android:noHistory="true"
-            android:excludeFromRecents="true">
+            android:theme="@style/Theme.NotificationEdge"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -61,33 +58,19 @@
             android:noHistory="false"
             android:excludeFromRecents="false" />
 
-        <!-- 엣지 패널 투명 액티비티 (네비게이션 뒤로가기 100% 보장 및 키보드 adjustResize) -->
-        <activity
-            android:name=".ui.overlay.EdgePanelActivity"
-            android:exported="false"
-            android:theme="@style/Theme.NotificationEdge.TranslucentPanel"
-            android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTop"
-            android:noHistory="true"
-            android:excludeFromRecents="true" />
-
-        <!-- Good Lock / Shortcut용 엣지 패널 열기 무화면(NoDisplay) 액티비티 (유튜브 PiP 전환 방지) -->
-        <activity
-            android:name=".ui.OpenPanelActivity"
+        <!-- Quick Settings 빠른 설정 상단바 타일 서비스 (무액티비티 엣지 토글) -->
+        <service
+            android:name=".service.EdgeTileService"
             android:exported="true"
-            android:label="@string/open_panel_activity_label"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:taskAffinity=""
-            android:launchMode="singleInstance"
-            android:noHistory="true"
-            android:excludeFromRecents="true">
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
-                <action android:name="android.intent.action.CREATE_SHORTCUT" />
-                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
-        </activity>
+        </service>
 
-        <!-- Good Lock (One Hand Operation +) / Tasker / Broadcast Intent용 무액티비티 리시버 (미디어 재생 완벽 유지) -->
+        <!-- Good Lock (One Hand Operation +) / 루틴 / Broadcast Intent용 무액티비티 리시버 (미디어 재생 완벽 유지) -->
         <receiver
             android:name=".service.OpenPanelReceiver"
             android:exported="true">
@@ -95,6 +78,9 @@
                 <action android:name="com.devdooly.notificationedge.OPEN_PANEL" />
                 <action android:name="com.devdooly.notificationedge.CLOSE_PANEL" />
                 <action android:name="com.devdooly.notificationedge.TOGGLE_PANEL" />
+                <action android:name="com.devdooly.notificationedge.ACTION_OPEN_PANEL" />
+                <action android:name="com.devdooly.notificationedge.ACTION_CLOSE_PANEL" />
+                <action android:name="com.devdooly.notificationedge.ACTION_TOGGLE_PANEL" />
             </intent-filter>
         </receiver>
 

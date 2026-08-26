@@ -84,7 +84,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.1.1",
+                                text = "v1.2.0",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -162,10 +162,14 @@ fun SettingsScreen() {
                 launchDirectToPanel = settings.launchDirectToPanel,
                 onToggleLaunchDirect = { scope.launch { settingsRepo.updateLaunchDirectToPanel(it) } },
                 onTestOpenPanel = {
-                    val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    val intent = Intent(context, EdgeOverlayService::class.java).apply {
+                        action = EdgeOverlayService.ACTION_OPEN_PANEL
                     }
-                    context.startActivity(intent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(intent)
+                    } else {
+                        context.startService(intent)
+                    }
                 }
             )
 
@@ -239,7 +243,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.1.1")
+            AppUpdateCard(currentVersionName = "1.2.0")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -315,7 +319,7 @@ private fun GoodLockIntegrationCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "삼성 Good Lock (제스처) 연동",
+                    text = "Non-Activity 무액티비티 트리거 연동",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -323,7 +327,7 @@ private fun GoodLockIntegrationCard(
             }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "One Hand Operation +의 제스처에 '알림 엣지(Notification Edge)'를 등록하면 화면에 핸들을 안 띄우고도 순정처럼 제스처로 알림 패널을 열 수 있습니다.",
+                text = "화면 엣지 핸들 스와이프, 상단바 빠른 설정(Quick Settings) 타일, 또는 Good Lock(OHO+)/루틴의 브로드캐스트(ACTION_OPEN_PANEL)를 통해 액티비티 전환 없이 유튜브 PiP 발동 0회로 알림 패널을 즉시 열 수 있습니다.",
                 color = Color.LightGray,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
@@ -387,7 +391,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.1.1 (Build 111) | Target Android 14",
+                text = "버전 1.2.0 (Build 120) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium

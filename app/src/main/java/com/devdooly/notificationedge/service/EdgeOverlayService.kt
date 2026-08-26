@@ -30,7 +30,8 @@ import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
-import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
+import com.devdooly.notificationedge.ui.overlay.EdgePanelContent
+import com.devdooly.notificationedge.ui.settings.SettingsActivity
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
- * 화면 측면 플로팅 핸들(Handle) 및 엣지 라이팅(Edge Lighting)을 백그라운드에서 관리하는 포그라운드 서비스
+ * 화면 측면 플로팅 핸들(Handle), 순수 윈도우 오버레이 패널(Panel), 엣지 라이팅(Edge Lighting)을
+ * 액티비티(Activity) 없이 백그라운드에서 직접 관리하는 포그라운드 서비스
+ * (유튜브 PiP 자동 진입 방지 아키텍처)
  */
 class EdgeOverlayService : Service() {
 
@@ -49,6 +52,10 @@ class EdgeOverlayService : Service() {
     private lateinit var settingsRepository: SettingsRepository
 
     private var handleView: View? = null
+    private var panelComposeView: View? = null
+    private var panelLifecycleOwner: OverlayLifecycleOwner? = null
+    private var isPanelShowing = false
+
     private var lightingComposeView: ComposeView? = null
     private var lightingLifecycleOwner: OverlayLifecycleOwner? = null
 
@@ -70,14 +77,14 @@ class EdgeOverlayService : Service() {
         when (intent?.action) {
             ACTION_OPEN_PANEL -> {
                 triggerHaptic()
-                openPanel()
+                showPanel()
             }
             ACTION_CLOSE_PANEL -> {
-                // EdgePanelActivity가 알아서 finish() 처리
+                hidePanel()
             }
             ACTION_TOGGLE_PANEL -> {
                 triggerHaptic()
-                openPanel()
+                togglePanel()
             }
         }
         return START_STICKY
@@ -242,7 +249,7 @@ class EdgeOverlayService : Service() {
                             val isTap = kotlin.math.abs(diffX) < 15 && kotlin.math.abs(event.rawY - startY) < 15
                             if (isSwipe || isTap) {
                                 triggerHaptic()
-                                openPanel()
+                                togglePanel()
                             }
                             true
                         }
@@ -290,11 +297,143 @@ class EdgeOverlayService : Service() {
         }
     }
 
-    private fun openPanel() {
-        val intent = Intent(this, EdgePanelActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    private fun getPanelLayoutParams(isFocusable: Boolean): WindowManager.LayoutParams {
+        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
         }
-        startActivity(intent)
+
+        val focusFlags = if (isFocusable) {
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        } else {
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        }
+
+        return WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            layoutFlag,
+            focusFlags,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            windowAnimations = 0
+            format = PixelFormat.TRANSLUCENT
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+    }
+
+    private fun showPanel() {
+        if (isPanelShowing || panelComposeView != null) return
+        isPanelShowing = true
+
+        val lifecycleOwner = OverlayLifecycleOwner()
+        panelLifecycleOwner = lifecycleOwner
+        lifecycleOwner.onCreate()
+
+        // 뒤로가기 키(Back Key) 감지를 위한 커스텀 FrameLayout
+        val container = object : android.widget.FrameLayout(this) {
+            override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
+                if (event.keyCode == android.view.KeyEvent.KEYCODE_BACK && event.action == android.view.KeyEvent.ACTION_UP) {
+                    if (lifecycleOwner.handleOnBackPressed()) {
+                        return true
+                    }
+                    hidePanel()
+                    return true
+                }
+                return super.dispatchKeyEvent(event)
+            }
+        }
+
+        val composeView = ComposeView(this).apply {
+            lifecycleOwner.attachToView(this)
+            setContent {
+                EdgePanelContent(
+                    edgeSide = currentSettings.edgeSide,
+                    panelWidthDp = currentSettings.panelWidthDp,
+                    autoDismissOnOpen = currentSettings.autoDismissOnOpen,
+                    onClose = { hidePanel() },
+                    onOpenSettings = {
+                        hidePanel()
+                        val intent = Intent(this@EdgeOverlayService, SettingsActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(intent)
+                    },
+                    onRequestFocus = { needFocus ->
+                        updatePanelFocus(needFocus)
+                    }
+                )
+            }
+        }
+
+        container.addView(
+            composeView,
+            android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        panelComposeView = container
+        val params = getPanelLayoutParams(isFocusable = true)
+        try {
+            windowManager.addView(container, params)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            isPanelShowing = false
+            panelComposeView = null
+            lifecycleOwner.onDestroy()
+            panelLifecycleOwner = null
+        }
+    }
+
+    private fun hidePanel() {
+        if (!isPanelShowing && panelComposeView == null) return
+        isPanelShowing = false
+
+        panelComposeView?.let { view ->
+            try {
+                windowManager.removeView(view)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        panelComposeView = null
+
+        panelLifecycleOwner?.onDestroy()
+        panelLifecycleOwner = null
+    }
+
+    private fun updatePanelFocus(needFocus: Boolean) {
+        panelComposeView?.let { view ->
+            val params = getPanelLayoutParams(isFocusable = needFocus)
+            try {
+                windowManager.updateViewLayout(view, params)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    private fun togglePanel() {
+        if (isPanelShowing) {
+            hidePanel()
+        } else {
+            showPanel()
+        }
     }
 
     private fun showEdgeLighting() {
@@ -368,6 +507,7 @@ class EdgeOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeHandleView()
+        hidePanel()
         removeEdgeLighting()
         serviceScope.cancel()
     }
