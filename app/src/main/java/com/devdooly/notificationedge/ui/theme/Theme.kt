@@ -27,6 +27,7 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun NotificationEdgeTheme(
     fontId: String = "default",
+    transparentStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -35,7 +36,11 @@ fun NotificationEdgeTheme(
     if (!view.isInEditMode && view.context is Activity) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
+            if (transparentStatusBar) {
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+            } else {
+                window.statusBarColor = colorScheme.background.toArgb()
+            }
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }
@@ -50,7 +55,12 @@ fun NotificationEdgeTheme(
 @Composable
 fun NotificationEdgeTheme(
     appFont: AppFont,
+    transparentStatusBar: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    NotificationEdgeTheme(fontId = appFont.id, content = content)
+    NotificationEdgeTheme(
+        fontId = appFont.id,
+        transparentStatusBar = transparentStatusBar,
+        content = content
+    )
 }

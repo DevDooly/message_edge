@@ -170,6 +170,13 @@ graph TD
   - `WindowInsetsControllerCompat`를 통해 `isAppearanceLightStatusBars = false`, `isAppearanceLightNavigationBars = false`를 명시 적용하여 네비게이션바 버튼 색상이 반전되지 않고 일관된 다크 스타일로 완벽 유지.
   - `themes.xml`에 `windowLightStatusBar = false`, `windowLightNavigationBar = false`를 추가하여 삼성 One UI와의 완벽한 투명도 호환성 확보.
 
+### 19) Theme.kt SideEffect 상태바 색상 덮어쓰기 버그 해결 및 100% 완전 투명화 (`v1.4.14`)
+* **문제**: `EdgePanelActivity.onCreate()`에서 `statusBarColor = Color.TRANSPARENT`를 지정했음에도, `NotificationEdgeTheme`의 `SideEffect`가 `window.statusBarColor`를 검정색(`Graphite950`)으로 강제 덮어씌워 상태바가 검정색으로 변하던 현상.
+* **해결**:
+  - `Theme.kt`의 `NotificationEdgeTheme`에 `transparentStatusBar: Boolean = false` 매개변수를 추가.
+  - `transparentStatusBar == true`일 때는 `window.statusBarColor`를 `Color.TRANSPARENT`로 명확하게 설정하도록 개선.
+  - `EdgePanelActivity.kt`에서 `transparentStatusBar = true`를 전달하여 상단 상태표시줄의 100% 완전 투명도 완벽 보장.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

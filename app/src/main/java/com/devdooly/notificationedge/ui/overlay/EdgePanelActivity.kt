@@ -57,7 +57,8 @@ class EdgePanelActivity : ComponentActivity() {
             val settings by settingsRepo.settingsFlow.collectAsState(initial = AppSettings())
 
             NotificationEdgeTheme(
-                fontId = settings.selectedFont
+                fontId = settings.selectedFont,
+                transparentStatusBar = true
             ) {
                 EdgePanelContent(
                     edgeSide = settings.edgeSide,
