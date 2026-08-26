@@ -270,6 +270,11 @@ graph TD
 * **해결**:
   - `EdgePanelContent.kt`: `notification.isDismissed` 조건부로 렌더링되던 `"보관됨"` 뱃지 UI 컴포넌트 제거.
 
+### 33) 엣지 패널 안정화 복구 및 롤백 (`v1.2.1`, Build 121)
+* **조치**:
+  - `WindowManager.addView` 방식에서 발생한 패널 미동작 문제를 신속히 해결하기 위해, 100% 안정적으로 작동하던 `EdgePanelActivity` 기반 오버레이 구조로 즉시 복구(롤백).
+  - `v1.1.1`의 최신 기능(1:1 단체방 뱃지 오인 버그 수정, 퀵 답장 엔터 줄바꿈 전환, 보관됨 뱃지 제거 등) 100% 온전하게 유지.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -278,9 +283,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.1.1`)
-   - `AppUpdateCard(currentVersionName = "1.1.1")`
-   - `AppInfoCard` (예: `버전 1.1.1 (Build 111) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.1`)
+   - `AppUpdateCard(currentVersionName = "1.2.1")`
+   - `AppInfoCard` (예: `버전 1.2.1 (Build 121) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
