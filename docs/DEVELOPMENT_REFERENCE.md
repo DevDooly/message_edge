@@ -188,6 +188,16 @@ graph TD
     - Minor (`1.X.0`): 신규 주요 기능 추가
     - Major (`X.0.0`): 전면적인 아키텍처 및 대규모 UI 리뉴얼
 
+### 22) 인스타그램/문자 1:1 대화 단체방 오인 방지 및 본인 답장 반사 표시 버그 수정 (`v1.0.1`, Build 101)
+* **문제**:
+  - 인스타그램(`com.instagram.android`) 및 삼성 메시지(`com.samsung.android.messaging`)에서 1:1 대화인데도 본인 메시지가 포함되어 발신자 수가 2명 이상으로 계산되거나 `subText != null`로 인해 단체방으로 오인되던 문제.
+  - 인앱 답장 기능을 사용했을 때, 본인이 보낸 답장 메시지가 상대방이 보낸 것처럼 왼쪽 정렬로 표시되던 문제 (`selfDisplayName` 미인식).
+* **해결**:
+  - `MessengerNotificationParser.kt`: `selfDisplayName` 및 `messagingStyleUser`를 추출하여 본인 답장 메시지를 `isFromUser = true`로 완벽 판별 및 태깅.
+  - 본인 메시지를 제외한 **순수 상대방 발신자 수(Other Senders)**를 기준으로 단체방을 판별하고, 안드로이드 OS의 `android.isGroupConversation == false` 플래그를 최우선 적용하여 1:1 대화방을 100% 보존.
+  - `EdgePanelContent.kt`: 컴포즈 레벨의 임의 단체방 오인 조건을 제거하고 파서의 `isGroupChat` 결과를 직접 바인딩.
+  - `MessengerNotificationParserTest.kt`에 인스타그램 및 삼성 메시지 실제 덤프 기반 단위 테스트 2건 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -196,9 +206,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.0`)
-   - `AppUpdateCard(currentVersionName = "1.0.0")`
-   - `AppInfoCard` (예: `버전 1.0.0 (Build 100) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.1`)
+   - `AppUpdateCard(currentVersionName = "1.0.1")`
+   - `AppInfoCard` (예: `버전 1.0.1 (Build 101) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

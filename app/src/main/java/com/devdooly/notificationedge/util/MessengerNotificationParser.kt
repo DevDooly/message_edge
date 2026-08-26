@@ -33,6 +33,11 @@ object MessengerNotificationParser {
         val subText = extras.getCharSequence(Notification.EXTRA_SUB_TEXT)?.toString()?.trim()
         val summaryText = extras.getCharSequence(Notification.EXTRA_SUMMARY_TEXT)?.toString()?.trim()
         val isGroupConversation = extras.getBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, false)
+        val hasIsGroupKey = extras.containsKey(Notification.EXTRA_IS_GROUP_CONVERSATION)
+
+        val selfDisplayName = extras.getCharSequence(Notification.EXTRA_SELF_DISPLAY_NAME)?.toString()?.trim()
+            ?: extras.getBundle("android.messagingStyleUser")?.getString("name")?.trim()
+            ?: ""
 
         val rawTitle = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()?.trim()
             ?: extras.getCharSequence(Notification.EXTRA_TITLE_BIG)?.toString()?.trim()
@@ -50,6 +55,7 @@ object MessengerNotificationParser {
         val hasMessages = extras.get("android.messages") != null
         val isMessagingStyle = template.contains("MessagingStyle") || hasMessages
         val isMessengerApp = isKakaoTalk ||
+                packageName.contains("instagram") ||
                 packageName.contains("telegram") ||
                 packageName.contains("line") ||
                 packageName.contains("discord") ||
@@ -66,20 +72,25 @@ object MessengerNotificationParser {
                 summaryText = summaryText,
                 conversationTitle = conversationTitle,
                 isGroupConversation = isGroupConversation,
+                hasIsGroupKey = hasIsGroupKey,
+                selfDisplayName = selfDisplayName,
                 extras = extras,
                 postTime = sbn.postTime
             )
         }
 
-        // 2. 일반 메신저 (MessagingStyle / Telegram / Line / SMS) 분석
+        // 2. 일반 메신저 (인스타그램 / 메시지 / Telegram / Line 등) 분석
         if (isMessagingStyle || isMessengerApp) {
             return parseGenericMessenger(
+                packageName = packageName,
                 rawTitle = rawTitle,
                 rawText = rawText,
                 subText = subText,
                 summaryText = summaryText,
                 conversationTitle = conversationTitle,
                 isGroupConversation = isGroupConversation,
+                hasIsGroupKey = hasIsGroupKey,
+                selfDisplayName = selfDisplayName,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -126,6 +137,8 @@ object MessengerNotificationParser {
         summaryText: String?,
         conversationTitle: String?,
         isGroupConversation: Boolean,
+        hasIsGroupKey: Boolean,
+        selfDisplayName: String,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -176,21 +189,28 @@ object MessengerNotificationParser {
             }
         }
 
-        // MessagingStyle 메시지 리스트 추출
-        val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime)
+        // MessagingStyle 메시지 리스트 추출 (본인 메시지 isFromUser = true 태깅)
+        val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime, selfDisplayName)
 
-        // 고유 발신자 목록 추출 (참여자 목록)
-        val uniqueSenders = messagesList.map { it.sender.trim() }.filter { it.isNotBlank() }.distinct()
+        // 본인(나)을 제외한 상대방 고유 발신자 목록 추출 (참여자 목록)
+        val otherSenders = messagesList.filter { !it.isFromUser && it.sender != "나" && (selfDisplayName.isBlank() || !it.sender.equals(selfDisplayName, ignoreCase = true)) }
+            .map { it.sender.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
 
-        // F) 카카오톡 무제(그룹) 단체방인 경우: android.isGroupConversation = true 이거나 참여자가 2명 이상인 경우
-        val isGroup = isGroupConversation || groupName != null || uniqueSenders.size >= 2 || rawTitle.contains(",")
+        // F) 카카오톡 단체방 판별
+        val isGroup = if (hasIsGroupKey) {
+            isGroupConversation || groupName != null || otherSenders.size >= 2
+        } else {
+            isGroupConversation || groupName != null || otherSenders.size >= 2 || rawTitle.contains(",")
+        }
 
         // 명시적 단체방 이름이 없을 때 참여자 목록으로 방 이름 자동 합성
         if (groupName == null && isGroup) {
-            groupName = if (uniqueSenders.isNotEmpty()) {
-                buildGroupRoomTitleFromSenders(uniqueSenders, rawTitle)
+            groupName = if (otherSenders.isNotEmpty()) {
+                buildGroupRoomTitleFromSenders(otherSenders, rawTitle)
             } else if (rawTitle.isNotBlank()) {
-                "$rawTitle 외 (단체방)"
+                rawTitle
             } else {
                 "그룹 채팅방"
             }
@@ -198,7 +218,7 @@ object MessengerNotificationParser {
 
         // 단체방 이름 및 대표 타이틀 결정
         val finalRoomTitle = groupName ?: rawTitle
-        val latestMsg = messagesList.lastOrNull()
+        val latestMsg = messagesList.lastOrNull { !it.isFromUser } ?: messagesList.lastOrNull()
         val cleanSender = if (latestMsg != null && latestMsg.sender.isNotBlank()) {
             latestMsg.sender
         } else if (senderName.isNotBlank()) {
@@ -221,7 +241,8 @@ object MessengerNotificationParser {
                 MessageItem(
                     sender = cleanSender,
                     text = cleanedText,
-                    timestamp = postTime
+                    timestamp = postTime,
+                    isFromUser = false
                 )
             )
         }
@@ -237,41 +258,65 @@ object MessengerNotificationParser {
     }
 
     /**
-     * 일반 메신저 및 앱 공통 파서
+     * 일반 메신저 (인스타그램, 문자 등) 파서
      */
     private fun parseGenericMessenger(
+        packageName: String,
         rawTitle: String,
         rawText: String,
         subText: String?,
         summaryText: String?,
         conversationTitle: String?,
         isGroupConversation: Boolean,
+        hasIsGroupKey: Boolean,
+        selfDisplayName: String,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
-        val messagesList = extractMessagingStyleMessages(extras, conversationTitle ?: rawTitle, rawTitle, postTime)
-        val uniqueSenders = messagesList.map { it.sender.trim() }.filter { it.isNotBlank() }.distinct()
+        val messagesList = extractMessagingStyleMessages(extras, conversationTitle ?: rawTitle, rawTitle, postTime, selfDisplayName)
 
-        val isGroup = !conversationTitle.isNullOrBlank() ||
-                isGroupConversation ||
-                (!subText.isNullOrBlank() && subText != rawTitle) ||
-                uniqueSenders.size >= 2 ||
-                rawTitle.contains(",")
+        // 본인(나)을 제외한 순수 상대방 발신자 목록
+        val otherSenders = messagesList.filter { !it.isFromUser && it.sender != "나" && (selfDisplayName.isBlank() || !it.sender.equals(selfDisplayName, ignoreCase = true)) }
+            .map { it.sender.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
 
-        var groupName = when {
-            !conversationTitle.isNullOrBlank() -> conversationTitle
-            !subText.isNullOrBlank() && isGroup -> subText
-            !summaryText.isNullOrBlank() && isGroup -> summaryText
-            else -> null
+        // 1. 단체방 여부 판별 (OS 명시 플래그 최우선 적용)
+        val isGroup = if (hasIsGroupKey) {
+            // android.isGroupConversation이 명시되어 있으면 OS 값을 100% 신뢰
+            isGroupConversation
+        } else {
+            otherSenders.size >= 2 || rawTitle.contains(",")
         }
 
-        if (groupName == null && isGroup && uniqueSenders.isNotEmpty()) {
-            groupName = buildGroupRoomTitleFromSenders(uniqueSenders, rawTitle)
+        // 2. 타이틀 정제 (인스타그램 1:1 대화의 "계정명: 상대방" 패턴 정제)
+        var parsedRoomTitle = when {
+            isGroup && !conversationTitle.isNullOrBlank() -> conversationTitle
+            isGroup && !subText.isNullOrBlank() && subText != rawTitle -> subText
+            else -> rawTitle
         }
 
-        val finalRoomTitle = groupName ?: rawTitle
-        val latestMsg = messagesList.lastOrNull()
-        val cleanSender = latestMsg?.sender?.ifBlank { rawTitle } ?: finalRoomTitle
+        if (!isGroup && parsedRoomTitle.contains(":")) {
+            val parts = parsedRoomTitle.split(":")
+            val candidate = parts.lastOrNull()?.trim()
+            if (!candidate.isNullOrBlank()) {
+                parsedRoomTitle = candidate
+            }
+        }
+
+        var groupName: String? = null
+        if (isGroup) {
+            groupName = when {
+                !conversationTitle.isNullOrBlank() -> conversationTitle
+                !subText.isNullOrBlank() && subText != rawTitle -> subText
+                otherSenders.isNotEmpty() -> buildGroupRoomTitleFromSenders(otherSenders, rawTitle)
+                else -> null
+            }
+        }
+
+        val finalRoomTitle = groupName ?: parsedRoomTitle
+        val latestMsg = messagesList.lastOrNull { !it.isFromUser } ?: messagesList.lastOrNull()
+        val cleanSender = latestMsg?.sender?.ifBlank { finalRoomTitle } ?: finalRoomTitle
 
         val cleanedText = NotificationTextCleaner.cleanMessageText(
             text = latestMsg?.text ?: rawText,
@@ -284,7 +329,8 @@ object MessengerNotificationParser {
                 MessageItem(
                     sender = cleanSender,
                     text = cleanedText,
-                    timestamp = postTime
+                    timestamp = postTime,
+                    isFromUser = false
                 )
             )
         }
@@ -316,7 +362,8 @@ object MessengerNotificationParser {
         extras: Bundle,
         roomTitle: String,
         defaultSender: String,
-        postTime: Long
+        postTime: Long,
+        selfDisplayName: String
     ): MutableList<MessageItem> {
         val list = mutableListOf<MessageItem>()
         @Suppress("DEPRECATION")
@@ -335,23 +382,32 @@ object MessengerNotificationParser {
                             msgSender = personObj.name?.toString()?.trim()
                         }
                     }
-                    if (msgSender.isNullOrBlank()) {
-                        msgSender = defaultSender
+
+                    // 본인(나)이 보낸 답장 메시지인지 판별 (삼성메시지는 sender가 null, 인스타/카톡은 selfDisplayName과 일치)
+                    val isFromUser = msgSender.isNullOrBlank() ||
+                            msgSender == "나" ||
+                            (selfDisplayName.isNotBlank() && msgSender.equals(selfDisplayName, ignoreCase = true))
+
+                    val finalSender = when {
+                        isFromUser -> "나"
+                        !msgSender.isNullOrBlank() -> msgSender
+                        else -> defaultSender
                     }
 
                     val cleanedMsgText = NotificationTextCleaner.cleanMessageText(
                         text = msgText,
                         title = roomTitle,
-                        sender = msgSender
+                        sender = finalSender
                     )
                     val msgTime = raw.getLong("time", postTime)
 
                     if (cleanedMsgText.isNotBlank()) {
                         list.add(
                             MessageItem(
-                                sender = msgSender,
+                                sender = finalSender,
                                 text = cleanedMsgText,
-                                timestamp = msgTime
+                                timestamp = msgTime,
+                                isFromUser = isFromUser
                             )
                         )
                     }

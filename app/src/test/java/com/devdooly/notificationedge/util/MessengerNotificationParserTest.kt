@@ -36,7 +36,8 @@ class MessengerNotificationParserTest {
         subText: String? = null,
         conversationTitle: String? = null,
         summaryText: String? = null,
-        isGroupConversation: Boolean = false,
+        isGroupConversation: Boolean? = null,
+        selfDisplayName: String? = null,
         messages: Array<Bundle>? = null
     ): StatusBarNotification {
         val sbn = mockk<StatusBarNotification>(relaxed = true)
@@ -53,8 +54,11 @@ class MessengerNotificationParserTest {
         if (summaryText != null) {
             notification.extras.putCharSequence(Notification.EXTRA_SUMMARY_TEXT, summaryText)
         }
-        if (isGroupConversation) {
-            notification.extras.putBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, true)
+        if (isGroupConversation != null) {
+            notification.extras.putBoolean(Notification.EXTRA_IS_GROUP_CONVERSATION, isGroupConversation)
+        }
+        if (selfDisplayName != null) {
+            notification.extras.putCharSequence(Notification.EXTRA_SELF_DISPLAY_NAME, selfDisplayName)
         }
         if (messages != null) {
             @Suppress("DEPRECATION")
@@ -66,6 +70,95 @@ class MessengerNotificationParserTest {
         every { sbn.postTime } returns 1000L
 
         return sbn
+    }
+
+    @Test
+    fun `instagram 1-to-1 direct message dump should be parsed as direct chat with proper self reply identification`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "병종")
+            putCharSequence("text", "답장은 잘가나 단체방 뱃지는 뭐져")
+            putLong("time", 1787717190698L)
+        }
+        val msg1 = Bundle().apply {
+            putCharSequence("sender", "김선홍")
+            putCharSequence("text", "안그래도 그거 수정중 ㅋㅋ")
+            putLong("time", 1787717207929L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("sender", "병종")
+            putCharSequence("text", "ㅋㅋㅋㅋ")
+            putLong("time", 1787717211688L)
+        }
+        val msg3 = Bundle().apply {
+            putCharSequence("sender", "김선홍")
+            putCharSequence("text", "글고 내가 보낸 내용도 남이 보낸것처럼 한번 더 보이네")
+            putLong("time", 1787717258276L)
+        }
+        val msg4 = Bundle().apply {
+            putCharSequence("sender", "병종")
+            putCharSequence("text", "맞아여 그렇게 알림이 뜨더라구요")
+            putLong("time", 1787717387797L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.instagram.android",
+            title = "sunhong2910: 병종",
+            text = "맞아여 그렇게 알림이 뜨더라구요",
+            isGroupConversation = false,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0, msg1, msg2, msg3, msg4)
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertFalse(result.isGroupChat)
+        assertEquals("병종", result.roomTitle)
+        assertEquals(5, result.messages.size)
+        assertFalse(result.messages[0].isFromUser)
+        assertEquals("병종", result.messages[0].sender)
+        assertTrue(result.messages[1].isFromUser)
+        assertEquals("나", result.messages[1].sender)
+        assertTrue(result.messages[3].isFromUser)
+        assertEquals("나", result.messages[3].sender)
+        assertFalse(result.messages[4].isFromUser)
+        assertEquals("병종", result.messages[4].sender)
+    }
+
+    @Test
+    fun `samsung messaging 1-to-1 message dump with self reply should remain direct chat and identify self messages`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "전병종")
+            putCharSequence("text", "테스트 해보기")
+            putLong("time", 1787717176971L)
+        }
+        val msg1 = Bundle().apply {
+            putCharSequence("text", "아아아아아아")
+            putLong("time", 1787717281696L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("text", "이건 뭔...")
+            putLong("time", 1787717294823L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.samsung.android.messaging",
+            title = "전병종",
+            subText = "전병종",
+            text = "테스트 해보기",
+            isGroupConversation = false,
+            selfDisplayName = "나",
+            messages = arrayOf(msg0, msg1, msg2)
+        )
+
+        val result = MessengerNotificationParser.parse(sbn)
+        assertFalse(result.isGroupChat)
+        assertEquals("전병종", result.roomTitle)
+        assertEquals(3, result.messages.size)
+        assertFalse(result.messages[0].isFromUser)
+        assertEquals("전병종", result.messages[0].sender)
+        assertTrue(result.messages[1].isFromUser)
+        assertEquals("나", result.messages[1].sender)
+        assertTrue(result.messages[2].isFromUser)
+        assertEquals("나", result.messages[2].sender)
     }
 
     @Test

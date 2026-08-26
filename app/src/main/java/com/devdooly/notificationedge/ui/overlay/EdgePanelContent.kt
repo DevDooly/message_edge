@@ -744,14 +744,8 @@ private fun NotificationCard(
                         }
                     }
 
-                    // 그룹 단체방 판별
-                    val isGroupChat = remember(notification.isGroupChat, notification.title, notification.messages) {
-                        notification.isGroupChat ||
-                                notification.subText != null ||
-                                notification.title.contains("(") ||
-                                notification.title.contains(",") ||
-                                notification.messages.map { it.sender.trim() }.filter { it.isNotBlank() && it != "나" }.distinct().size > 1
-                    }
+                    // 그룹 단체방 판별 (파서의 isGroupChat 결과 사용)
+                    val isGroupChat = notification.isGroupChat
 
                     displayMessages.forEach { msg ->
                         val isMine = msg.isFromUser || msg.sender == "나"
