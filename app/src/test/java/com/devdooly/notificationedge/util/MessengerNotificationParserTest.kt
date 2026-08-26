@@ -481,4 +481,34 @@ class MessengerNotificationParserTest {
         assertEquals("주식 가격이 5% 올랐어요(10,590원)", result.cleanText)
         assertTrue(result.messages.isEmpty())
     }
+
+    @Test
+    fun `google gemini messaging style notification should not be group chat and have clean title and text`() {
+        val msg = Bundle().apply {
+            putCharSequence("sender", "Gemini Spark 설정")
+            putCharSequence("text", "Spark 공동작업을 위한 요청 사항이 생성되었습니다.")
+            putLong("time", 1787747901853L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.google.android.googlequicksearchbox",
+            title = "Gemini Spark 설정",
+            text = "Spark 공동작업을 위한 요청 사항이 생성되었습니다.",
+            subText = "Gemini",
+            isGroupConversation = false,
+            selfDisplayName = "Gemini Spark 설정",
+            messages = arrayOf(msg)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "Deep Research",
+            shortcutLabel = "Gemini"
+        )
+        assertFalse(result.isGroupChat)
+        assertEquals("Gemini Spark 설정", result.roomTitle)
+        assertEquals("Spark 공동작업을 위한 요청 사항이 생성되었습니다.", result.cleanText)
+        assertEquals(1, result.messages.size)
+        assertEquals("Gemini Spark 설정", result.messages[0].sender)
+    }
 }

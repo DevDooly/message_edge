@@ -682,8 +682,11 @@ private fun NotificationCard(
                 }
             }
 
+            // 대화형 메신저 카드 판별: 답장 액션이 있거나 대화 내역이 2건 이상 누적된 경우
+            val hasConversationalHistory = notification.messages.size > 1 || (notification.messages.isNotEmpty() && replyAction != null)
+
             // 알림 본문 또는 대화 내역 (과거 내역 확장 지원)
-            if (notification.messages.isNotEmpty()) {
+            if (hasConversationalHistory) {
                 Spacer(modifier = Modifier.height(4.dp))
                 val displayMessages = if (isExpandedMessages) {
                     notification.messages
@@ -735,8 +738,9 @@ private fun NotificationCard(
                                 msg.sender
                             )
                         }
-                        // 단체방이면 무조건 보낸사람 표시, 1:1 대화에서는 타이틀과 다를 때 표시
-                        val shouldShowSenderLabel = !isMine && msg.sender.isNotBlank() && (isGroupChat || msg.sender.trim() != notification.title.trim())
+                        // 단체방이면 무조건 보낸사람 표시, 1:1 대화에서는 타이틀과 명확히 다를 때만 표시
+                        val isSameAsTitle = msg.sender.equals(notification.title, ignoreCase = true) || notification.title.contains(msg.sender, ignoreCase = true)
+                        val shouldShowSenderLabel = !isMine && msg.sender.isNotBlank() && (isGroupChat || !isSameAsTitle)
 
                         Row(
                             modifier = Modifier
@@ -816,39 +820,43 @@ private fun NotificationCard(
                         }
                     }
                 }
-            } else if (notification.text.isNotBlank()) {
-                Spacer(modifier = Modifier.height(2.dp))
-                val displayText = remember(notification.text, notification.title) {
-                    com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
-                        notification.text,
-                        notification.title
-                    )
-                }
-                val notifTime = remember(notification.timestamp) {
-                    formatMessageTime(notification.timestamp)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    Text(
-                        text = displayText,
-                        color = Color(0xFFDDDDDD),
-                        fontSize = 13.sp,
-                        lineHeight = 17.sp,
-                        maxLines = 6,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
-                    if (notifTime.isNotBlank()) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = notifTime,
-                            color = Color(0xFFAAAAAA),
-                            fontSize = 9.sp,
-                            modifier = Modifier.padding(bottom = 1.dp)
+            } else {
+                // 단방향 정보성/서비스 알림 (구글 Gemini 상태 알림, 시스템 알림 등)
+                val rawBody = if (notification.text.isNotBlank()) notification.text else notification.messages.firstOrNull()?.text ?: ""
+                if (rawBody.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    val displayText = remember(rawBody, notification.title) {
+                        com.devdooly.notificationedge.util.NotificationTextCleaner.cleanMessageText(
+                            rawBody,
+                            notification.title
                         )
+                    }
+                    val notifTime = remember(notification.timestamp) {
+                        formatMessageTime(notification.timestamp)
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Bottom
+                    ) {
+                        Text(
+                            text = displayText,
+                            color = Color(0xFFDDDDDD),
+                            fontSize = 13.sp,
+                            lineHeight = 17.sp,
+                            maxLines = 6,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (notifTime.isNotBlank()) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = notifTime,
+                                color = Color(0xFFAAAAAA),
+                                fontSize = 9.sp,
+                                modifier = Modifier.padding(bottom = 1.dp)
+                            )
+                        }
                     }
                 }
             }

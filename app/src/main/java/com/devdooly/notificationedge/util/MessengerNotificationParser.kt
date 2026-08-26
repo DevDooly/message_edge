@@ -470,10 +470,16 @@ object MessengerNotificationParser {
                         }
                     }
 
-                    // 본인(나)이 보낸 답장 메시지인지 판별 (삼성메시지는 sender가 null, 인스타/카톡은 selfDisplayName과 일치)
-                    val isFromUser = msgSender.isNullOrBlank() ||
-                            msgSender == "나" ||
-                            (selfDisplayName.isNotBlank() && msgSender.equals(selfDisplayName, ignoreCase = true))
+                    // 본인(나)이 보낸 답장 메시지인지 판별
+                    val isSelfMatch = selfDisplayName.isNotBlank() &&
+                            !msgSender.isNullOrBlank() &&
+                            msgSender.equals(selfDisplayName, ignoreCase = true) &&
+                            !selfDisplayName.equals(roomTitle, ignoreCase = true) &&
+                            !selfDisplayName.equals(defaultSender, ignoreCase = true)
+
+                    val isNullSenderSelf = msgSender.isNullOrBlank() && (rawMessages.size > 1 || selfDisplayName == "나")
+
+                    val isFromUser = msgSender == "나" || isSelfMatch || isNullSenderSelf
 
                     val finalSender = when {
                         isFromUser -> "나"

@@ -275,6 +275,14 @@ graph TD
   - `WindowManager.addView` 방식에서 발생한 패널 미동작 문제를 신속히 해결하기 위해, 100% 안정적으로 작동하던 `EdgePanelActivity` 기반 오버레이 구조로 즉시 복구(롤백).
   - `v1.1.1`의 최신 기능(1:1 단체방 뱃지 오인 버그 수정, 퀵 답장 엔터 줄바꿈 전환, 보관됨 뱃지 제거 등) 100% 온전하게 유지.
 
+### 34) 비(非)메신저 앱(Google/Gemini 등)의 MessagingStyle 단방향 알림 UI 최적화 (`v1.2.2`, Build 122)
+* **원인 및 문제**:
+  - `com.google.android.googlequicksearchbox`(Gemini/Google) 등 비메신저 앱이 OS의 `MessagingStyle` 템플릿으로 상태 알림을 보낼 때, `selfDisplayName`과 발신자명이 동일하여 발신자가 "나"로 오판되거나, 답장 없는 단방향 알림임에도 대화 버블로 어색하게 노출되는 문제.
+* **해결**:
+  - `MessengerNotificationParser.kt`: `selfDisplayName`이 대화방 제목(`roomTitle`)이나 기본 발신자(`defaultSender`)와 같을 경우 비메신저 앱으로 간주하여 `isFromUser`("나") 오판을 원천 차단.
+  - `EdgePanelContent.kt`: `replyAction == null`이고 단일 메시지만 있는 단방향 정보성 알림은 대화 버블 대신 일반 알림 텍스트 레이아웃으로 깔끔하게 단일 렌더링.
+  - `NotificationTextCleaner.kt`: 발신자명과 제목이 동일한 경우 발신자 레이블 중복 노출 방지.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -283,9 +291,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.1`)
-   - `AppUpdateCard(currentVersionName = "1.2.1")`
-   - `AppInfoCard` (예: `버전 1.2.1 (Build 121) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.2`)
+   - `AppUpdateCard(currentVersionName = "1.2.2")`
+   - `AppInfoCard` (예: `버전 1.2.2 (Build 122) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
