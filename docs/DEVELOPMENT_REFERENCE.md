@@ -264,6 +264,12 @@ graph TD
 * **해결**:
   - `EdgePanelContent.kt`: `KeyboardFloatingReplyBar`의 `BasicTextField` 옵션을 `imeAction = ImeAction.Default`, `singleLine = false`, `maxLines = 4`로 변경하여 가상키보드의 엔터키(Return)를 누르면 자연스럽게 줄바꿈이 수행되도록 변경. 전송은 우측의 [전송] 버튼으로 명확히 분리.
 
+### 32) 알림 카드 "보관됨" 텍스트 뱃지 영역 제거 (`v1.1.1`, Build 111)
+* **요구사항**:
+  - 알림 카드 상단 우측에 표시되던 "보관됨" 텍스트 뱃지 영역을 완전히 제거하여 UI 간소화.
+* **해결**:
+  - `EdgePanelContent.kt`: `notification.isDismissed` 조건부로 렌더링되던 `"보관됨"` 뱃지 UI 컴포넌트 제거.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -272,9 +278,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.1.0`)
-   - `AppUpdateCard(currentVersionName = "1.1.0")`
-   - `AppInfoCard` (예: `버전 1.1.0 (Build 110) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.1.1`)
+   - `AppUpdateCard(currentVersionName = "1.1.1")`
+   - `AppInfoCard` (예: `버전 1.1.1 (Build 111) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

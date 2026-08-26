@@ -627,21 +627,6 @@ private fun NotificationCard(
                     }
                 }
 
-                if (notification.isDismissed) {
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = Color(0x33888888)
-                    ) {
-                        Text(
-                            text = "보관됨",
-                            color = Color.LightGray,
-                            fontSize = 9.sp,
-                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
-                }
-
                 Text(
                     text = timeString,
                     color = Color.Gray,
