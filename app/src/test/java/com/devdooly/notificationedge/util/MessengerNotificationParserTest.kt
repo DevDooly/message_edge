@@ -250,6 +250,49 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk group chat with shortcutLabel should prioritize shortcut label 11단톡`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "정상현")
+            putCharSequence("text", "근데 앞 수술이 저러면")
+            putLong("time", 1787721555479L)
+        }
+        val msg1 = Bundle().apply {
+            putCharSequence("sender", "정상현")
+            putCharSequence("text", "더 긴장될것같은디")
+            putLong("time", 1787721558722L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("sender", "김동관")
+            putCharSequence("text", "워...")
+            putLong("time", 1787721644060L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김동관",
+            text = "워...",
+            isGroupConversation = true,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0, msg1, msg2)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "알림 받지 않는 메시지",
+            shortcutLabel = "11단톡"
+        )
+
+        assertTrue(result.isGroupChat)
+        assertEquals("11단톡", result.roomTitle) // ShortcutLabel에서 11단톡 완벽 추출
+        assertEquals("김동관", result.currentSender)
+        assertEquals("워...", result.cleanText)
+        assertEquals(3, result.messages.size)
+        assertEquals("정상현", result.messages[0].sender)
+        assertEquals("정상현", result.messages[1].sender)
+        assertEquals("김동관", result.messages[2].sender)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",

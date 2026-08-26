@@ -27,7 +27,8 @@ object MessengerNotificationParser {
         sbn: StatusBarNotification,
         channelName: String? = null,
         tickerText: String? = null,
-        viewTexts: List<String> = emptyList()
+        viewTexts: List<String> = emptyList(),
+        shortcutLabel: String? = null
     ): ParsedNotificationData {
         val packageName = sbn.packageName
         val notification = sbn.notification ?: return fallback(sbn)
@@ -82,6 +83,7 @@ object MessengerNotificationParser {
                 channelName = channelName,
                 tickerText = tickerText,
                 viewTexts = viewTexts,
+                shortcutLabel = shortcutLabel,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -102,6 +104,7 @@ object MessengerNotificationParser {
                 channelName = channelName,
                 tickerText = tickerText,
                 viewTexts = viewTexts,
+                shortcutLabel = shortcutLabel,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -139,7 +142,7 @@ object MessengerNotificationParser {
     }
 
     /**
-     * 카카오톡 전용 정밀 파서 (NotificationChannel / Ticker / RemoteViews / Extras 덤프 기반)
+     * 카카오톡 전용 정밀 파서 (Shortcut / NotificationChannel / Ticker / RemoteViews / Extras 덤프 기반)
      */
     private fun parseKakaoTalk(
         rawTitle: String,
@@ -153,6 +156,7 @@ object MessengerNotificationParser {
         channelName: String?,
         tickerText: String?,
         viewTexts: List<String>,
+        shortcutLabel: String?,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -160,8 +164,13 @@ object MessengerNotificationParser {
         var senderName: String = rawTitle
         var messageBody: String = rawText
 
+        // 0) ShortcutLabel (안드로이드 One UI / LauncherApps에 등록된 실제 채팅방 이름, 예: "11단톡")
+        if (!shortcutLabel.isNullOrBlank() && !isInvalidChannelName(shortcutLabel) && shortcutLabel != rawTitle) {
+            groupName = shortcutLabel
+            senderName = rawTitle
+        }
         // A) conversationTitle이 존재하는 경우
-        if (!conversationTitle.isNullOrBlank()) {
+        else if (!conversationTitle.isNullOrBlank()) {
             groupName = conversationTitle
             senderName = if (rawTitle.isNotBlank() && rawTitle != conversationTitle) rawTitle else "상대방"
         }
@@ -338,6 +347,7 @@ object MessengerNotificationParser {
         channelName: String?,
         tickerText: String?,
         viewTexts: List<String>,
+        shortcutLabel: String?,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -359,6 +369,7 @@ object MessengerNotificationParser {
 
         // 2. 타이틀 정제 (인스타그램 1:1 대화의 "계정명: 상대방" 패턴 정제)
         var parsedRoomTitle: String = when {
+            isGroup && !shortcutLabel.isNullOrBlank() && !isInvalidChannelName(shortcutLabel) && shortcutLabel != rawTitle -> shortcutLabel
             isGroup && !conversationTitle.isNullOrBlank() -> conversationTitle
             isGroup && !subText.isNullOrBlank() && subText != rawTitle -> subText
             isGroup && !isInvalidChannelName(channelName) && channelName != rawTitle -> channelName ?: rawTitle
@@ -376,6 +387,7 @@ object MessengerNotificationParser {
         var groupName: String? = null
         if (isGroup) {
             groupName = when {
+                !shortcutLabel.isNullOrBlank() && !isInvalidChannelName(shortcutLabel) && shortcutLabel != rawTitle -> shortcutLabel
                 !conversationTitle.isNullOrBlank() -> conversationTitle
                 !subText.isNullOrBlank() && subText != rawTitle -> subText
                 !isInvalidChannelName(channelName) && channelName != rawTitle -> channelName

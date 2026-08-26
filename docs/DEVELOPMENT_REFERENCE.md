@@ -228,6 +228,14 @@ graph TD
   - `MessengerNotificationParser.kt`: `viewTexts`에서 단체방 이름 후보를 자동 추출하여 단체방 제목으로 바인딩.
   - `MessengerNotificationParserTest.kt`에 `RemoteViews` 텍스트 기반 단체방 이름 추출 회귀 테스트 추가 완료.
 
+### 27) LauncherApps ShortcutId 연동 카카오톡/메신저 실제 단체방 이름("11단톡") 완벽 복원 (`v1.0.6`, Build 106)
+* **문제**:
+  - 카카오톡 단체방에서 `extras`에 방 이름이 없고 무음 채널인 경우, 안드로이드 One UI 시스템은 `shortcutId`("366932826686487")를 통해 바로가기 라벨("11단톡")을 가져와 상태창에 렌더링하고 있으나, 앱에서는 이를 조회하지 못해 최근 발신자 목록("정상현, 김동관")으로 노출되던 현상.
+* **해결**:
+  - `NotificationListener.kt`: `LauncherApps` 서비스를 연동하여 알림의 `shortcutId`로 시스템에 등록된 `ShortcutInfo`의 라벨(`"11단톡"`)을 실시간 쿼리하여 추출.
+  - `MessengerNotificationParser.kt`: `shortcutLabel`을 1순위 단체방 이름으로 지정하여 수신 메시지 개수나 발신자 수와 무관하게 원래의 단체방 이름("11단톡")을 완벽 복원.
+  - `MessengerNotificationParserTest.kt`에 3건의 실전 카톡 덤프 기반 바로가기 라벨 추출 테스트 케이스 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -236,9 +244,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.5`)
-   - `AppUpdateCard(currentVersionName = "1.0.5")`
-   - `AppInfoCard` (예: `버전 1.0.5 (Build 105) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.6`)
+   - `AppUpdateCard(currentVersionName = "1.0.6")`
+   - `AppInfoCard` (예: `버전 1.0.6 (Build 106) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

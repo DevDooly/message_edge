@@ -3,6 +3,7 @@ package com.devdooly.notificationedge.service
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.RemoteInput
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -92,6 +93,10 @@ class NotificationListener : NotificationListenerService() {
         } else null
         val tickerText = notification.tickerText?.toString()?.trim()
 
+        // ShortcutId 기반 LauncherApps 단체방 라벨 조회 (안드로이드 One UI Conversations 표준)
+        val shortcutId = notification.shortcutId
+        val shortcutLabel = getShortcutLabel(packageName, shortcutId)
+
         // RemoteViews (One UI 상태창에 실제 렌더링된 텍스트 계층 리플렉션 분석)
         val cvTexts = extractTextsFromRemoteViews(notification.contentView)
         val bigCvTexts = extractTextsFromRemoteViews(notification.bigContentView)
@@ -102,7 +107,8 @@ class NotificationListener : NotificationListenerService() {
             sbn = sbn,
             channelName = channelName,
             tickerText = tickerText,
-            viewTexts = allViewTexts
+            viewTexts = allViewTexts,
+            shortcutLabel = shortcutLabel
         )
 
         // 내용이 없는 빈 알림은 무시
@@ -155,7 +161,7 @@ class NotificationListener : NotificationListenerService() {
 
         val finalTitle = if (formattedTitle.isNotBlank()) formattedTitle else appName
 
-        val extrasDump = dumpExtras(extras, sbn, channelObj, allViewTexts)
+        val extrasDump = dumpExtras(extras, sbn, channelObj, allViewTexts, shortcutLabel)
 
         val edgeNotification = EdgeNotification(
             key = sbn.key,
@@ -176,6 +182,35 @@ class NotificationListener : NotificationListenerService() {
         )
 
         NotificationRepository.addOrUpdateNotification(edgeNotification)
+    }
+
+    /**
+     * LauncherApps를 통해 안드로이드 시스템에 등록된 바로가기(Shortcut / Conversation) 라벨 조회
+     */
+    private fun getShortcutLabel(packageName: String, shortcutId: String?): String? {
+        if (shortcutId.isNullOrBlank()) return null
+        return try {
+            val launcherApps = getSystemService(Context.LAUNCHER_APPS_SERVICE) as? android.content.pm.LauncherApps
+            if (launcherApps != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
+                val query = android.content.pm.LauncherApps.ShortcutQuery().apply {
+                    setPackage(packageName)
+                    setShortcutIds(listOf(shortcutId))
+                    setQueryFlags(
+                        android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
+                                android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED or
+                                android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
+                                android.content.pm.LauncherApps.ShortcutQuery.FLAG_MATCH_CACHED
+                    )
+                }
+                val shortcuts = launcherApps.getShortcuts(query, android.os.Process.myUserHandle())
+                val shortcut = shortcuts?.firstOrNull()
+                val label = shortcut?.shortLabel?.toString()?.trim()
+                    ?: shortcut?.longLabel?.toString()?.trim()
+                if (!label.isNullOrBlank()) label else null
+            } else null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     /**
@@ -211,7 +246,8 @@ class NotificationListener : NotificationListenerService() {
         extras: Bundle,
         sbn: StatusBarNotification,
         channel: android.app.NotificationChannel?,
-        viewTexts: List<String>
+        viewTexts: List<String>,
+        shortcutLabel: String?
     ): String {
         val sb = StringBuilder()
         sb.append("=== [Notification Full Debug Dump] ===\n")
@@ -224,6 +260,9 @@ class NotificationListener : NotificationListenerService() {
         sb.append("Flags: ").append(sbn.notification.flags).append("\n")
         if (sbn.notification.shortcutId != null) {
             sb.append("ShortcutId: \"").append(sbn.notification.shortcutId).append("\"\n")
+        }
+        if (shortcutLabel != null) {
+            sb.append("ShortcutLabel: \"").append(shortcutLabel).append("\"\n")
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             sb.append("ChannelId: ").append(sbn.notification.channelId).append("\n")
