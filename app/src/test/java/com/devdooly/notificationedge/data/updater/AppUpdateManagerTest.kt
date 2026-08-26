@@ -7,30 +7,18 @@ import org.junit.Test
 class AppUpdateManagerTest {
 
     @Test
-    fun `isNewerVersion should return true when patch version is higher`() {
-        assertTrue(AppUpdateManager.isNewerVersion("1.3.8", "1.3.9"))
-        assertTrue(AppUpdateManager.isNewerVersion("1.3.8", "v1.3.9"))
-        assertTrue(AppUpdateManager.isNewerVersion("v1.3.8", "1.3.9"))
+    fun `isNewerVersion should return true when version is different`() {
+        assertTrue(AppUpdateManager.isNewerVersion("1.0.0", "1.0.1"))
+        assertTrue(AppUpdateManager.isNewerVersion("1.0.0", "v1.0.1"))
+        assertTrue(AppUpdateManager.isNewerVersion("v1.0.0", "1.0.1"))
+        assertTrue(AppUpdateManager.isNewerVersion("1.4.15", "1.0.1")) // 버전 리셋 상황 지원
     }
 
     @Test
-    fun `isNewerVersion should return true when minor or major version is higher`() {
-        assertTrue(AppUpdateManager.isNewerVersion("1.3.8", "1.4.0"))
-        assertTrue(AppUpdateManager.isNewerVersion("1.3.8", "2.0.0"))
-        assertTrue(AppUpdateManager.isNewerVersion("1.0", "1.0.1"))
-    }
-
-    @Test
-    fun `isNewerVersion should return false when same version`() {
-        assertFalse(AppUpdateManager.isNewerVersion("1.3.8", "1.3.8"))
-        assertFalse(AppUpdateManager.isNewerVersion("v1.3.8", "1.3.8"))
-        assertFalse(AppUpdateManager.isNewerVersion("1.3.8", "v1.3.8"))
-    }
-
-    @Test
-    fun `isNewerVersion should return false when current is newer than remote`() {
-        assertFalse(AppUpdateManager.isNewerVersion("1.4.0", "1.3.9"))
-        assertFalse(AppUpdateManager.isNewerVersion("2.0.0", "1.9.9"))
-        assertFalse(AppUpdateManager.isNewerVersion("1.3.8", "1.3.7"))
+    fun `isNewerVersion should return false when same version or latest is empty`() {
+        assertFalse(AppUpdateManager.isNewerVersion("1.0.1", "1.0.1"))
+        assertFalse(AppUpdateManager.isNewerVersion("v1.0.1", "1.0.1"))
+        assertFalse(AppUpdateManager.isNewerVersion("1.0.1", "v1.0.1"))
+        assertFalse(AppUpdateManager.isNewerVersion("1.0.1", ""))
     }
 }

@@ -84,7 +84,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.0.1",
+                                text = "v1.0.2",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -239,7 +239,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.0.1")
+            AppUpdateCard(currentVersionName = "1.0.2")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -387,7 +387,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.0.1 (Build 101) | Target Android 14",
+                text = "버전 1.0.2 (Build 102) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -649,22 +649,52 @@ private fun AppUpdateCard(currentVersionName: String) {
                         )
                     }
                     Spacer(modifier = Modifier.height(10.dp))
-                    TextButton(
-                        onClick = {
-                            updateStatus = UpdateUIState.Checking
-                            scope.launch {
-                                val result = com.devdooly.notificationedge.data.updater.AppUpdateManager.checkForUpdate(currentVersionName)
-                                result.onSuccess { info ->
-                                    releaseInfo = info
-                                    updateStatus = if (info.hasUpdate) UpdateUIState.UpdateAvailable(info) else UpdateUIState.UpToDate(info.tagName)
-                                }.onFailure {
-                                    updateStatus = UpdateUIState.Error(it.message ?: "확인 실패")
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = {
+                                val info = releaseInfo
+                                if (info != null) {
+                                    updateStatus = UpdateUIState.Downloading
+                                    scope.launch {
+                                        com.devdooly.notificationedge.data.updater.AppUpdateManager.downloadApk(
+                                            context = context,
+                                            downloadUrl = info.downloadUrl,
+                                            onProgress = { progress ->
+                                                downloadProgress = progress
+                                            }
+                                        ).onSuccess { apkFile ->
+                                            updateStatus = UpdateUIState.Downloaded(apkFile)
+                                            com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, apkFile)
+                                        }.onFailure { error ->
+                                            updateStatus = UpdateUIState.Error(error.message ?: "다운로드 실패")
+                                        }
+                                    }
                                 }
                             }
-                        },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
-                        Text("다시 확인", color = EdgeCyan, fontSize = 12.sp)
+                        ) {
+                            Text("최신 APK 직접 재설치", color = Color.Gray, fontSize = 11.sp)
+                        }
+
+                        TextButton(
+                            onClick = {
+                                updateStatus = UpdateUIState.Checking
+                                scope.launch {
+                                    val result = com.devdooly.notificationedge.data.updater.AppUpdateManager.checkForUpdate(currentVersionName)
+                                    result.onSuccess { info ->
+                                        releaseInfo = info
+                                        updateStatus = if (info.hasUpdate) UpdateUIState.UpdateAvailable(info) else UpdateUIState.UpToDate(info.tagName)
+                                    }.onFailure {
+                                        updateStatus = UpdateUIState.Error(it.message ?: "확인 실패")
+                                    }
+                                }
+                            }
+                        ) {
+                            Text("다시 확인", color = EdgeCyan, fontSize = 12.sp)
+                        }
                     }
                 }
 

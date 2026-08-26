@@ -196,7 +196,12 @@ graph TD
   - `MessengerNotificationParser.kt`: `selfDisplayName` 및 `messagingStyleUser`를 추출하여 본인 답장 메시지를 `isFromUser = true`로 완벽 판별 및 태깅.
   - 본인 메시지를 제외한 **순수 상대방 발신자 수(Other Senders)**를 기준으로 단체방을 판별하고, 안드로이드 OS의 `android.isGroupConversation == false` 플래그를 최우선 적용하여 1:1 대화방을 100% 보존.
   - `EdgePanelContent.kt`: 컴포즈 레벨의 임의 단체방 오인 조건을 제거하고 파서의 `isGroupChat` 결과를 직접 바인딩.
-  - `MessengerNotificationParserTest.kt`에 인스타그램 및 삼성 메시지 실제 덤프 기반 단위 테스트 2건 추가 완료.
+### 23) 인앱 자동 업데이트 버전 비교 로직 개선 및 재설치 버튼 완비 (`v1.0.2`, Build 102)
+* **문제**:
+  - 기존 구버전(`v1.4.15`)이 설치된 기기에서 버전 리셋(`v1.0.0`, `v1.0.1`) 시, 버전 번호 비교 로직(`latestParts > currentParts`)으로 인해 구버전으로 오인되어 업데이트가 뜨지 않던 현상.
+* **해결**:
+  - `AppUpdateManager.kt`: `cleanCurrent != cleanLatest`일 때 항상 업데이트 대상으로 판별하여 버전 체계 리셋이나 변경 시에도 유연하게 최신 릴리즈를 적용할 수 있도록 개선.
+  - `SettingsScreen.kt`: 최신 버전 상태(`UpToDate`) 화면에서도 **`[최신 APK 직접 재설치]`** 버튼을 상시 제공하여 언제든 원하는 시점에 원클릭으로 최신 릴리즈 APK를 다운로드/설치할 수 있도록 보강.
 
 ---
 
@@ -206,9 +211,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.1`)
-   - `AppUpdateCard(currentVersionName = "1.0.1")`
-   - `AppInfoCard` (예: `버전 1.0.1 (Build 101) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.2`)
+   - `AppUpdateCard(currentVersionName = "1.0.2")`
+   - `AppInfoCard` (예: `버전 1.0.2 (Build 102) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

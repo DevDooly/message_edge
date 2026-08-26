@@ -91,23 +91,14 @@ object AppUpdateManager {
     }
 
     /**
-     * 버전 문자열 비교 (예: "1.1.0" vs "v1.1.1" -> true)
+     * 버전 문자열 비교 (동일 버전이 아니면 항상 최신 릴리즈로 업데이트 안내)
      */
     internal fun isNewerVersion(current: String, latest: String): Boolean {
         val cleanCurrent = current.removePrefix("v").trim()
         val cleanLatest = latest.removePrefix("v").trim()
 
-        val currentParts = cleanCurrent.split(".").mapNotNull { it.toIntOrNull() }
-        val latestParts = cleanLatest.split(".").mapNotNull { it.toIntOrNull() }
-
-        val maxLen = maxOf(currentParts.size, latestParts.size)
-        for (i in 0 until maxLen) {
-            val c = currentParts.getOrElse(i) { 0 }
-            val l = latestParts.getOrElse(i) { 0 }
-            if (l > c) return true
-            if (l < c) return false
-        }
-        return false
+        if (cleanCurrent == cleanLatest || cleanLatest.isBlank()) return false
+        return true
     }
 
     /**
