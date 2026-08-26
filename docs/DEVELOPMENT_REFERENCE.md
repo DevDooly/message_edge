@@ -219,6 +219,15 @@ graph TD
   - `MessagingStyle` 메시지 번들 내부의 `extras`를 재귀 탐색하여 방 이름 메타데이터를 추가 추출하도록 개선.
   - `MessengerNotificationParserTest.kt`에 시스템 채널명 필터링 회귀 테스트 추가 완료.
 
+### 26) RemoteViews 리플렉션 텍스트 추출 및 풀 인스펙션 디버그 덤프 시스템 구축 (`v1.0.5`, Build 105)
+* **문제**:
+  - 카카오톡 무음/알림끔 단체방에서 `extras`에 방 이름이 없고 채널명이 시스템 채널일 때도, One UI 시스템 상태창 화면에는 실제 단체방 이름("11단톡")이 렌더링되고 있으므로 이를 추출하고 상세 디버깅할 필요성.
+* **해결**:
+  - `NotificationListener.kt`: `RemoteViews`(`contentView`, `bigContentView`, `headsUpContentView`) 내부의 액션(`mActions`) 리플렉션 분석을 통해 화면에 실제 렌더링된 텍스트 계층(`viewTexts`)을 실시간 추출.
+  - `dumpExtras`: `GroupKey`, `Flags`, `ShortcutId`, `Channel` 전체 속성(부모 채널, 대화 ID 등), `RemoteViews Rendered Texts`까지 모두 포함하는 풀 인스펙션 디버그 덤프 시스템으로 대폭 확장.
+  - `MessengerNotificationParser.kt`: `viewTexts`에서 단체방 이름 후보를 자동 추출하여 단체방 제목으로 바인딩.
+  - `MessengerNotificationParserTest.kt`에 `RemoteViews` 텍스트 기반 단체방 이름 추출 회귀 테스트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -227,9 +236,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.4`)
-   - `AppUpdateCard(currentVersionName = "1.0.4")`
-   - `AppInfoCard` (예: `버전 1.0.4 (Build 104) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.5`)
+   - `AppUpdateCard(currentVersionName = "1.0.5")`
+   - `AppInfoCard` (예: `버전 1.0.5 (Build 105) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

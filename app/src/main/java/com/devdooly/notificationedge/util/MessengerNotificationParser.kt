@@ -26,7 +26,8 @@ object MessengerNotificationParser {
     fun parse(
         sbn: StatusBarNotification,
         channelName: String? = null,
-        tickerText: String? = null
+        tickerText: String? = null,
+        viewTexts: List<String> = emptyList()
     ): ParsedNotificationData {
         val packageName = sbn.packageName
         val notification = sbn.notification ?: return fallback(sbn)
@@ -80,6 +81,7 @@ object MessengerNotificationParser {
                 selfDisplayName = selfDisplayName,
                 channelName = channelName,
                 tickerText = tickerText,
+                viewTexts = viewTexts,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -99,6 +101,7 @@ object MessengerNotificationParser {
                 selfDisplayName = selfDisplayName,
                 channelName = channelName,
                 tickerText = tickerText,
+                viewTexts = viewTexts,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -136,7 +139,7 @@ object MessengerNotificationParser {
     }
 
     /**
-     * 카카오톡 전용 정밀 파서 (NotificationChannel / Ticker / Extras 덤프 기반)
+     * 카카오톡 전용 정밀 파서 (NotificationChannel / Ticker / RemoteViews / Extras 덤프 기반)
      */
     private fun parseKakaoTalk(
         rawTitle: String,
@@ -149,6 +152,7 @@ object MessengerNotificationParser {
         selfDisplayName: String,
         channelName: String?,
         tickerText: String?,
+        viewTexts: List<String>,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -240,6 +244,16 @@ object MessengerNotificationParser {
             }
         }
 
+        // I) RemoteViews 렌더링 텍스트 계층에서 방 이름 탐색 (One UI 상태창에 표시된 실제 방 이름)
+        if (groupName == null && viewTexts.isNotEmpty()) {
+            for (vt in viewTexts) {
+                if (vt.isNotBlank() && !isInvalidChannelName(vt) && vt != rawTitle && vt != rawText && !rawText.startsWith(vt)) {
+                    groupName = vt
+                    break
+                }
+            }
+        }
+
         // MessagingStyle 메시지 리스트 추출 (본인 메시지 isFromUser = true 태깅)
         val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime, selfDisplayName)
 
@@ -323,6 +337,7 @@ object MessengerNotificationParser {
         selfDisplayName: String,
         channelName: String?,
         tickerText: String?,
+        viewTexts: List<String>,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {

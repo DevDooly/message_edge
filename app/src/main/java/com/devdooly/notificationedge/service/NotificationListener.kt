@@ -82,18 +82,27 @@ class NotificationListener : NotificationListenerService() {
         if (isMediaTransport) return
 
         // NotificationChannel 및 Ticker 정보 추출 (카카오톡 단체방 제목 등 조회용)
+        var channelObj: android.app.NotificationChannel? = null
         val channelName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val ranking = Ranking()
             if (currentRanking?.getRanking(sbn.key, ranking) == true) {
+                channelObj = ranking.channel
                 ranking.channel?.name?.toString()?.trim()
             } else null
         } else null
         val tickerText = notification.tickerText?.toString()?.trim()
 
+        // RemoteViews (One UI 상태창에 실제 렌더링된 텍스트 계층 리플렉션 분석)
+        val cvTexts = extractTextsFromRemoteViews(notification.contentView)
+        val bigCvTexts = extractTextsFromRemoteViews(notification.bigContentView)
+        val headsUpCvTexts = extractTextsFromRemoteViews(notification.headsUpContentView)
+        val allViewTexts = (cvTexts + bigCvTexts + headsUpCvTexts).distinct()
+
         val parsed = com.devdooly.notificationedge.util.MessengerNotificationParser.parse(
             sbn = sbn,
             channelName = channelName,
-            tickerText = tickerText
+            tickerText = tickerText,
+            viewTexts = allViewTexts
         )
 
         // 내용이 없는 빈 알림은 무시
@@ -146,7 +155,7 @@ class NotificationListener : NotificationListenerService() {
 
         val finalTitle = if (formattedTitle.isNotBlank()) formattedTitle else appName
 
-        val extrasDump = dumpExtras(extras, sbn)
+        val extrasDump = dumpExtras(extras, sbn, channelObj, allViewTexts)
 
         val edgeNotification = EdgeNotification(
             key = sbn.key,
@@ -169,26 +178,77 @@ class NotificationListener : NotificationListenerService() {
         NotificationRepository.addOrUpdateNotification(edgeNotification)
     }
 
-    private fun dumpExtras(extras: Bundle, sbn: StatusBarNotification): String {
+    /**
+     * RemoteViews 내부 액션(ReflectionAction)을 분석하여 화면에 실제 렌더링된 텍스트 목록 추출
+     */
+    private fun extractTextsFromRemoteViews(rv: android.widget.RemoteViews?): List<String> {
+        if (rv == null) return emptyList()
+        val texts = mutableListOf<String>()
+        try {
+            val field = rv.javaClass.getDeclaredField("mActions")
+            field.isAccessible = true
+            val actions = field.get(rv) as? List<*> ?: return emptyList()
+            for (action in actions) {
+                if (action == null) continue
+                for (f in action.javaClass.declaredFields) {
+                    f.isAccessible = true
+                    val value = f.get(action)
+                    if (value is CharSequence && value.isNotBlank()) {
+                        val str = value.toString().trim()
+                        if (str.length >= 2 && !texts.contains(str)) {
+                            texts.add(str)
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        return texts
+    }
+
+    private fun dumpExtras(
+        extras: Bundle,
+        sbn: StatusBarNotification,
+        channel: android.app.NotificationChannel?,
+        viewTexts: List<String>
+    ): String {
         val sb = StringBuilder()
-        sb.append("=== [Notification Extras Debug Dump] ===\n")
+        sb.append("=== [Notification Full Debug Dump] ===\n")
         sb.append("Package: ").append(sbn.packageName).append("\n")
         sb.append("Key: ").append(sbn.key).append("\n")
         sb.append("Id: ").append(sbn.id).append("\n")
         sb.append("PostTime: ").append(sbn.postTime).append("\n")
         sb.append("Tag: ").append(sbn.tag).append("\n")
+        sb.append("GroupKey: ").append(sbn.groupKey).append("\n")
+        sb.append("Flags: ").append(sbn.notification.flags).append("\n")
+        if (sbn.notification.shortcutId != null) {
+            sb.append("ShortcutId: \"").append(sbn.notification.shortcutId).append("\"\n")
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             sb.append("ChannelId: ").append(sbn.notification.channelId).append("\n")
-            val ranking = Ranking()
-            if (currentRanking?.getRanking(sbn.key, ranking) == true) {
-                sb.append("ChannelName: ").append(ranking.channel?.name).append("\n")
+            if (channel != null) {
+                sb.append("ChannelName: \"").append(channel.name).append("\"\n")
+                sb.append("ChannelDesc: \"").append(channel.description).append("\"\n")
+                sb.append("ChannelGroup: \"").append(channel.group).append("\"\n")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    sb.append("ChannelParent: \"").append(channel.parentChannelId).append("\"\n")
+                    sb.append("ChannelConversationId: \"").append(channel.conversationId).append("\"\n")
+                }
             }
         }
         if (sbn.notification.tickerText != null) {
             sb.append("TickerText: \"").append(sbn.notification.tickerText).append("\"\n")
         }
-        sb.append("--- Extras Keys & Values ---\n")
 
+        if (viewTexts.isNotEmpty()) {
+            sb.append("--- RemoteViews Rendered Texts ---\n")
+            viewTexts.forEachIndexed { i, txt ->
+                sb.append("• ViewText[").append(i).append("]: \"").append(txt).append("\"\n")
+            }
+        }
+
+        sb.append("--- Extras Keys & Values ---\n")
         for (key in extras.keySet()) {
             val value = extras.get(key)
             when (value) {

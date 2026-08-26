@@ -221,6 +221,35 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk group chat with viewTexts from RemoteViews should extract 11단톡 properly even when channel is generic`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "김동관")
+            putCharSequence("text", "속도 3, 4 정도로 걸음 유리는")
+            putLong("time", 1787719594782L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김동관",
+            text = "속도 3, 4 정도로 걸음 유리는",
+            isGroupConversation = true,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "알림 받지 않는 메시지",
+            viewTexts = listOf("11단톡", "김동관", "속도 3, 4 정도로 걸음 유리는")
+        )
+
+        assertTrue(result.isGroupChat)
+        assertEquals("11단톡", result.roomTitle) // RemoteViews 렌더링 텍스트에서 11단톡 완벽 추출
+        assertEquals("김동관", result.currentSender)
+        assertEquals("속도 3, 4 정도로 걸음 유리는", result.cleanText)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",
