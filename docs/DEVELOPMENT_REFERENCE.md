@@ -177,11 +177,16 @@ graph TD
   - `transparentStatusBar == true`일 때는 `window.statusBarColor`를 `Color.TRANSPARENT`로 명확하게 설정하도록 개선.
   - `EdgePanelActivity.kt`에서 `transparentStatusBar = true`를 전달하여 상단 상태표시줄의 100% 완전 투명도 완벽 보장.
 
-### 20) 시스템 테마(다크/라이트) 연동 상태표시줄/네비바 텍스트 및 아이콘 색상 원본 유지 (`v1.4.15`)
-* **문제**: 상태바는 투명해졌으나, 상태바 글씨(시간, 배터리)와 네비바 아이콘이 흰색으로 강제되어 라이트 모드 기기에서 글씨 색상이 바뀌던 현상.
-* **해결**:
-  - `EdgePanelActivity.kt`에서 `resources.configuration.uiMode`를 실시간 감지하여 시스템이 라이트 모드일 때는 `SystemBarStyle.light` 및 `isAppearanceLightStatusBars = true` (검정 글씨), 다크 모드일 때는 `SystemBarStyle.dark` 및 `isAppearanceLightStatusBars = false` (흰색 글씨)로 완벽하게 동기화.
-  - `Theme.kt`의 `transparentStatusBar` 모드에서 `isAppearanceLightStatusBars`를 덮어쓰지 않도록 격리하여 원래 사용자의 스마트폰 상태바 글씨 색상이 100% 그대로 유지되도록 해결.
+### 21) 공식 안정판 정식 릴리즈 및 버전 체계 리셋 (`v1.0.0`, Build 100)
+* **내용**:
+  - 단체방 자동 감지 & 참여자 목록 합성, 단체방 발신자 라벨 100% 보장, 가상키보드 전폭 플로팅 답장 바, 일반 단일 알림 완벽 분리, 상단 상태표시줄 100% 완전 투명화 및 시스템 테마 연동 등 모든 핵심 기능이 완성되어 **공식 안정판 `v1.0.0` (Build 100)**으로 리셋 및 배포.
+  - **Git 2-Track 브랜치 전략 도입**:
+    - `main` 브랜치: 검증된 공식 정식 릴리즈 배포용 (`v1.0.0`, `v1.1.0`)
+    - `develop` 브랜치: 일상 개발, 기능 추가 및 테스트용
+  - **Semantic Versioning 규격 준수**:
+    - Patch (`1.0.X`): 버그 수정 및 미세 튜닝
+    - Minor (`1.X.0`): 신규 주요 기능 추가
+    - Major (`X.0.0`): 전면적인 아키텍처 및 대규모 UI 리뉴얼
 
 ---
 
@@ -191,9 +196,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.7`)
-   - `AppUpdateCard(currentVersionName = "1.3.7")`
-   - `AppInfoCard` (예: `버전 1.3.7 (Build 37) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.0`)
+   - `AppUpdateCard(currentVersionName = "1.0.0")`
+   - `AppInfoCard` (예: `버전 1.0.0 (Build 100) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
