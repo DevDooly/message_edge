@@ -81,7 +81,20 @@ class NotificationListener : NotificationListenerService() {
                 extras.containsKey("android.mediaSession")
         if (isMediaTransport) return
 
-        val parsed = com.devdooly.notificationedge.util.MessengerNotificationParser.parse(sbn)
+        // NotificationChannel 및 Ticker 정보 추출 (카카오톡 단체방 제목 등 조회용)
+        val channelName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val ranking = Ranking()
+            if (currentRanking?.getRanking(sbn.key, ranking) == true) {
+                ranking.channel?.name?.toString()?.trim()
+            } else null
+        } else null
+        val tickerText = notification.tickerText?.toString()?.trim()
+
+        val parsed = com.devdooly.notificationedge.util.MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = channelName,
+            tickerText = tickerText
+        )
 
         // 내용이 없는 빈 알림은 무시
         if (parsed.roomTitle.isBlank() && parsed.cleanText.isBlank() && parsed.messages.isEmpty()) return
@@ -164,6 +177,16 @@ class NotificationListener : NotificationListenerService() {
         sb.append("Id: ").append(sbn.id).append("\n")
         sb.append("PostTime: ").append(sbn.postTime).append("\n")
         sb.append("Tag: ").append(sbn.tag).append("\n")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            sb.append("ChannelId: ").append(sbn.notification.channelId).append("\n")
+            val ranking = Ranking()
+            if (currentRanking?.getRanking(sbn.key, ranking) == true) {
+                sb.append("ChannelName: ").append(ranking.channel?.name).append("\n")
+            }
+        }
+        if (sbn.notification.tickerText != null) {
+            sb.append("TickerText: \"").append(sbn.notification.tickerText).append("\"\n")
+        }
         sb.append("--- Extras Keys & Values ---\n")
 
         for (key in extras.keySet()) {

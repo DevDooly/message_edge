@@ -203,6 +203,14 @@ graph TD
   - `AppUpdateManager.kt`: `cleanCurrent != cleanLatest`일 때 항상 업데이트 대상으로 판별하여 버전 체계 리셋이나 변경 시에도 유연하게 최신 릴리즈를 적용할 수 있도록 개선.
   - `SettingsScreen.kt`: 최신 버전 상태(`UpToDate`) 화면에서도 **`[최신 APK 직접 재설치]`** 버튼을 상시 제공하여 언제든 원하는 시점에 원클릭으로 최신 릴리즈 APK를 다운로드/설치할 수 있도록 보강.
 
+### 24) NotificationChannel 및 Ticker 연동 카카오톡 단체방 이름("11단톡") 완벽 추출 (`v1.0.3`, Build 103)
+* **문제**:
+  - 카카오톡 단체방(예: "11단톡") 알림 수신 시 `android.conversationTitle` 및 `subText`가 비어있고 메시지가 1개만 도착한 경우, One UI 시스템 상태표시줄에는 "11단톡"이 표시되지만 앱에서는 발신자 1명의 이름("김동관")만 방 제목으로 표시되던 현상.
+* **해결**:
+  - `NotificationListener.kt`: `Ranking.channel.name` 및 `notification.tickerText`를 실시간 추출하여 파서에 전달.
+  - `MessengerNotificationParser.kt`: 안드로이드 `NotificationChannel`에 등록된 실제 채팅방 이름(예: "11단톡") 및 티커 텍스트 패턴을 분석하여 단체방 제목으로 최우선 매핑.
+  - `MessengerNotificationParserTest.kt`에 11단톡 실제 카카오톡 덤프 기반 회귀 테스트 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -211,9 +219,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.2`)
-   - `AppUpdateCard(currentVersionName = "1.0.2")`
-   - `AppInfoCard` (예: `버전 1.0.2 (Build 102) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.3`)
+   - `AppUpdateCard(currentVersionName = "1.0.3")`
+   - `AppInfoCard` (예: `버전 1.0.3 (Build 103) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

@@ -162,6 +162,37 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk group chat with channelName should extract group room title and sender properly`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "김동관")
+            putCharSequence("text", "속도 3, 4 정도로 걸음 유리는")
+            putLong("time", 1787719594782L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "김동관",
+            text = "속도 3, 4 정도로 걸음 유리는",
+            isGroupConversation = true,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "11단톡"
+        )
+
+        assertTrue(result.isGroupChat)
+        assertEquals("11단톡", result.roomTitle)
+        assertEquals("김동관", result.currentSender)
+        assertEquals("속도 3, 4 정도로 걸음 유리는", result.cleanText)
+        assertEquals(1, result.messages.size)
+        assertEquals("김동관", result.messages[0].sender)
+        assertFalse(result.messages[0].isFromUser)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",

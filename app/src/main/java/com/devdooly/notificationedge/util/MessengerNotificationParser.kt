@@ -23,7 +23,11 @@ object MessengerNotificationParser {
     /**
      * StatusBarNotification의 extras를 분석하여 앱별 맞춤 단체방/발신자/메시지 데이터 추출
      */
-    fun parse(sbn: StatusBarNotification): ParsedNotificationData {
+    fun parse(
+        sbn: StatusBarNotification,
+        channelName: String? = null,
+        tickerText: String? = null
+    ): ParsedNotificationData {
         val packageName = sbn.packageName
         val notification = sbn.notification ?: return fallback(sbn)
         val extras = notification.extras ?: return fallback(sbn)
@@ -74,6 +78,8 @@ object MessengerNotificationParser {
                 isGroupConversation = isGroupConversation,
                 hasIsGroupKey = hasIsGroupKey,
                 selfDisplayName = selfDisplayName,
+                channelName = channelName,
+                tickerText = tickerText,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -91,6 +97,8 @@ object MessengerNotificationParser {
                 isGroupConversation = isGroupConversation,
                 hasIsGroupKey = hasIsGroupKey,
                 selfDisplayName = selfDisplayName,
+                channelName = channelName,
+                tickerText = tickerText,
                 extras = extras,
                 postTime = sbn.postTime
             )
@@ -128,7 +136,7 @@ object MessengerNotificationParser {
     }
 
     /**
-     * 카카오톡 전용 정밀 파서 (실제 Notification Extras 덤프 기반)
+     * 카카오톡 전용 정밀 파서 (NotificationChannel / Ticker / Extras 덤프 기반)
      */
     private fun parseKakaoTalk(
         rawTitle: String,
@@ -139,6 +147,8 @@ object MessengerNotificationParser {
         isGroupConversation: Boolean,
         hasIsGroupKey: Boolean,
         selfDisplayName: String,
+        channelName: String?,
+        tickerText: String?,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -146,22 +156,35 @@ object MessengerNotificationParser {
         var senderName: String = rawTitle
         var messageBody: String = rawText
 
-        // A) subText가 존재하는 경우 -> 카카오톡은 명명된 단체방일 때 subText에 방 이름을 넣음
-        if (!subText.isNullOrBlank() && subText != rawTitle) {
-            groupName = subText
-            senderName = rawTitle
-        }
-        // B) conversationTitle이 존재하는 경우
-        else if (!conversationTitle.isNullOrBlank()) {
+        // A) conversationTitle이 존재하는 경우
+        if (!conversationTitle.isNullOrBlank()) {
             groupName = conversationTitle
             senderName = if (rawTitle.isNotBlank() && rawTitle != conversationTitle) rawTitle else "상대방"
         }
-        // C) summaryText가 존재하는 경우
+        // B) subText가 존재하는 경우 -> 카카오톡은 명명된 단체방일 때 subText에 방 이름을 넣음
+        else if (!subText.isNullOrBlank() && subText != rawTitle) {
+            groupName = subText
+            senderName = rawTitle
+        }
+        // C) NotificationChannel 이름이 유효한 채팅방 이름인 경우 (예: "11단톡")
+        else if (!isInvalidChannelName(channelName) && channelName != rawTitle) {
+            groupName = channelName
+            senderName = rawTitle
+        }
+        // D) TickerText에서 단체방 이름 추출 (예: "[11단톡] 김동관: ...")
+        else if (!tickerText.isNullOrBlank()) {
+            val tickerGroup = extractGroupNameFromTicker(tickerText, rawTitle)
+            if (tickerGroup != null) {
+                groupName = tickerGroup
+                senderName = rawTitle
+            }
+        }
+        // E) summaryText가 존재하는 경우
         else if (!summaryText.isNullOrBlank() && summaryText != rawTitle) {
             groupName = summaryText
             senderName = rawTitle
         }
-        // D) rawTitle에 괄호로 단체방 또는 발신자가 묶여있는 경우 (예: "홍길동 (가족방)" 또는 "가족방 (5)")
+        // F) rawTitle에 괄호로 단체방 또는 발신자가 묶여있는 경우 (예: "홍길동 (가족방)" 또는 "가족방 (5)")
         else if (rawTitle.contains("(") && rawTitle.contains(")")) {
             val parenMatch = Regex("""^(.*?)\s*\((.*?)\)$""").find(rawTitle)
             if (parenMatch != null) {
@@ -176,13 +199,13 @@ object MessengerNotificationParser {
                 }
             }
         }
-        // E) rawText 본문 안에 "[단체방이름] 발신자: 내용" 패턴이 있는 경우
+        // G) rawText 본문 안에 "[단체방이름] 발신자: 내용" 패턴이 있는 경우
         if (groupName == null) {
             val bracketMatch = Regex("""^\[([^\]\n]{2,30})\]\s*(.*)$""", RegexOption.DOT_MATCHES_ALL).find(rawText)
             if (bracketMatch != null) {
                 val candidateGroup = bracketMatch.groupValues[1].trim()
                 val rest = bracketMatch.groupValues[2].trim()
-                if (candidateGroup != "Web발신" && candidateGroup != "알림") {
+                if (!isInvalidChannelName(candidateGroup) && candidateGroup != "Web발신" && candidateGroup != "알림") {
                     groupName = candidateGroup
                     messageBody = rest
                 }
@@ -198,7 +221,7 @@ object MessengerNotificationParser {
             .filter { it.isNotBlank() }
             .distinct()
 
-        // F) 카카오톡 단체방 판별
+        // H) 카카오톡 단체방 판별
         val isGroup = if (hasIsGroupKey) {
             isGroupConversation || groupName != null || otherSenders.size >= 2
         } else {
@@ -270,6 +293,8 @@ object MessengerNotificationParser {
         isGroupConversation: Boolean,
         hasIsGroupKey: Boolean,
         selfDisplayName: String,
+        channelName: String?,
+        tickerText: String?,
         extras: Bundle,
         postTime: Long
     ): ParsedNotificationData {
@@ -290,9 +315,10 @@ object MessengerNotificationParser {
         }
 
         // 2. 타이틀 정제 (인스타그램 1:1 대화의 "계정명: 상대방" 패턴 정제)
-        var parsedRoomTitle = when {
+        var parsedRoomTitle: String = when {
             isGroup && !conversationTitle.isNullOrBlank() -> conversationTitle
             isGroup && !subText.isNullOrBlank() && subText != rawTitle -> subText
+            isGroup && !isInvalidChannelName(channelName) && channelName != rawTitle -> channelName ?: rawTitle
             else -> rawTitle
         }
 
@@ -309,14 +335,15 @@ object MessengerNotificationParser {
             groupName = when {
                 !conversationTitle.isNullOrBlank() -> conversationTitle
                 !subText.isNullOrBlank() && subText != rawTitle -> subText
+                !isInvalidChannelName(channelName) && channelName != rawTitle -> channelName
                 otherSenders.isNotEmpty() -> buildGroupRoomTitleFromSenders(otherSenders, rawTitle)
                 else -> null
             }
         }
 
-        val finalRoomTitle = groupName ?: parsedRoomTitle
+        val finalRoomTitle: String = (groupName ?: parsedRoomTitle).ifBlank { rawTitle }
         val latestMsg = messagesList.lastOrNull { !it.isFromUser } ?: messagesList.lastOrNull()
-        val cleanSender = latestMsg?.sender?.ifBlank { finalRoomTitle } ?: finalRoomTitle
+        val cleanSender: String = latestMsg?.sender?.ifBlank { finalRoomTitle } ?: finalRoomTitle
 
         val cleanedText = NotificationTextCleaner.cleanMessageText(
             text = latestMsg?.text ?: rawText,
@@ -415,6 +442,47 @@ object MessengerNotificationParser {
             }
         }
         return list
+    }
+
+    private fun isInvalidChannelName(channelName: String?): Boolean {
+        if (channelName.isNullOrBlank()) return true
+        val lower = channelName.lowercase().trim()
+        return lower == "카카오톡" ||
+                lower == "kakaotalk" ||
+                lower == "kakao" ||
+                lower == "알림" ||
+                lower == "notification" ||
+                lower == "notifications" ||
+                lower == "일반" ||
+                lower == "기타" ||
+                lower == "기본" ||
+                lower == "default" ||
+                lower == "미분류" ||
+                lower == "채널" ||
+                lower == "메시지" ||
+                lower == "message" ||
+                lower == "messages"
+    }
+
+    private fun extractGroupNameFromTicker(tickerText: String?, rawTitle: String): String? {
+        if (tickerText.isNullOrBlank()) return null
+        // 1. [단체방이름] 발신자: 내용
+        val bracketMatch = Regex("""^\[([^\]\n]{2,30})\]""").find(tickerText)
+        if (bracketMatch != null) {
+            val candidate = bracketMatch.groupValues[1].trim()
+            if (!isInvalidChannelName(candidate) && candidate != rawTitle) {
+                return candidate
+            }
+        }
+        // 2. 단체방이름: 발신자: 내용
+        val parts = tickerText.split(":")
+        if (parts.size >= 3) {
+            val candidate = parts[0].trim()
+            if (!isInvalidChannelName(candidate) && candidate != rawTitle) {
+                return candidate
+            }
+        }
+        return null
     }
 
     private fun fallback(sbn: StatusBarNotification): ParsedNotificationData {
