@@ -236,6 +236,13 @@ graph TD
   - `MessengerNotificationParser.kt`: `shortcutLabel`을 1순위 단체방 이름으로 지정하여 수신 메시지 개수나 발신자 수와 무관하게 원래의 단체방 이름("11단톡")을 완벽 복원.
   - `MessengerNotificationParserTest.kt`에 3건의 실전 카톡 덤프 기반 바로가기 라벨 추출 테스트 케이스 추가 완료.
 
+### 28) 카카오톡 1:1 개인 대화방 `isGroupConversation = false` 엄격 준수 및 오인 방지 (`v1.0.7`, Build 107)
+* **문제**:
+  - 카카오톡 1:1 대화방(예: "용선정")에서 `android.isGroupConversation == false`임에도 내부 `groupName` 변수가 존재할 경우 단체방으로 오인되어 단체방 뱃지가 붙거나 발신자가 중복 표기되던 현상.
+* **해결**:
+  - `MessengerNotificationParser.kt`: `hasIsGroupKey == true`일 때 안드로이드 OS가 명시한 `isGroupConversation` 플래그를 100% 최우선 신뢰하여 `isGroup = false` 및 `groupName = null`로 엄격 처리.
+  - `MessengerNotificationParserTest.kt`에 1:1 카카오톡 실전 덤프 회귀 테스트 케이스 추가 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -244,9 +251,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.0.6`)
-   - `AppUpdateCard(currentVersionName = "1.0.6")`
-   - `AppInfoCard` (예: `버전 1.0.6 (Build 106) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.0.7`)
+   - `AppUpdateCard(currentVersionName = "1.0.7")`
+   - `AppInfoCard` (예: `버전 1.0.7 (Build 107) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

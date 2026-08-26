@@ -272,11 +272,16 @@ object MessengerNotificationParser {
             .filter { it.isNotBlank() }
             .distinct()
 
-        // H) 카카오톡 단체방 판별
+        // H) 카카오톡 단체방 판별 (안드로이드 OS 명시 플래그 최우선 적용)
         val isGroup = if (hasIsGroupKey) {
-            isGroupConversation || groupName != null || otherSenders.size >= 2
+            isGroupConversation
         } else {
-            isGroupConversation || groupName != null || otherSenders.size >= 2 || rawTitle.contains(",")
+            otherSenders.size >= 2 || rawTitle.contains(",") || (groupName != null && groupName != rawTitle)
+        }
+
+        // 1:1 개인 대화방인 경우 단체방 이름 무효화
+        if (!isGroup) {
+            groupName = null
         }
 
         // 명시적 단체방 이름이 없을 때 참여자 목록으로 방 이름 자동 합성

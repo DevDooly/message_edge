@@ -293,6 +293,46 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `kakao talk 1-to-1 chat dump with isGroupConversation false should remain direct chat`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "용선정")
+            putCharSequence("text", "뭐 시술 시간에 따라 다르것지 뭐")
+            putLong("time", 1787722179037L)
+        }
+        val msg1 = Bundle().apply {
+            putCharSequence("sender", "용선정")
+            putCharSequence("text", "나름 수술이라 뭐 아무것도 못먹을 건디")
+            putLong("time", 1787722186772L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("sender", "용선정")
+            putCharSequence("text", "걍 강제 금식이여??")
+            putLong("time", 1787722191754L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.kakao.talk",
+            title = "용선정",
+            text = "걍 강제 금식이여??",
+            isGroupConversation = false, // 1:1 개인 대화방
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0, msg1, msg2)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "알림 받지 않는 메시지",
+            shortcutLabel = "용선정"
+        )
+
+        assertFalse(result.isGroupChat) // 1:1 대화방이므로 false여야 함!
+        assertEquals("용선정", result.roomTitle)
+        assertEquals("용선정", result.currentSender)
+        assertEquals("걍 강제 금식이여??", result.cleanText)
+        assertEquals(3, result.messages.size)
+    }
+
+    @Test
     fun `kakao talk group chat with subText should extract room title and sender properly`() {
         val sbn = createMockSbn(
             packageName = "com.kakao.talk",
