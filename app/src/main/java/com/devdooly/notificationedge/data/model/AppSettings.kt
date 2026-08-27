@@ -22,5 +22,6 @@ data class AppSettings(
     val edgeLightingCornerRadiusDp: Int = 32,
     val selectedFont: String = "default",
     val hapticFeedbackEnabled: Boolean = true,
+    val pauseMediaOnOpen: Boolean = true,
     val excludedPackages: Set<String> = emptySet()
 )

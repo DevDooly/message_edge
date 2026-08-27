@@ -41,6 +41,7 @@ class SettingsRepository(private val context: Context) {
         val EDGE_LIGHTING_CORNER_RADIUS_DP = intPreferencesKey("edge_lighting_corner_radius_dp")
         val SELECTED_FONT = stringPreferencesKey("selected_font")
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
+        val PAUSE_MEDIA_ON_OPEN = booleanPreferencesKey("pause_media_on_open")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
     }
 
@@ -63,6 +64,7 @@ class SettingsRepository(private val context: Context) {
             edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
             selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: "default",
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
+            pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: true,
             excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet()
         )
     }
@@ -140,6 +142,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updateHapticEnabled(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.HAPTIC_ENABLED] = enabled }
+    }
+
+    suspend fun updatePauseMediaOnOpen(enabled: Boolean) {
+        context.dataStore.edit { it[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] = enabled }
     }
 
     suspend fun setPackageExcluded(packageName: String, excluded: Boolean) {

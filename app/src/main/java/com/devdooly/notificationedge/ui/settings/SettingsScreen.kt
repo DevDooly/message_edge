@@ -84,7 +84,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.4",
+                                text = "v1.2.5",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -216,22 +216,40 @@ fun SettingsScreen() {
                 colors = CardDefaults.cardColors(containerColor = DarkSurface),
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text("햅틱 진동 피드백", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-                        Text("핸들 터치 및 알림 시 진동", color = Color.Gray, fontSize = 12.sp)
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("패널 열릴 때 미디어 일시 정지", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                            Text("유튜브/음악 재생 중 엣지를 열면 자동으로 일시 정지 (PiP 방해 방지)", color = Color.Gray, fontSize = 12.sp)
+                        }
+                        Switch(
+                            checked = settings.pauseMediaOnOpen,
+                            onCheckedChange = { scope.launch { settingsRepo.updatePauseMediaOnOpen(it) } },
+                            colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                        )
                     }
-                    Switch(
-                        checked = settings.hapticFeedbackEnabled,
-                        onCheckedChange = { scope.launch { settingsRepo.updateHapticEnabled(it) } },
-                        colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
-                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("햅틱 진동 피드백", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                            Text("핸들 터치 및 알림 시 진동", color = Color.Gray, fontSize = 12.sp)
+                        }
+                        Switch(
+                            checked = settings.hapticFeedbackEnabled,
+                            onCheckedChange = { scope.launch { settingsRepo.updateHapticEnabled(it) } },
+                            colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                        )
+                    }
                 }
             }
 
@@ -239,7 +257,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.4")
+            AppUpdateCard(currentVersionName = "1.2.5")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -387,7 +405,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.4 (Build 124) | Target Android 14",
+                text = "버전 1.2.5 (Build 125) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium

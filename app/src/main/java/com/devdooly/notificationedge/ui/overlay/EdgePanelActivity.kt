@@ -12,10 +12,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.settings.SettingsActivity
 import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
+import com.devdooly.notificationedge.util.MediaControlHelper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /**
  * 안드로이드 시스템 네비게이션 뒤로가기(하단 네비바 버튼, 양쪽 화면 제스처)를
@@ -54,6 +58,14 @@ class EdgePanelActivity : ComponentActivity() {
         })
 
         val settingsRepo = SettingsRepository(applicationContext)
+
+        // 패널 오픈 시 활성 미디어(유튜브/음악 등) 일시 정지 트리거
+        lifecycleScope.launch {
+            val settings = settingsRepo.settingsFlow.first()
+            if (settings.pauseMediaOnOpen) {
+                MediaControlHelper.pauseActiveMedia(this@EdgePanelActivity)
+            }
+        }
 
         setContent {
             val settings by settingsRepo.settingsFlow.collectAsState(initial = AppSettings())

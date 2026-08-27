@@ -297,6 +297,14 @@ graph TD
   - `NotificationListener.kt`: `(notification.flags and Notification.FLAG_GROUP_SUMMARY) != 0` 알림을 필터링하여 상태바 그룹 요약 알림의 중복 등록을 원천 차단.
   - `NotificationTextCleaner.kt`: 콜론/대시 접두어 정규식에서 하이픈(`-`)이 단어 내부(`sign-in`)에 있을 때는 분리하지 않고 공백으로 둘러싸인 구분자(`\s+-\s+`)일 때만 처리하도록 안전화.
 
+### 37) 엣지 패널 열릴 때 미디어(유튜브/음악 등) 자동 일시 정지(Pause) (`v1.2.5`, Build 125)
+* **요구사항**:
+  - 유튜브 시청 중 엣지 알림 패널을 열었을 때 유튜브가 PiP로 전환되면서 영상과 소리가 계속 재생되어 화면을 가리거나 방해되는 현상 개선.
+* **해결**:
+  - `MediaControlHelper.kt`: `MediaSessionManager.getActiveSessions()`를 통한 활성 미디어 세션 Pause, `AudioManager.requestAudioFocus(AUDIOFOCUS_GAIN_TRANSIENT)` 오디오 포커스 일시 요청, `KeyEvent(KEYCODE_MEDIA_PAUSE)` 전송을 복합 실행하여 유튜브/음악을 즉시 일시 정지시킴.
+  - `EdgePanelActivity.kt`: 패널 오픈 시 `settings.pauseMediaOnOpen == true`이면 자동으로 미디어 일시 정지 실행.
+  - `SettingsScreen.kt`: "패널 열릴 때 미디어 일시 정지" ON/OFF 설정 스위치 추가 (기본값: ON).
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -305,9 +313,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.4`)
-   - `AppUpdateCard(currentVersionName = "1.2.4")`
-   - `AppInfoCard` (예: `버전 1.2.4 (Build 124) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.5`)
+   - `AppUpdateCard(currentVersionName = "1.2.5")`
+   - `AppInfoCard` (예: `버전 1.2.5 (Build 125) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
