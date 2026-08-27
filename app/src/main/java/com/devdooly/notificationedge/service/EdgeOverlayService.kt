@@ -291,6 +291,9 @@ class EdgeOverlayService : Service() {
     }
 
     private fun openPanel() {
+        if (currentSettings.pauseMediaOnOpen) {
+            com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
+        }
         val intent = Intent(this, EdgePanelActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }

@@ -19,6 +19,7 @@ class OpenPanelActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         if (Settings.canDrawOverlays(this)) {
+            com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
             val panelIntent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }

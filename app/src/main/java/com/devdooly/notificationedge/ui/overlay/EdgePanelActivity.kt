@@ -59,11 +59,11 @@ class EdgePanelActivity : ComponentActivity() {
 
         val settingsRepo = SettingsRepository(applicationContext)
 
-        // 패널 오픈 시 활성 미디어(유튜브/음악 등) 일시 정지 트리거
+        // 패널 오픈 시 유튜브 재생 일시 정지 트리거 (유튜브 뮤직 제외)
         lifecycleScope.launch {
             val settings = settingsRepo.settingsFlow.first()
             if (settings.pauseMediaOnOpen) {
-                MediaControlHelper.pauseActiveMedia(this@EdgePanelActivity)
+                MediaControlHelper.pauseYouTubeOnly(this@EdgePanelActivity)
             }
         }
 
