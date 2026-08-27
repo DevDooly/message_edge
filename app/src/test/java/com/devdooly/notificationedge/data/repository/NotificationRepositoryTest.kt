@@ -98,4 +98,41 @@ class NotificationRepositoryTest {
         val list = NotificationRepository.notifications.value
         assertEquals(2, list.size)
     }
+
+    @Test
+    fun `instagram reply notification with self reply should merge into existing direct chat card without duplication`() {
+        val dm1 = EdgeNotification(
+            key = "ig_dm_1",
+            id = 301,
+            packageName = "com.instagram.android",
+            appName = "Instagram",
+            title = "Feathers Mcgraw",
+            text = "헉 변태다",
+            messages = listOf(
+                MessageItem(sender = "Feathers Mcgraw", text = "헉 변태다", timestamp = 1000L, isFromUser = false)
+            ),
+            timestamp = 1000L
+        )
+        NotificationRepository.addOrUpdateNotification(dm1)
+
+        val dmSelfReply = EdgeNotification(
+            key = "ig_dm_1",
+            id = 301,
+            packageName = "com.instagram.android",
+            appName = "Instagram",
+            title = "Feathers Mcgraw",
+            text = "아니 왜 시부래 답장하니까 두번 떠 버그발견",
+            messages = listOf(
+                MessageItem(sender = "Feathers Mcgraw", text = "헉 변태다", timestamp = 1000L, isFromUser = false),
+                MessageItem(sender = "나", text = "아니 왜 시부래 답장하니까 두번 떠 버그발견", timestamp = 2000L, isFromUser = true)
+            ),
+            timestamp = 2000L
+        )
+        NotificationRepository.addOrUpdateNotification(dmSelfReply)
+
+        val list = NotificationRepository.notifications.value
+        assertEquals(1, list.size)
+        assertEquals("Feathers Mcgraw", list[0].title)
+        assertEquals(2, list[0].messages.size)
+    }
 }

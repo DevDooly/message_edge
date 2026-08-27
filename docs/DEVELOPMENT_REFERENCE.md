@@ -346,6 +346,16 @@ graph TD
   - `EdgePanelActivity.kt`: 강제 `isAppearanceLightStatusBars` 오버라이드 코드를 전면 제거하고, `SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)`로 지정하여 기존 실행 화면의 상태바 및 네비게이션바 원본 색상과 명도를 100% 완벽하게 유지.
   - `Theme.kt`: `transparentStatusBar = true`인 경우 상태바 `SideEffect` 조작을 일절 수행하지 않도록 개선하여 투명 오버레이의 완전성을 보장.
 
+### 44) 인스타그램 등 메신저 답장 시 본인 답장 반사 알림 중복 등록 방지 (`v1.3.2`, Build 132)
+* **원인 및 문제**:
+  - 인스타그램에서 빠른 답장을 전송할 때, 인스타그램 앱이 자체 로컬 푸시(`push_category="reply_notification"`, `title="계정ID: 본인이름"`)를 띄움.
+  - `MessengerNotificationParser.kt`에서 `"계정ID: 본인이름"` 콜론 타이틀에서 본인 이름(`김선홍`)을 방 이름으로 오인 추출하여 기존 대화방과 분리된 중복 카드가 생성되고, 본인이 보낸 메시지인데도 새 알림 이벤트가 발동하여 엣지 라이팅 및 알림이 두 번 뜨던 문제.
+* **해결**:
+  - `NotificationListener.kt`: 인스타그램의 답장 완료 반사 알림(`push_category == "reply_notification"`)을 선별 필터링.
+  - `MessengerNotificationParser.kt`: 1:1 대화방 콜론 타이틀에서 `selfDisplayName`과 일치하는 토큰은 배제하고 상대방 계정 ID를 대화방 이름으로 정밀 추출.
+  - `NotificationRepository.kt`: 본인이 작성한 답장 메시지가 최신 메시지인 경우 새 알림 이벤트(라이팅/진동)를 방출하지 않고 기존 대화방에만 메시지를 안전하게 병합.
+  - 단위 테스트(`MessengerNotificationParserTest.kt`, `NotificationRepositoryTest.kt`)에 인스타그램 실제 덤프 기반 본인 답장 알림 병합 테스트 추가 및 검증 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -354,9 +364,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.1`)
-   - `AppUpdateCard(currentVersionName = "1.3.1")`
-   - `AppInfoCard` (예: `버전 1.3.1 (Build 131) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.2`)
+   - `AppUpdateCard(currentVersionName = "1.3.2")`
+   - `AppInfoCard` (예: `버전 1.3.2 (Build 132) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

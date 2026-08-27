@@ -124,6 +124,49 @@ class MessengerNotificationParserTest {
     }
 
     @Test
+    fun `instagram direct dump with self latest reply should resolve room title as other party and tag self message`() {
+        val msg0 = Bundle().apply {
+            putCharSequence("sender", "김선홍")
+            putCharSequence("text", "만든 앱으로 답장하긔")
+            putLong("time", 1787834960679L)
+        }
+        val msg1 = Bundle().apply {
+            putCharSequence("sender", "Feathers Mcgraw")
+            putCharSequence("text", "헉 변태다")
+            putLong("time", 1787834971362L)
+        }
+        val msg2 = Bundle().apply {
+            putCharSequence("sender", "김선홍")
+            putCharSequence("text", "아니 왜 시부래 답장하니까 두번 떠 버그발견")
+            putLong("time", 1787834987765L)
+        }
+
+        val sbn = createMockSbn(
+            packageName = "com.instagram.android",
+            title = "sunhong2910: 김선홍",
+            conversationTitle = "sunhong2910",
+            text = "아니 왜 시부래 답장하니까 두번 떠 버그발견",
+            isGroupConversation = false,
+            selfDisplayName = "김선홍",
+            messages = arrayOf(msg0, msg1, msg2)
+        )
+
+        val result = MessengerNotificationParser.parse(
+            sbn = sbn,
+            channelName = "메시지",
+            shortcutLabel = "Feathers Mcgraw"
+        )
+        assertFalse(result.isGroupChat)
+        assertEquals("sunhong2910", result.roomTitle)
+        assertEquals(3, result.messages.size)
+        assertTrue(result.messages[0].isFromUser)
+        assertFalse(result.messages[1].isFromUser)
+        assertEquals("Feathers Mcgraw", result.messages[1].sender)
+        assertTrue(result.messages[2].isFromUser)
+        assertEquals("나", result.messages[2].sender)
+    }
+
+    @Test
     fun `samsung messaging 1-to-1 message dump with self reply should remain direct chat and identify self messages`() {
         val msg0 = Bundle().apply {
             putCharSequence("sender", "전병종")

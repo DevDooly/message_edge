@@ -86,6 +86,10 @@ class NotificationListener : NotificationListenerService() {
                 extras.containsKey("android.mediaSession")
         if (isMediaTransport) return
 
+        // 4. 인스타그램 등 메신저의 본인 답장 완료 반사 알림(reply_notification) 필터링
+        val igPushCategory = extras.getCharSequence("com.instagram.android.igns.logging.push_category")?.toString()
+        if (igPushCategory == "reply_notification") return
+
         // NotificationChannel 및 Ranking 정보 추출 (카카오톡 단체방 제목 / ShortcutInfo 등 조회용)
         var channelObj: android.app.NotificationChannel? = null
         var rankingShortcutInfo: android.content.pm.ShortcutInfo? = null

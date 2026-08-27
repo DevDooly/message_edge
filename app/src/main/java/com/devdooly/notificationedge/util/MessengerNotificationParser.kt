@@ -381,10 +381,14 @@ object MessengerNotificationParser {
             else -> rawTitle
         }
 
+        // 1:1 대화에서 "내계정ID: 상대방이름" (인스타그램) 패턴 정제
+        // 단, 상대방이름 자리에 본인 이름(selfDisplayName)이 오는 경우(나에게 온 답장 알림)는 앞의 계정ID를 상대방으로 취함
         if (!isGroup && parsedRoomTitle.contains(":")) {
-            val parts = parsedRoomTitle.split(":")
-            val candidate = parts.lastOrNull()?.trim()
-            if (!candidate.isNullOrBlank()) {
+            val parts = parsedRoomTitle.split(":").map { it.trim() }.filter { it.isNotBlank() }
+            val candidate = parts.lastOrNull()
+            if (candidate != null && selfDisplayName.isNotBlank() && candidate.equals(selfDisplayName, ignoreCase = true)) {
+                parsedRoomTitle = parts.first()
+            } else if (!candidate.isNullOrBlank()) {
                 parsedRoomTitle = candidate
             }
         }

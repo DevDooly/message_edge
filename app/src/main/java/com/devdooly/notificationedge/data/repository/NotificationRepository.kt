@@ -37,7 +37,9 @@ object NotificationRepository {
         _notifications.update { list ->
             val existing = list.firstOrNull { 
                 it.key == notification.key || 
-                (it.packageName == notification.packageName && it.title == notification.title && notification.title.isNotBlank())
+                (it.packageName == notification.packageName && 
+                 (it.title == notification.title || (it.subText != null && it.subText == notification.subText)) && 
+                 notification.title.isNotBlank())
             }
 
             val mergedMessages = if (existing != null) {
@@ -80,12 +82,19 @@ object NotificationRepository {
 
             val filteredList = list.filterNot { 
                 it.key == notification.key || 
-                (it.packageName == notification.packageName && it.title == notification.title && notification.title.isNotBlank())
+                (it.packageName == notification.packageName && 
+                 (it.title == notification.title || (it.subText != null && it.subText == notification.subText)) && 
+                 notification.title.isNotBlank())
             }
 
             (listOf(updatedNotification) + filteredList).take(MAX_HISTORY_COUNT)
         }
-        _newNotificationEvent.tryEmit(notification)
+
+        // 본인이 보낸 답장 메시지 알림(반사 노티)인 경우 새 알림 이벤트(라이팅/진동)를 방출하지 않음
+        val isLatestFromUser = notification.messages.lastOrNull()?.isFromUser == true
+        if (!isLatestFromUser) {
+            _newNotificationEvent.tryEmit(notification)
+        }
     }
 
     /**
