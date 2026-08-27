@@ -339,6 +339,13 @@ graph TD
   - `[에이피알] 100주 구매`, `[카카오페이] 결제완료`, `[공지]`, `[인증번호]` 등 본문의 핵심 태그 정보는 100% 온전히 보존.
   - 단위 테스트(`NotificationTextCleanerTest.kt`)에 토스증권 및 대괄호 보존 테스트 케이스 추가 및 검증 완료.
 
+### 43) 실행 시점 원래 화면의 상단 상태바 / 하단 네비게이션 색상 100% 보존 (`v1.3.1`, Build 131)
+* **원인 및 문제**:
+  - `EdgePanelActivity.kt`에서 `enableEdgeToEdge` 및 `insetsController.isAppearanceLightStatusBars = !isSystemDark`를 강제로 호출하여, 패널을 열 때 실행 전 원래 화면(포그라운드 앱)의 상태바 아이콘 명도(Light/Dark)나 색상이 시스템 전역 다크모드 설정값으로 덮어씌워지던 문제.
+* **해결**:
+  - `EdgePanelActivity.kt`: 강제 `isAppearanceLightStatusBars` 오버라이드 코드를 전면 제거하고, `SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)`로 지정하여 기존 실행 화면의 상태바 및 네비게이션바 원본 색상과 명도를 100% 완벽하게 유지.
+  - `Theme.kt`: `transparentStatusBar = true`인 경우 상태바 `SideEffect` 조작을 일절 수행하지 않도록 개선하여 투명 오버레이의 완전성을 보장.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -347,9 +354,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.0`)
-   - `AppUpdateCard(currentVersionName = "1.3.0")`
-   - `AppInfoCard` (예: `버전 1.3.0 (Build 130) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.1`)
+   - `AppUpdateCard(currentVersionName = "1.3.1")`
+   - `AppInfoCard` (예: `버전 1.3.1 (Build 131) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
