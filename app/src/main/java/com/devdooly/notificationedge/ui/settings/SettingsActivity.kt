@@ -59,7 +59,7 @@ class SettingsActivity : ComponentActivity() {
         if (Settings.canDrawOverlays(this)) {
             lifecycleScope.launch {
                 val settings = settingsRepository.settingsFlow.first()
-                if (settings.isServiceEnabled) {
+                if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
                     val serviceIntent = Intent(this@SettingsActivity, EdgeOverlayService::class.java)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         startForegroundService(serviceIntent)

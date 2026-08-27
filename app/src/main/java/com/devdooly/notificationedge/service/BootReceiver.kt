@@ -22,7 +22,7 @@ class BootReceiver : BroadcastReceiver {
                 val repository = SettingsRepository(context)
                 CoroutineScope(Dispatchers.IO).launch {
                     val settings = repository.settingsFlow.first()
-                    if (settings.isServiceEnabled) {
+                    if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
                         val serviceIntent = Intent(context, EdgeOverlayService::class.java)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             context.startForegroundService(serviceIntent)

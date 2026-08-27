@@ -84,7 +84,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.2.6",
+                                text = "v1.2.7",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -109,13 +109,13 @@ fun SettingsScreen() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 마스터 토글
+            // 마스터 토글 (화면 가장자리 엣지 핸들)
             MasterSwitchCard(
                 enabled = settings.isServiceEnabled,
                 onCheckedChange = { enabled ->
                     scope.launch {
                         settingsRepo.updateServiceEnabled(enabled)
-                        if (enabled && hasOverlayPermission) {
+                        if ((enabled || settings.isEdgeLightingEnabled) && hasOverlayPermission) {
                             startOverlayService(context)
                         }
                     }
@@ -146,12 +146,7 @@ fun SettingsScreen() {
                             }
                             context.startActivity(intent)
                         } catch (e: Exception) {
-                            try {
-                                val fallbackIntent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
-                                context.startActivity(fallbackIntent)
-                            } catch (e2: Exception) {
-                                e2.printStackTrace()
-                            }
+                            e.printStackTrace()
                         }
                     }
                 }
@@ -169,7 +164,7 @@ fun SettingsScreen() {
                 }
             )
 
-            // 엣지 핸들 및 패널 설정
+            // 엣지 패널 및 핸들 외형 설정
             EdgeHandleSettingsCard(
                 settings = settings,
                 onSideChange = { scope.launch { settingsRepo.updateEdgeSide(it) } },
@@ -183,10 +178,17 @@ fun SettingsScreen() {
                 onVisibleToggle = { scope.launch { settingsRepo.updateHandleVisible(it) } }
             )
 
-            // 엣지 라이팅 설정
+            // 엣지 라이팅 설정 (핸들 제스처 활성화 여부와 무관하게 독립 작동)
             EdgeLightingSettingsCard(
                 settings = settings,
-                onLightingToggle = { scope.launch { settingsRepo.updateEdgeLightingEnabled(it) } },
+                onLightingToggle = { 
+                    scope.launch { 
+                        settingsRepo.updateEdgeLightingEnabled(it)
+                        if ((it || settings.isServiceEnabled) && hasOverlayPermission) {
+                            startOverlayService(context)
+                        }
+                    } 
+                },
                 onColorChange = { scope.launch { settingsRepo.updateEdgeLightingColor(it) } },
                 onCornerRadiusChange = { scope.launch { settingsRepo.updateEdgeLightingCornerRadiusDp(it) } },
                 onTestTrigger = {
@@ -257,7 +259,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.2.6")
+            AppUpdateCard(currentVersionName = "1.2.7")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -289,13 +291,13 @@ private fun MasterSwitchCard(
         ) {
             Column {
                 Text(
-                    text = "Notification Edge 서비스",
+                    text = "화면 가장자리 엣지 핸들",
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp
                 )
                 Text(
-                    text = if (enabled) "화면 가장자리에서 활성화됨" else "서비스 비활성화됨",
+                    text = if (enabled) "화면 가장자리 스와이프로 패널 열기 활성화" else "핸들 비활성화됨 (엣지 라이팅은 독립 작동)",
                     color = if (enabled) EdgeCyan else Color.Gray,
                     fontSize = 13.sp
                 )
@@ -405,7 +407,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.2.6 (Build 126) | Target Android 14",
+                text = "버전 1.2.7 (Build 127) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium

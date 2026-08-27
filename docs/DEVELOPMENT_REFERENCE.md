@@ -306,6 +306,15 @@ graph TD
   - `EdgeOverlayService.kt` / `OpenPanelActivity.kt` / `MainActivity.kt`: `startActivity(EdgePanelActivity)`를 호출하기 **직전(동기 실행 시점)**에 `MediaControlHelper.pauseYouTubeOnly(context)`를 호출하여, 유튜브가 포그라운드에 있는 상태에서 먼저 `PAUSED` 상태로 변경.
   - 결과: 유튜브가 이미 일시 정지된 상태에서 우리 액티비티가 포그라운드로 올라오므로 OS가 PiP 자동 진입(`setAutoEnterEnabled`)을 발동하지 않고 일반 백그라운드로 안전하게 전환됨. 유튜브 뮤직은 중단 없이 계속 재생 유지.
 
+### 39) 엣지 라이팅(Edge Lighting)과 엣지 핸들 제스처 서비스 독립 분리 아키텍처 (`v1.2.7`, Build 127)
+* **원인 및 문제**:
+  - 기존에는 마스터 스위치(`isServiceEnabled`)가 꺼지면 `EdgeOverlayService`가 중지되거나 `observeNewNotifications()`에서 `if (currentSettings.isServiceEnabled && currentSettings.isEdgeLightingEnabled)` 조건으로 인해 **엣지 라이팅까지 함께 꺼지는 종속성 문제** 발생.
+  - 사용자가 화면 가장자리 엣지 핸들 제스처는 끄고 엣지 라이팅(알림 수신 시 테두리 빛 효과)만 쓰고 싶어도 작동하지 않던 버그.
+* **해결**:
+  - `EdgeOverlayService.kt`: `observeNewNotifications()`에서 `isServiceEnabled` 종속성을 완전히 제거하여 `isEdgeLightingEnabled`만 켜져 있으면 알림 수신 시 테두리 라이팅(`showEdgeLighting()`)과 햅틱이 즉시 발동하도록 개선.
+  - `SettingsActivity.kt` / `BootReceiver.kt`: `settings.isServiceEnabled || settings.isEdgeLightingEnabled` 조건으로 서비스를 구동하여 둘 중 하나라도 켜져 있으면 서비스가 상시 유지되도록 보장.
+  - `SettingsScreen.kt`: 마스터 스위치 라벨을 "화면 가장자리 엣지 핸들"로 명확화하고, 핸들 토글 시 엣지 라이팅 상태를 보존하여 독립적으로 동작하도록 UI/로직 개선.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -314,9 +323,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.6`)
-   - `AppUpdateCard(currentVersionName = "1.2.6")`
-   - `AppInfoCard` (예: `버전 1.2.6 (Build 126) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.7`)
+   - `AppUpdateCard(currentVersionName = "1.2.7")`
+   - `AppInfoCard` (예: `버전 1.2.7 (Build 127) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

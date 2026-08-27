@@ -128,6 +128,11 @@ class EdgeOverlayService : Service() {
                 } else {
                     removeHandleView()
                 }
+
+                // 엣지 핸들과 엣지 라이팅이 둘 다 꺼진 경우에만 서비스 자체를 종료
+                if (!settings.isServiceEnabled && !settings.isEdgeLightingEnabled) {
+                    stopSelf()
+                }
             }
         }
     }
@@ -135,7 +140,8 @@ class EdgeOverlayService : Service() {
     private fun observeNewNotifications() {
         serviceScope.launch {
             NotificationRepository.newNotificationEvent.collect { notification ->
-                if (currentSettings.isServiceEnabled && currentSettings.isEdgeLightingEnabled) {
+                // 엣지 핸들(마스터 스위치) 활성화 여부와 무관하게, 엣지 라이팅 설정이 켜져 있으면 라이팅 발동
+                if (currentSettings.isEdgeLightingEnabled) {
                     if (!currentSettings.excludedPackages.contains(notification.packageName)) {
                         triggerHaptic()
                         showEdgeLighting()
