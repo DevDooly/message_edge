@@ -323,6 +323,14 @@ graph TD
   - `MainActivity` / `OpenPanelActivity`: `Theme.NoDisplay` 대신 깜빡임이 없는 완전 투명 테마 `Theme.NotificationEdge.TranslucentLauncher` 적용.
   - `SettingsActivity.kt`: 코루틴 지연 렌더링을 제거하고 `onCreate`에서 즉시 동기식 `setContent` 렌더링으로 프레임 딜레이 및 잔상 원천 차단.
 
+### 41) OS 전체화면 윈도우 확대/축소 잔상 차단 및 순정 사이드 슬라이드 애니메이션 적용 (`v1.2.9`, Build 129)
+* **원인 및 문제**:
+  - 안드로이드 OS가 액티비티 실행 시 기본으로 적용하는 전체화면 윈도우 줌인/확대 트랜지션 애니메이션으로 인해, 패널이 뜰 때 "화면 전체 크기로 확대되었다가 280dp 사이드 패널 크기로 줄어드는 듯한 잔상" 발생.
+* **해결**:
+  - `themes.xml`: `@style/Animation.NoAnimation` 스타일을 정의하고 투명 패널/런처 테마의 `windowAnimationStyle`에 적용하여 OS 레벨 전체화면 확대/축소 애니메이션을 0%로 완벽 억제.
+  - `EdgePanelContent.kt`: Compose의 `AnimatedVisibility` (`slideInHorizontally` + `fadeIn` / `slideOutHorizontally` + `fadeOut`)를 적용하여 삼성 One UI 순정 엣지 패널처럼 사이드(왼쪽/오른쪽) 가장자리에서 부드럽게 스르륵 나타나고 닫히는 네이티브 제스처 트랜지션 구현.
+  - `ActivityUtils.kt`: Android 14+ 최신 API에서도 `overrideActivityTransition` 및 `overridePendingTransition(0, 0)` 이중 호출로 창 전환 깜빡임 완전 방어.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -331,9 +339,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.8`)
-   - `AppUpdateCard(currentVersionName = "1.2.8")`
-   - `AppInfoCard` (예: `버전 1.2.8 (Build 128) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.9`)
+   - `AppUpdateCard(currentVersionName = "1.2.9")`
+   - `AppInfoCard` (예: `버전 1.2.9 (Build 129) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

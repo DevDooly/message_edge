@@ -13,11 +13,14 @@ object ActivityUtils {
      */
     fun overridePendingTransitionNoAnim(activity: Activity) {
         if (Build.VERSION.SDK_INT >= 34) {
-            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
-            activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
-        } else {
-            @Suppress("DEPRECATION")
-            activity.overridePendingTransition(0, 0)
+            try {
+                activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
+                activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
+        @Suppress("DEPRECATION")
+        activity.overridePendingTransition(0, 0)
     }
 }

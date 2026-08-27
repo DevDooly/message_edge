@@ -3,6 +3,14 @@ package com.devdooly.notificationedge.ui.overlay
 import android.content.Context
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -81,6 +89,26 @@ fun EdgePanelContent(
     val coroutineScope = rememberCoroutineScope()
     var dragOffsetX by remember { mutableFloatStateOf(0f) }
 
+    // 사이드 슬라이드 애니메이션 제어
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    val handleClose: () -> Unit = {
+        if (isVisible) {
+            focusManager.clearFocus(force = true)
+            keyboardController?.hide()
+            isVisible = false
+            coroutineScope.launch {
+                delay(150)
+                onClose()
+            }
+        } else {
+            onClose()
+        }
+    }
+
     // 현재 답장 입력창이 열려있는 알림의 Key 및 입력 텍스트
     var activeReplyKey by remember { mutableStateOf<String?>(null) }
     var replyText by remember { mutableStateOf("") }
@@ -116,8 +144,8 @@ fun EdgePanelContent(
             keyboardController?.hide()
             activeReplyKey = null
         } else {
-            // 2단계: 기본 상태에서는 엣지 패널 전체 닫기
-            onClose()
+            // 2단계: 기본 상태에서는 엣지 패널 슬라이드 닫기
+            handleClose()
         }
     }
 
@@ -143,7 +171,7 @@ fun EdgePanelContent(
                         keyboardController?.hide()
                         activeReplyKey = null
                     } else {
-                        onClose()
+                        handleClose()
                     }
                     true
                 } else false
@@ -155,16 +183,12 @@ fun EdgePanelContent(
                     onHorizontalDrag = { _, dragAmount ->
                         dragOffsetX += dragAmount
                         if (dragOffsetX < -40f || dragOffsetX > 40f) {
-                            focusManager.clearFocus(force = true)
-                            keyboardController?.hide()
-                            onClose()
+                            handleClose()
                         }
                     },
                     onDragEnd = {
                         if (kotlin.math.abs(dragOffsetX) > 30f) {
-                            focusManager.clearFocus(force = true)
-                            keyboardController?.hide()
-                            onClose()
+                            handleClose()
                         }
                         dragOffsetX = 0f
                     }
@@ -174,60 +198,69 @@ fun EdgePanelContent(
                 interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    focusManager.clearFocus(force = true)
-                    keyboardController?.hide()
-                    onClose()
+                    handleClose()
                 }
             )
     ) {
         // 사이드 슬라이드 패널 (상태바의 배터리/시계/알림 정보 및 네비바를 가리지 않도록 인셋 패딩 적용 및 키보드 imePadding 연동)
-        Surface(
-            modifier = Modifier
-                .fillMaxHeight()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .imePadding()
-                .padding(vertical = 6.dp)
-                .width(panelWidthDp.dp)
-                .align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { dragOffsetX = 0f },
-                        onHorizontalDrag = { _, dragAmount ->
-                            dragOffsetX += dragAmount
-                            if (dragOffsetX < -40f || dragOffsetX > 40f) {
-                                onClose()
-                            }
-                        },
-                        onDragEnd = {
-                            if (kotlin.math.abs(dragOffsetX) > 30f) {
-                                onClose()
-                            }
-                            dragOffsetX = 0f
-                        }
-                    )
-                }
-                .clickable(enabled = false) {}, // 클릭 전파 방지
-            color = GlassBackground,
-            shape = if (edgeSide == EdgeSide.RIGHT) {
-                RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 4.dp, bottomEnd = 4.dp)
-            } else {
-                RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp, topStart = 4.dp, bottomStart = 4.dp)
-            },
-            border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
+        AnimatedVisibility(
+            visible = isVisible,
+            enter = slideInHorizontally(
+                initialOffsetX = { fullWidth -> if (edgeSide == EdgeSide.RIGHT) fullWidth else -fullWidth },
+                animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)
+            ) + fadeIn(animationSpec = tween(120)),
+            exit = slideOutHorizontally(
+                targetOffsetX = { fullWidth -> if (edgeSide == EdgeSide.RIGHT) fullWidth else -fullWidth },
+                animationSpec = tween(durationMillis = 140, easing = FastOutLinearInEasing)
+            ) + fadeOut(animationSpec = tween(100)),
+            modifier = Modifier.align(if (edgeSide == EdgeSide.RIGHT) Alignment.CenterEnd else Alignment.CenterStart)
         ) {
-            Column(
+            Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(vertical = 16.dp, horizontal = 14.dp)
+                    .fillMaxHeight()
+                    .statusBarsPadding()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(vertical = 6.dp)
+                    .width(panelWidthDp.dp)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragStart = { dragOffsetX = 0f },
+                            onHorizontalDrag = { _, dragAmount ->
+                                dragOffsetX += dragAmount
+                                if (dragOffsetX < -40f || dragOffsetX > 40f) {
+                                    handleClose()
+                                }
+                            },
+                            onDragEnd = {
+                                if (kotlin.math.abs(dragOffsetX) > 30f) {
+                                    handleClose()
+                                }
+                                dragOffsetX = 0f
+                            }
+                        )
+                    }
+                    .clickable(enabled = false) {}, // 클릭 전파 방지
+                color = GlassBackground,
+                shape = if (edgeSide == EdgeSide.RIGHT) {
+                    RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp, topEnd = 4.dp, bottomEnd = 4.dp)
+                } else {
+                    RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp, topStart = 4.dp, bottomStart = 4.dp)
+                },
+                border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
             ) {
-                // 상단 헤더
-                PanelHeader(
-                    notificationCount = notifications.size,
-                    onClearAll = { NotificationRepository.clearAll() },
-                    onOpenSettings = onOpenSettings,
-                    onClose = onClose
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(vertical = 16.dp, horizontal = 14.dp)
+                ) {
+                    // 상단 헤더
+                    PanelHeader(
+                        notificationCount = notifications.size,
+                        onClearAll = { NotificationRepository.clearAll() },
+                        onOpenSettings = onOpenSettings,
+                        onClose = handleClose
+                    )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -267,7 +300,7 @@ fun EdgePanelContent(
                                         context = context,
                                         notification = notification,
                                         autoDismiss = autoDismissOnOpen,
-                                        onClose = onClose
+                                        onClose = handleClose
                                     )
                                 }
                             )
@@ -275,6 +308,7 @@ fun EdgePanelContent(
                     }
                 }
             }
+        }
         }
 
         // 가상 키보드 가로 길이에 맞춰 화면 전체 폭(Full Width)으로 가상키보드 바로 위에 착 달라붙는 플로팅 답장 바
