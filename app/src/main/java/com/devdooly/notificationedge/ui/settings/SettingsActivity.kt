@@ -30,29 +30,37 @@ class SettingsActivity : ComponentActivity() {
         settingsRepository = SettingsRepository(applicationContext)
 
         setTheme(R.style.Theme_NotificationEdge)
-        window.setLayout(
-            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-            android.view.ViewGroup.LayoutParams.MATCH_PARENT
-        )
         enableEdgeToEdge()
 
-        lifecycleScope.launch {
-            val settings = settingsRepository.settingsFlow.first()
-            setContent {
-                val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = settings)
-                NotificationEdgeTheme(
-                    fontId = liveSettings.selectedFont
-                ) {
-                    SettingsScreen()
-                }
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                finish()
+                com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this@SettingsActivity)
             }
-            checkAndStartService()
+        })
+
+        setContent {
+            val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = AppSettings())
+            NotificationEdgeTheme(
+                fontId = liveSettings.selectedFont
+            ) {
+                SettingsScreen()
+            }
         }
     }
 
     override fun onResume() {
         super.onResume()
         checkAndStartService()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // 설정창에서 홈으로 나가거나 다른 앱으로 전환 시 백그라운드 잔상 방지를 위해 즉시 종료
+        if (!isChangingConfigurations) {
+            finish()
+            com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
+        }
     }
 
     private fun checkAndStartService() {

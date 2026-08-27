@@ -315,6 +315,14 @@ graph TD
   - `SettingsActivity.kt` / `BootReceiver.kt`: `settings.isServiceEnabled || settings.isEdgeLightingEnabled` 조건으로 서비스를 구동하여 둘 중 하나라도 켜져 있으면 서비스가 상시 유지되도록 보장.
   - `SettingsScreen.kt`: 마스터 스위치 라벨을 "화면 가장자리 엣지 핸들"로 명확화하고, 핸들 토글 시 엣지 라이팅 상태를 보존하여 독립적으로 동작하도록 UI/로직 개선.
 
+### 40) 앱 실행 시 설정창 잔상(Ghosting) 제거 및 Task 분리 최적화 (`v1.2.8`, Build 128)
+* **원인 및 문제**:
+  - `MainActivity`와 `SettingsActivity`, `EdgePanelActivity`가 동일한 기본 Task 스택에 얽혀 있거나 `Theme.NoDisplay` 및 비동기 `setContent` 호출로 인해, 런처 아이콘으로 엣지 패널을 켤 때 백그라운드에 남아있던 설정창(`SettingsActivity`)이 0.1~0.3초간 번쩍 잔상으로 보이던 현상.
+* **해결**:
+  - `AndroidManifest.xml`: `MainActivity`(launcher), `SettingsActivity`(settings), `EdgePanelActivity`(overlay), `OpenPanelActivity`(openpanel)의 `taskAffinity`를 독립적으로 분리하고 `singleInstance` / `singleTask` 플래그 최적화.
+  - `MainActivity` / `OpenPanelActivity`: `Theme.NoDisplay` 대신 깜빡임이 없는 완전 투명 테마 `Theme.NotificationEdge.TranslucentLauncher` 적용.
+  - `SettingsActivity.kt`: 코루틴 지연 렌더링을 제거하고 `onCreate`에서 즉시 동기식 `setContent` 렌더링으로 프레임 딜레이 및 잔상 원천 차단.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -323,9 +331,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.7`)
-   - `AppUpdateCard(currentVersionName = "1.2.7")`
-   - `AppInfoCard` (예: `버전 1.2.7 (Build 127) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.2.8`)
+   - `AppUpdateCard(currentVersionName = "1.2.8")`
+   - `AppInfoCard` (예: `버전 1.2.8 (Build 128) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

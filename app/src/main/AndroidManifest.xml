@@ -37,12 +37,12 @@
         android:theme="@style/Theme.NotificationEdge"
         tools:targetApi="34">
         
-        <!-- 런처 메인 엔트리 포인트 (유튜브 PiP 전환 방지를 위한 무화면 NoDisplay 트램펄린) -->
+        <!-- 런처 메인 엔트리 포인트 (완전 투명 트램펄린) -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:taskAffinity=""
+            android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
+            android:taskAffinity="com.devdooly.notificationedge.launcher"
             android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true">
@@ -58,6 +58,8 @@
             android:exported="false"
             android:theme="@style/Theme.NotificationEdge"
             android:label="@string/app_name"
+            android:taskAffinity="com.devdooly.notificationedge.settings"
+            android:launchMode="singleTask"
             android:noHistory="false"
             android:excludeFromRecents="false" />
 
@@ -67,17 +69,18 @@
             android:exported="false"
             android:theme="@style/Theme.NotificationEdge.TranslucentPanel"
             android:windowSoftInputMode="adjustResize"
-            android:launchMode="singleTop"
+            android:taskAffinity="com.devdooly.notificationedge.overlay"
+            android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true" />
 
-        <!-- Good Lock / Shortcut용 엣지 패널 열기 무화면(NoDisplay) 액티비티 (유튜브 PiP 전환 방지) -->
+        <!-- Good Lock / Shortcut용 엣지 패널 열기 무화면 액티비티 -->
         <activity
             android:name=".ui.OpenPanelActivity"
             android:exported="true"
             android:label="@string/open_panel_activity_label"
-            android:theme="@android:style/Theme.NoDisplay"
-            android:taskAffinity=""
+            android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
+            android:taskAffinity="com.devdooly.notificationedge.openpanel"
             android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true">
