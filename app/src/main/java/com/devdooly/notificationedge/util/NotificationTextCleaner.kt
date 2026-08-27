@@ -31,8 +31,9 @@ object NotificationTextCleaner {
             // 2. 제목/발신자 이름 매칭 기반 접두어 제거
             cleaned = removeDuplicateNamePrefix(cleaned, title, sender)
 
-            // 3. 범용 발신자 콜론 접두어 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "[팀장] - 회의시작")
-            val genericColon = Regex("""^(\[[^\]\n]{1,20}\]|\([^\)\n]{1,20}\)|[가-힣a-zA-Z0-9_\.\s]{1,20})([:：]|\s+-\s+)\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
+            // 3. 범용 발신자 콜론 접두어 제거 (예: "홍길동: 안녕하세요", "김철수 : 오늘 몇시?", "팀장 - 회의시작")
+            // 단, 대괄호로 둘러싸인 태그(예: "[에이피알] 100주 구매")는 본문 내용이므로 보존
+            val genericColon = Regex("""^([가-힣a-zA-Z0-9_\.\s]{1,20})([:：]|\s+-\s+)\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
             if (genericColon != null) {
                 val prefix = genericColon.groupValues[1].trim()
                 val isPrefixTime = Regex("""(?:오전|오후|AM|PM|am|pm|\d)$""").containsMatchIn(prefix)
@@ -44,14 +45,12 @@ object NotificationTextCleaner {
                 }
             }
 
-            // 4. 대괄호 접두어 제거 (예: "[홍길동] 안녕하세요", "[Web발신] 택배가 도착했습니다")
-            val genericBracket = Regex("""^\[[가-힣a-zA-Z0-9_\.\s]{1,20}\]\s*(.+)$""", RegexOption.DOT_MATCHES_ALL).find(cleaned)
-            if (genericBracket != null) {
-                val contentAfterBracket = genericBracket.groupValues[1].trim()
-                if (contentAfterBracket.isNotEmpty()) {
-                    cleaned = contentAfterBracket
-                }
-            }
+            // 4. 통신사/스팸 표준 시스템 접두어만 제거 (예: "[Web발신] ", "[국외발신] ", "[광고] ")
+            // 일반 대괄호 태그(예: "[에이피알] 100주 구매", "[카카오페이] 결제완료", "[공지]")는 본문 내용이므로 보존
+            cleaned = cleaned.replaceFirst(
+                Regex("""^[\[\(<]\s*(?:Web발신|웹발신|국외발신|국제발신|광고)\s*[\]\)>]\s*""", RegexOption.IGNORE_CASE),
+                ""
+            ).trim()
         }
 
         return cleaned.trim()

@@ -20,17 +20,24 @@ class NotificationTextCleanerTest {
     }
 
     @Test
-    fun `cleanMessageText should remove phone number prefix`() {
+    fun `cleanMessageText should remove phone number prefix and preserve bracket content`() {
         val input = "010-1234-5678: [인증번호 482910] 입력해주세요."
         val result = NotificationTextCleaner.cleanMessageText(input, title = "010-1234-5678")
-        assertEquals("입력해주세요.", result)
+        assertEquals("[인증번호 482910] 입력해주세요.", result)
     }
 
     @Test
-    fun `cleanMessageText should remove bracket prefix`() {
+    fun `cleanMessageText should remove telecom bracket prefix like Web발신`() {
         val input = "[Web발신] 주문하신 상품이 배송 시작되었습니다."
         val result = NotificationTextCleaner.cleanMessageText(input, title = "택배사")
         assertEquals("주문하신 상품이 배송 시작되었습니다.", result)
+    }
+
+    @Test
+    fun `cleanMessageText should preserve stock and content brackets like Toss securities`() {
+        val input = "[에이피알] 100주 구매"
+        val result = NotificationTextCleaner.cleanMessageText(input, title = "비닐봉짘님의 거래", sender = null)
+        assertEquals("[에이피알] 100주 구매", result)
     }
 
     @Test

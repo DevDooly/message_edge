@@ -331,6 +331,14 @@ graph TD
   - `EdgePanelContent.kt`: Compose의 `AnimatedVisibility` (`slideInHorizontally` + `fadeIn` / `slideOutHorizontally` + `fadeOut`)를 적용하여 삼성 One UI 순정 엣지 패널처럼 사이드(왼쪽/오른쪽) 가장자리에서 부드럽게 스르륵 나타나고 닫히는 네이티브 제스처 트랜지션 구현.
   - `ActivityUtils.kt`: Android 14+ 최신 API에서도 `overrideActivityTransition` 및 `overridePendingTransition(0, 0)` 이중 호출로 창 전환 깜빡임 완전 방어.
 
+### 42) 토스증권 등 대괄호 종목/태그 본문 보존 및 스팸 접두어 정밀 필터링 (`v1.3.0`, Build 130)
+* **원인 및 문제**:
+  - `NotificationTextCleaner.kt`에서 본문 앞부분의 대괄호 패턴(`[...]`)을 일괄 발신자 접두어로 오판하여, 토스증권 등 금융/주식 알림의 `[에이피알] 100주 구매`에서 종목명인 `[에이피알]`이 삭제되고 `100주 구매`로만 표기되던 버그.
+* **해결**:
+  - `NotificationTextCleaner.kt`: 무차별 대괄호 제거 정규식을 폐기하고, 오직 통신사/스팸 표준 머리말(`[Web발신]`, `[국외발신]`, `[광고]` 등)이나 제목/발신자 이름과 일치하는 대괄호 접두어만 선별 제거하도록 정밀화.
+  - `[에이피알] 100주 구매`, `[카카오페이] 결제완료`, `[공지]`, `[인증번호]` 등 본문의 핵심 태그 정보는 100% 온전히 보존.
+  - 단위 테스트(`NotificationTextCleanerTest.kt`)에 토스증권 및 대괄호 보존 테스트 케이스 추가 및 검증 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -339,9 +347,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.2.9`)
-   - `AppUpdateCard(currentVersionName = "1.2.9")`
-   - `AppInfoCard` (예: `버전 1.2.9 (Build 129) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.0`)
+   - `AppUpdateCard(currentVersionName = "1.3.0")`
+   - `AppInfoCard` (예: `버전 1.3.0 (Build 130) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
