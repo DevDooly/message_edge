@@ -88,6 +88,18 @@ class EdgePanelActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        activeInstance = this
+        isInstanceActive = true
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // 이미 열려 있는 상태에서 다시 호출되면 즉시 토글되어 닫힘
+        closeAndFinish()
+    }
+
     private fun closeAndFinish() {
         finish()
         com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
@@ -95,8 +107,39 @@ class EdgePanelActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
+        if (activeInstance == this) {
+            isInstanceActive = false
+        }
         if (isFinishing) {
             com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (activeInstance == this) {
+            activeInstance = null
+            isInstanceActive = false
+        }
+    }
+
+    companion object {
+        @Volatile
+        var isInstanceActive: Boolean = false
+            private set
+
+        private var activeInstance: EdgePanelActivity? = null
+
+        /**
+         * 현재 열려 있는 EdgePanelActivity 인스턴스가 있다면 즉시 닫고 true 반환
+         */
+        fun closeActiveInstance(): Boolean {
+            val instance = activeInstance
+            if (instance != null && !instance.isFinishing) {
+                instance.closeAndFinish()
+                return true
+            }
+            return false
         }
     }
 }

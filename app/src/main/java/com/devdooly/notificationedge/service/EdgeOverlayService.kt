@@ -70,14 +70,16 @@ class EdgeOverlayService : Service() {
         when (intent?.action) {
             ACTION_OPEN_PANEL -> {
                 triggerHaptic()
-                openPanel()
+                if (!EdgePanelActivity.isInstanceActive) {
+                    openPanel()
+                }
             }
             ACTION_CLOSE_PANEL -> {
-                // EdgePanelActivity가 알아서 finish() 처리
+                EdgePanelActivity.closeActiveInstance()
             }
             ACTION_TOGGLE_PANEL -> {
                 triggerHaptic()
-                openPanel()
+                togglePanel()
             }
         }
         return START_STICKY
@@ -248,7 +250,7 @@ class EdgeOverlayService : Service() {
                             val isTap = kotlin.math.abs(diffX) < 15 && kotlin.math.abs(event.rawY - startY) < 15
                             if (isSwipe || isTap) {
                                 triggerHaptic()
-                                openPanel()
+                                togglePanel()
                             }
                             true
                         }
@@ -293,6 +295,14 @@ class EdgeOverlayService : Service() {
                 e.printStackTrace()
             }
             handleView = null
+        }
+    }
+
+    private fun togglePanel() {
+        if (EdgePanelActivity.isInstanceActive) {
+            EdgePanelActivity.closeActiveInstance()
+        } else {
+            openPanel()
         }
     }
 

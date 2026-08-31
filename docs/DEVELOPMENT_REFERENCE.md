@@ -385,6 +385,14 @@ graph TD
   - `PermissionStatusCard`: 필수 권한 허용 여부에 따라 `isExpanded = !allRequiredGranted`를 초기값으로 설정하고 `모두 허용됨` 뱃지 및 토글 아이콘 추가.
   - `NotificationFilterSettingsCard`: 기본값을 `isExpanded = false`로 설정하고 헤더에 `수신 앱 N개 · 차단 키워드 N개` 요약 텍스트 및 토글 아이콘 제공.
 
+### 48) 엣지 핸들 재터치 시 패널 닫기 (열기/닫기 양방향 토글) 지원 (`v1.3.6`, Build 136)
+* **요구사항**:
+  - 알림 엣지 패널이 열려 있는 상태에서 엣지 핸들(또는 화면 가장자리 핸들 영역/제스처)을 다시 누르면 패널이 꺼지도록(닫히도록) 토글 동작 지원.
+* **해결**:
+  - `EdgePanelActivity.kt`: `companion object`에 `@Volatile var isInstanceActive: Boolean` 및 `fun closeActiveInstance(): Boolean`을 구현하고, `onNewIntent` 및 생명주기(`onResume`, `onPause`, `onDestroy`)에서 활성 인스턴스 추적 및 즉시 닫기 처리.
+  - `EdgeOverlayService.kt`: 플로팅 핸들 터치(Tap/Swipe) 및 `ACTION_TOGGLE_PANEL` 수신 시 `isInstanceActive`를 확인하여 패널이 열려 있으면 즉시 닫고, 닫혀 있으면 여는 `togglePanel()` 로직 적용.
+  - `OpenPanelActivity.kt` 및 `MainActivity.kt`: 제스처/숏컷을 통해 다시 실행될 때도 이미 열려 있는 패널을 감지하여 토글 닫기 처리.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -393,9 +401,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.5`)
-   - `AppUpdateCard(currentVersionName = "1.3.5")`
-   - `AppInfoCard` (예: `버전 1.3.5 (Build 135) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.6`)
+   - `AppUpdateCard(currentVersionName = "1.3.6")`
+   - `AppInfoCard` (예: `버전 1.3.6 (Build 136) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
