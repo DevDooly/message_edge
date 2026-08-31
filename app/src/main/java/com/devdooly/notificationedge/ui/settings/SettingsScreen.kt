@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -92,7 +93,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.3.4",
+                                text = "v1.3.5",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -286,7 +287,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.3.4")
+            AppUpdateCard(currentVersionName = "1.3.5")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -434,7 +435,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.3.4 (Build 134) | Target Android 14",
+                text = "버전 1.3.5 (Build 135) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -905,41 +906,102 @@ private fun PermissionStatusCard(
     onGrantNotification: () -> Unit,
     onGrantBattery: () -> Unit
 ) {
+    val allRequiredGranted = hasOverlay && hasNotification
+    val allGranted = hasOverlay && hasNotification && hasBatteryOpt
+    var isExpanded by remember(allRequiredGranted) { mutableStateOf(!allRequiredGranted) }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (allGranted) EdgeGreen.copy(alpha = 0.3f) else (if (!allRequiredGranted) Color(0x66FF5252) else GlassBorder)
+        )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "필수 권한 설정",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Spacer(modifier = Modifier.height(12.dp))
+            // 헤더 (클릭 시 펼치기/접기)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (allGranted) Icons.Default.VerifiedUser else Icons.Default.Security,
+                        contentDescription = null,
+                        tint = if (allGranted) EdgeGreen else (if (allRequiredGranted) EdgeCyan else Color(0xFFFF5252)),
+                        modifier = Modifier.size(22.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "필수 권한 설정",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (allGranted) EdgeGreen.copy(alpha = 0.18f) else (if (allRequiredGranted) EdgeCyan.copy(alpha = 0.18f) else Color(0x33FF5252).copy(alpha = 0.2f)),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    0.5.dp,
+                                    if (allGranted) EdgeGreen else (if (allRequiredGranted) EdgeCyan else Color(0xFFFF5252))
+                                )
+                            ) {
+                                Text(
+                                    text = if (allGranted) "모두 허용됨" else (if (allRequiredGranted) "필수 허용됨" else "권한 필요"),
+                                    color = if (allGranted) EdgeGreen else (if (allRequiredGranted) EdgeCyan else Color(0xFFFF5252)),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
 
-            PermissionItem(
-                title = "다른 앱 위에 표시 권한",
-                desc = "엣지 핸들 및 알림 패널 오버레이 표시",
-                isGranted = hasOverlay,
-                onClick = onGrantOverlay
-            )
-            HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (isExpanded) "접기" else "펼치기",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
 
-            PermissionItem(
-                title = "알림 접근 권한",
-                desc = "수신되는 앱 알림 감지 및 패널에 표시",
-                isGranted = hasNotification,
-                onClick = onGrantNotification
-            )
-            HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+            AnimatedVisibility(visible = isExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
 
-            PermissionItem(
-                title = "배터리 최적화 예외 (선택)",
-                desc = "백그라운드에서 상시 안정적 실행 유지",
-                isGranted = hasBatteryOpt,
-                onClick = onGrantBattery
-            )
+                    PermissionItem(
+                        title = "다른 앱 위에 표시 권한",
+                        desc = "엣지 핸들 및 알림 패널 오버레이 표시",
+                        isGranted = hasOverlay,
+                        onClick = onGrantOverlay
+                    )
+                    HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+
+                    PermissionItem(
+                        title = "알림 접근 권한",
+                        desc = "수신되는 앱 알림 감지 및 패널에 표시",
+                        isGranted = hasNotification,
+                        onClick = onGrantNotification
+                    )
+                    HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+
+                    PermissionItem(
+                        title = "배터리 최적화 예외 (선택)",
+                        desc = "백그라운드에서 상시 안정적 실행 유지",
+                        isGranted = hasBatteryOpt,
+                        onClick = onGrantBattery
+                    )
+                }
+            }
         }
     }
 }
@@ -1675,16 +1737,22 @@ private fun NotificationFilterSettingsCard(
         }.sortedBy { it.second.lowercase() }
     }
 
+    var isExpanded by remember { mutableStateOf(false) }
+
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // 헤더
+            // 헤더 (클릭 시 접기/펼치기)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 2.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.FilterList,
@@ -1701,261 +1769,271 @@ private fun NotificationFilterSettingsCard(
                         fontSize = 15.sp
                     )
                     Text(
-                        text = "알림 수신된 앱별 제외 및 특정 키워드 차단",
-                        color = Color.Gray,
+                        text = if (isExpanded) "알림 수신된 앱별 제외 및 특정 키워드 차단" else "수신 앱 ${discoveredAppList.size}개 · 차단 키워드 ${blockedKeywords.size}개",
+                        color = if (isExpanded) Color.Gray else EdgeCyan,
                         fontSize = 12.sp
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // ==========================================
-            // 1. 수신된 앱별 알림 제외 관리 섹션
-            // ==========================================
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "수신 기록된 앱 (${discoveredAppList.size}개)",
-                    color = EdgeCyan,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = if (isExpanded) "접기" else "펼치기",
+                    tint = Color.Gray,
+                    modifier = Modifier.size(22.dp)
                 )
-                if (discoveredAppList.isNotEmpty()) {
-                    TextButton(
-                        onClick = onClearDiscoveredPackages,
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                        modifier = Modifier.height(28.dp)
-                    ) {
-                        Text("기록 비우기", color = Color.Gray, fontSize = 11.sp)
-                    }
-                }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            AnimatedVisibility(visible = isExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            if (discoveredAppList.isEmpty()) {
-                Surface(
-                    color = Color(0x33000000),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "아직 수신된 알림이 없습니다. 새로운 알림이 도착하면 여기에 해당 앱이 자동으로 등록되어 간편하게 알림을 끄거나 켤 수 있습니다.",
-                        color = Color.Gray,
-                        fontSize = 12.sp,
-                        lineHeight = 16.sp,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    discoveredAppList.forEach { (pkg, appName, appIcon) ->
-                        val isExcluded = excludedPackages.contains(pkg)
-                        val iconBitmap = remember(appIcon) {
-                            try {
-                                appIcon?.toBitmap(72, 72)?.asImageBitmap()
-                            } catch (e: Exception) {
-                                null
+                    // ==========================================
+                    // 1. 수신된 앱별 알림 제외 관리 섹션
+                    // ==========================================
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "수신 기록된 앱 (${discoveredAppList.size}개)",
+                            color = EdgeCyan,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp
+                        )
+                        if (discoveredAppList.isNotEmpty()) {
+                            TextButton(
+                                onClick = onClearDiscoveredPackages,
+                                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                                modifier = Modifier.height(28.dp)
+                            ) {
+                                Text("기록 비우기", color = Color.Gray, fontSize = 11.sp)
                             }
                         }
+                    }
 
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    if (discoveredAppList.isEmpty()) {
                         Surface(
-                            color = if (isExcluded) Color(0x22111111) else Color(0x33282828),
+                            color = Color(0x33000000),
                             shape = RoundedCornerShape(10.dp),
-                            border = androidx.compose.foundation.BorderStroke(
-                                0.5.dp,
-                                if (isExcluded) Color(0x33FF5252) else Color(0x22FFFFFF)
-                            ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    if (iconBitmap != null) {
-                                        Image(
-                                            bitmap = iconBitmap,
-                                            contentDescription = appName,
-                                            modifier = Modifier
-                                                .size(28.dp)
-                                                .clip(RoundedCornerShape(6.dp))
-                                        )
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = appName,
-                                            color = if (isExcluded) Color.Gray else Color.White,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 13.sp,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                        Text(
-                                            text = pkg,
-                                            color = if (isExcluded) Color(0xFF884444) else Color.DarkGray,
-                                            fontSize = 10.sp,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                            Text(
+                                text = "아직 수신된 알림이 없습니다. 새로운 알림이 도착하면 여기에 해당 앱이 자동으로 등록되어 간편하게 알림을 끄거나 켤 수 있습니다.",
+                                color = Color.Gray,
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    } else {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            discoveredAppList.forEach { (pkg, appName, appIcon) ->
+                                val isExcluded = excludedPackages.contains(pkg)
+                                val iconBitmap = remember(appIcon) {
+                                    try {
+                                        appIcon?.toBitmap(72, 72)?.asImageBitmap()
+                                    } catch (e: Exception) {
+                                        null
                                     }
                                 }
 
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = if (isExcluded) "알림 제외됨" else "알림 수신",
-                                        color = if (isExcluded) Color(0xFFFF6B6B) else EdgeCyan,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Medium
-                                    )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Switch(
-                                        checked = !isExcluded,
-                                        onCheckedChange = { isEnabled ->
-                                            onToggleExcludedPackage(pkg, !isEnabled)
-                                        },
-                                        colors = SwitchDefaults.colors(
-                                            checkedThumbColor = EdgeCyan,
-                                            checkedTrackColor = EdgeCyan.copy(alpha = 0.3f),
-                                            uncheckedThumbColor = Color.Gray,
-                                            uncheckedTrackColor = Color.DarkGray
-                                        ),
-                                        modifier = Modifier.scale(0.8f)
-                                    )
+                                Surface(
+                                    color = if (isExcluded) Color(0x22111111) else Color(0x33282828),
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = androidx.compose.foundation.BorderStroke(
+                                        0.5.dp,
+                                        if (isExcluded) Color(0x33FF5252) else Color(0x22FFFFFF)
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            if (iconBitmap != null) {
+                                                Image(
+                                                    bitmap = iconBitmap,
+                                                    contentDescription = appName,
+                                                    modifier = Modifier
+                                                        .size(28.dp)
+                                                        .clip(RoundedCornerShape(6.dp))
+                                                )
+                                                Spacer(modifier = Modifier.width(10.dp))
+                                            }
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = appName,
+                                                    color = if (isExcluded) Color.Gray else Color.White,
+                                                    fontWeight = FontWeight.Medium,
+                                                    fontSize = 13.sp,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Text(
+                                                    text = pkg,
+                                                    color = if (isExcluded) Color(0xFF884444) else Color.DarkGray,
+                                                    fontSize = 10.sp,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text(
+                                                text = if (isExcluded) "알림 제외됨" else "알림 수신",
+                                                color = if (isExcluded) Color(0xFFFF6B6B) else EdgeCyan,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Switch(
+                                                checked = !isExcluded,
+                                                onCheckedChange = { isEnabled ->
+                                                    onToggleExcludedPackage(pkg, !isEnabled)
+                                                },
+                                                colors = SwitchDefaults.colors(
+                                                    checkedThumbColor = EdgeCyan,
+                                                    checkedTrackColor = EdgeCyan.copy(alpha = 0.3f),
+                                                    uncheckedThumbColor = Color.Gray,
+                                                    uncheckedTrackColor = Color.DarkGray
+                                                ),
+                                                modifier = Modifier.scale(0.8f)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0x22FFFFFF), thickness = 0.5.dp)
-            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = Color(0x22FFFFFF), thickness = 0.5.dp)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            // ==========================================
-            // 2. 특정 키워드 차단 관리 섹션
-            // ==========================================
-            Text(
-                text = "차단 키워드 (${blockedKeywords.size}개)",
-                color = EdgeCyan,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "제목, 본문, 메시지에 포함 시 알림을 표시하지 않습니다.",
-                color = Color.Gray,
-                fontSize = 11.sp
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // 키워드 입력 필드 + 추가 버튼
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = newKeywordText,
-                    onValueChange = { newKeywordText = it },
-                    placeholder = { Text("차단할 키워드 (예: 광고, 특가, 스팸)", color = Color.Gray, fontSize = 12.sp) },
-                    modifier = Modifier.weight(1f),
-                    textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = EdgeCyan,
-                        unfocusedBorderColor = Color(0x44FFFFFF),
-                        cursorColor = EdgeCyan
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            if (newKeywordText.isNotBlank()) {
-                                onAddBlockedKeyword(newKeywordText)
-                                newKeywordText = ""
-                                keyboardController?.hide()
-                            }
-                        }
+                    // ==========================================
+                    // 2. 특정 키워드 차단 관리 섹션
+                    // ==========================================
+                    Text(
+                        text = "차단 키워드 (${blockedKeywords.size}개)",
+                        color = EdgeCyan,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.sp
                     )
-                )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "제목, 본문, 메시지에 포함 시 알림을 표시하지 않습니다.",
+                        color = Color.Gray,
+                        fontSize = 11.sp
+                    )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                Button(
-                    onClick = {
-                        if (newKeywordText.isNotBlank()) {
-                            onAddBlockedKeyword(newKeywordText)
-                            newKeywordText = ""
-                            keyboardController?.hide()
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
-                    shape = RoundedCornerShape(10.dp),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
-                ) {
-                    Text("추가", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                }
-            }
+                    // 키워드 입력 필드 + 추가 버튼
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = newKeywordText,
+                            onValueChange = { newKeywordText = it },
+                            placeholder = { Text("차단할 키워드 (예: 광고, 특가, 스팸)", color = Color.Gray, fontSize = 12.sp) },
+                            modifier = Modifier.weight(1f),
+                            textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = EdgeCyan,
+                                unfocusedBorderColor = Color(0x44FFFFFF),
+                                cursorColor = EdgeCyan
+                            ),
+                            shape = RoundedCornerShape(10.dp),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(
+                                onDone = {
+                                    if (newKeywordText.isNotBlank()) {
+                                        onAddBlockedKeyword(newKeywordText)
+                                        newKeywordText = ""
+                                        keyboardController?.hide()
+                                    }
+                                }
+                            )
+                        )
 
-            Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
-            // 등록된 키워드 태그(Chip) 목록
-            if (blockedKeywords.isEmpty()) {
-                Text(
-                    text = "등록된 차단 키워드가 없습니다.",
-                    color = Color.DarkGray,
-                    fontSize = 12.sp,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            } else {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    blockedKeywords.forEach { keyword ->
-                        Surface(
-                            shape = RoundedCornerShape(16.dp),
-                            color = EdgeCyan.copy(alpha = 0.15f),
-                            border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.6f))
+                        Button(
+                            onClick = {
+                                if (newKeywordText.isNotBlank()) {
+                                    onAddBlockedKeyword(newKeywordText)
+                                    newKeywordText = ""
+                                    keyboardController?.hide()
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = keyword,
-                                    color = EdgeCyan,
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                IconButton(
-                                    onClick = { onRemoveBlockedKeyword(keyword) },
-                                    modifier = Modifier.size(20.dp)
+                            Text("추가", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 등록된 키워드 태그(Chip) 목록
+                    if (blockedKeywords.isEmpty()) {
+                        Text(
+                            text = "등록된 차단 키워드가 없습니다.",
+                            color = Color.DarkGray,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    } else {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            blockedKeywords.forEach { keyword ->
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = EdgeCyan.copy(alpha = 0.15f),
+                                    border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.6f))
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = "삭제",
-                                        tint = EdgeCyan,
-                                        modifier = Modifier.size(12.dp)
-                                    )
+                                    Row(
+                                        modifier = Modifier.padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = keyword,
+                                            color = EdgeCyan,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        IconButton(
+                                            onClick = { onRemoveBlockedKeyword(keyword) },
+                                            modifier = Modifier.size(20.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Close,
+                                                contentDescription = "삭제",
+                                                tint = EdgeCyan,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

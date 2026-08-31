@@ -376,6 +376,15 @@ graph TD
   - `SettingsScreen.kt`: One UI 스타일의 `NotificationFilterSettingsCard` 추가 (수신 앱 리스트 토글, 기록 비우기, 키워드 입력 및 Chip 태그 관리).
   - 단위 테스트(`AppSettingsTest.kt`, `SettingsRepositoryTest.kt`)에 필터링 및 키워드/앱 제외 동작 테스트 추가 및 검증 완료.
 
+### 47) 권한 허용 시 자동 폴딩 및 알림 필터링 기본 접힘(폴딩) 적용 (`v1.3.5`, Build 135)
+* **요구사항**:
+  - 필수 권한(다른 앱 위에 표시, 알림 접근 권한)이 모두 허용된 경우 권한 카드를 기본으로 접히게(Collapsed) 처리하여 화면을 깔끔하게 유지.
+  - 알림 필터링 & 제외 관리 카드도 기본 상태를 접힘(Collapsed)으로 설정하여 설정 화면 진입 시 가독성 및 정돈감 개선.
+  - 각 카드의 헤더 터치 시 부드러운 펼침/접힘(`AnimatedVisibility`) 토글 및 요약 뱃지/카운트 표시.
+* **해결**:
+  - `PermissionStatusCard`: 필수 권한 허용 여부에 따라 `isExpanded = !allRequiredGranted`를 초기값으로 설정하고 `모두 허용됨` 뱃지 및 토글 아이콘 추가.
+  - `NotificationFilterSettingsCard`: 기본값을 `isExpanded = false`로 설정하고 헤더에 `수신 앱 N개 · 차단 키워드 N개` 요약 텍스트 및 토글 아이콘 제공.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -384,9 +393,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.4`)
-   - `AppUpdateCard(currentVersionName = "1.3.4")`
-   - `AppInfoCard` (예: `버전 1.3.4 (Build 134) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.5`)
+   - `AppUpdateCard(currentVersionName = "1.3.5")`
+   - `AppInfoCard` (예: `버전 1.3.5 (Build 135) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
