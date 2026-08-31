@@ -760,8 +760,13 @@ private fun NotificationCard(
                         }
                     }
 
-                    // 그룹 단체방 판별 (파서의 isGroupChat 결과 사용)
+                    // 그룹 단체방 판별 (파서의 isGroupChat 결과 사용) 및 복수 발신자/종목 혼합 판별
                     val isGroupChat = notification.isGroupChat
+                    val distinctOtherSenders = notification.messages
+                        .filter { !it.isFromUser && it.sender != "나" && it.sender.isNotBlank() }
+                        .map { it.sender }
+                        .distinct()
+                    val hasMultipleSenders = distinctOtherSenders.size > 1
 
                     displayMessages.forEach { msg ->
                         val isMine = msg.isFromUser || msg.sender == "나"
@@ -772,9 +777,9 @@ private fun NotificationCard(
                                 msg.sender
                             )
                         }
-                        // 단체방이면 무조건 보낸사람 표시, 1:1 대화에서는 타이틀과 명확히 다를 때만 표시
+                        // 단체방이거나 여러 발신자/종목이 섞인 알림이면 일관되게 모든 항목에 발신자 라벨(종목명/발신자:) 표시
                         val isSameAsTitle = msg.sender.equals(notification.title, ignoreCase = true) || notification.title.contains(msg.sender, ignoreCase = true)
-                        val shouldShowSenderLabel = !isMine && msg.sender.isNotBlank() && (isGroupChat || !isSameAsTitle)
+                        val shouldShowSenderLabel = !isMine && msg.sender.isNotBlank() && (isGroupChat || hasMultipleSenders || !isSameAsTitle)
 
                         Row(
                             modifier = Modifier

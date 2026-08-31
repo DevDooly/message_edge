@@ -135,4 +135,39 @@ class NotificationRepositoryTest {
         assertEquals("Feathers Mcgraw", list[0].title)
         assertEquals(2, list[0].messages.size)
     }
+
+    @Test
+    fun `toss securities different stock notifications with same subText should remain separate cards`() {
+        val stock1 = EdgeNotification(
+            key = "toss_stock_1",
+            id = 401,
+            packageName = "viva.republica.toss",
+            appName = "토스증권",
+            title = "SK이터닉스 📉",
+            text = "주식 가격이 5% 떨어졌어요(53,000원)",
+            subText = "토스증권",
+            isGroupChat = false,
+            timestamp = 1000L
+        )
+        val stock2 = EdgeNotification(
+            key = "toss_stock_2",
+            id = 402,
+            packageName = "viva.republica.toss",
+            appName = "토스증권",
+            title = "KODEX SK하이닉스단일종목레버리지 📈",
+            text = "주식 가격이 5% 올랐어요(10,590원)",
+            subText = "토스증권",
+            isGroupChat = false,
+            timestamp = 2000L
+        )
+
+        NotificationRepository.addOrUpdateNotification(stock1)
+        NotificationRepository.addOrUpdateNotification(stock2)
+
+        val list = NotificationRepository.notifications.value
+        // 서로 다른 종목이므로 subText("토스증권")가 같아도 별개의 2개 카드로 유지되어야 함!
+        assertEquals(2, list.size)
+        assertEquals("KODEX SK하이닉스단일종목레버리지 📈", list[0].title)
+        assertEquals("SK이터닉스 📉", list[1].title)
+    }
 }

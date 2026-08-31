@@ -35,12 +35,7 @@ object NotificationRepository {
 
     fun addOrUpdateNotification(notification: EdgeNotification) {
         _notifications.update { list ->
-            val existing = list.firstOrNull { 
-                it.key == notification.key || 
-                (it.packageName == notification.packageName && 
-                 (it.title == notification.title || (it.subText != null && it.subText == notification.subText)) && 
-                 notification.title.isNotBlank())
-            }
+            val existing = list.firstOrNull { isSameConversationOrNotification(it, notification) }
 
             val mergedMessages = if (existing != null) {
                 val combined = existing.messages.toMutableList()
@@ -80,12 +75,7 @@ object NotificationRepository {
                 isDismissed = false
             )
 
-            val filteredList = list.filterNot { 
-                it.key == notification.key || 
-                (it.packageName == notification.packageName && 
-                 (it.title == notification.title || (it.subText != null && it.subText == notification.subText)) && 
-                 notification.title.isNotBlank())
-            }
+            val filteredList = list.filterNot { isSameConversationOrNotification(it, notification) }
 
             (listOf(updatedNotification) + filteredList).take(MAX_HISTORY_COUNT)
         }
@@ -240,5 +230,22 @@ object NotificationRepository {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun isSameConversationOrNotification(a: EdgeNotification, b: EdgeNotification): Boolean {
+        if (a.key == b.key) return true
+        if (a.packageName != b.packageName) return false
+
+        // 1. 단체방인 경우: 방 제목(title) 또는 subText가 일치하면 같은 단체방으로 병합
+        if (a.isGroupChat && b.isGroupChat) {
+            if (a.title.isNotBlank() && a.title == b.title) return true
+            if (!a.subText.isNullOrBlank() && a.subText == b.subText) return true
+            return false
+        }
+
+        // 2. 일반 알림(토스증권 종목 알림, 뉴스, 시스템 알림 등) 또는 1:1 개인 대화:
+        // subText("토스증권" 등)가 우연히 같다고 해서 서로 다른 종목/제목의 알림을 병합하면 안 되며,
+        // 제목(title)이 정확히 일치할 때만 동일 알림/동일 대화방으로 갱신
+        return a.title.isNotBlank() && a.title == b.title
     }
 }

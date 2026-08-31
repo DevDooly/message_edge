@@ -356,6 +356,15 @@ graph TD
   - `NotificationRepository.kt`: 본인이 작성한 답장 메시지가 최신 메시지인 경우 새 알림 이벤트(라이팅/진동)를 방출하지 않고 기존 대화방에만 메시지를 안전하게 병합.
   - 단위 테스트(`MessengerNotificationParserTest.kt`, `NotificationRepositoryTest.kt`)에 인스타그램 실제 덤프 기반 본인 답장 알림 병합 테스트 추가 및 검증 완료.
 
+### 45) 토스증권 등 일반 알림 독립 종목 카드 분리 및 발신자 라벨 일관성 통일 (`v1.3.3`, Build 133)
+* **원인 및 문제**:
+  - `NotificationRepository.kt`에서 `subText`("토스증권")가 같다는 이유로 서로 다른 주식 종목 알림(예: `SK이터닉스 📉`, `KODEX SK하이닉스 📈`)이 단일 카드로 강제 병합됨.
+  - 이로 인해 첫 번째 종목은 Title로 가고 등락내용이 본문으로 가고, 이후 종목들은 `종목명: 등락내용` 형태로 뒤섞여 표시 형식의 통일성이 깨지던 문제.
+* **해결**:
+  - `NotificationRepository.kt`: `subText` 기반 병합을 `isGroupChat == true`인 단체방에만 한정 적용하고, 토스증권 등 일반 정보성 알림 및 1:1 대화는 제목(`title`)이 일치할 때만 병합하도록 개선하여 각 종목별 알림이 고유의 독립 카드로 온전히 유지.
+  - `EdgePanelContent.kt`: 복수 발신자/종목이 섞인 카드 렌더링 시 `hasMultipleSenders || isGroupChat` 조건을 적용하여 모든 메시지에 일관되게 `[종목/발신자]: [등락내용]` 형식으로 통일.
+  - 단위 테스트(`NotificationRepositoryTest.kt`)에 토스증권 서로 다른 종목 알림 독립 카드 유지 테스트 추가 및 검증 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -364,9 +373,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.2`)
-   - `AppUpdateCard(currentVersionName = "1.3.2")`
-   - `AppInfoCard` (예: `버전 1.3.2 (Build 132) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.3`)
+   - `AppUpdateCard(currentVersionName = "1.3.3")`
+   - `AppInfoCard` (예: `버전 1.3.3 (Build 133) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
