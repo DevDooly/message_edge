@@ -28,5 +28,20 @@ class AppSettingsTest {
         assertEquals("default", settings.selectedFont)
         assertTrue(settings.hapticFeedbackEnabled)
         assertTrue(settings.excludedPackages.isEmpty())
+        assertTrue(settings.discoveredAppPackages.isEmpty())
+        assertTrue(settings.blockedKeywords.isEmpty())
+    }
+
+    @Test
+    fun `verify AppSettings with custom filter keywords and packages`() {
+        val settings = AppSettings(
+            excludedPackages = setOf("com.spam.app"),
+            discoveredAppPackages = setOf("com.spam.app", "com.kakao.talk"),
+            blockedKeywords = setOf("광고", "특가", "스팸")
+        )
+
+        assertTrue(settings.excludedPackages.contains("com.spam.app"))
+        assertEquals(2, settings.discoveredAppPackages.size)
+        assertTrue(settings.blockedKeywords.contains("광고"))
     }
 }

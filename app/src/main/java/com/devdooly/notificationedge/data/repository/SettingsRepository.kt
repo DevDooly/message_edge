@@ -43,6 +43,8 @@ class SettingsRepository(private val context: Context) {
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
         val PAUSE_MEDIA_ON_OPEN = booleanPreferencesKey("pause_media_on_open")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
+        val DISCOVERED_APP_PACKAGES = stringSetPreferencesKey("discovered_app_packages")
+        val BLOCKED_KEYWORDS = stringSetPreferencesKey("blocked_keywords")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -65,7 +67,9 @@ class SettingsRepository(private val context: Context) {
             selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: "default",
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
             pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: true,
-            excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet()
+            excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet(),
+            discoveredAppPackages = prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] ?: emptySet(),
+            blockedKeywords = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: emptySet()
         )
     }
 
@@ -156,6 +160,40 @@ class SettingsRepository(private val context: Context) {
             } else {
                 current - packageName
             }
+        }
+    }
+
+    suspend fun addDiscoveredPackage(packageName: String) {
+        if (packageName.isBlank()) return
+        context.dataStore.edit { prefs ->
+            val current = prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] ?: emptySet()
+            if (!current.contains(packageName)) {
+                prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] = current + packageName
+            }
+        }
+    }
+
+    suspend fun clearDiscoveredPackages() {
+        context.dataStore.edit { prefs ->
+            prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] = emptySet()
+        }
+    }
+
+    suspend fun addBlockedKeyword(keyword: String) {
+        val trimmed = keyword.trim()
+        if (trimmed.isBlank()) return
+        context.dataStore.edit { prefs ->
+            val current = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: emptySet()
+            prefs[PreferencesKeys.BLOCKED_KEYWORDS] = current + trimmed
+        }
+    }
+
+    suspend fun removeBlockedKeyword(keyword: String) {
+        val trimmed = keyword.trim()
+        if (trimmed.isBlank()) return
+        context.dataStore.edit { prefs ->
+            val current = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: emptySet()
+            prefs[PreferencesKeys.BLOCKED_KEYWORDS] = current - trimmed
         }
     }
 }

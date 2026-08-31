@@ -365,6 +365,17 @@ graph TD
   - `EdgePanelContent.kt`: 복수 발신자/종목이 섞인 카드 렌더링 시 `hasMultipleSenders || isGroupChat` 조건을 적용하여 모든 메시지에 일관되게 `[종목/발신자]: [등락내용]` 형식으로 통일.
   - 단위 테스트(`NotificationRepositoryTest.kt`)에 토스증권 서로 다른 종목 알림 독립 카드 유지 테스트 추가 및 검증 완료.
 
+### 46) 알림 필터링 & 제외 관리 (수신된 앱별 제외 및 특정 키워드 차단) (`v1.3.4`, Build 134)
+* **요구사항**:
+  - 알림이 도착한 앱들을 실시간으로 자동 리스트업하여 수신 기록 관리.
+  - 설정 화면에서 수신 기록된 앱들 중 원하는 앱을 손쉽게 알림 제외(차단)할 수 있는 토글 UI 제공.
+  - 특정 차단 키워드(예: "광고", "스팸", "대출")를 등록하여 제목, 본문, 대화 메시지에 포함될 경우 알림 표시 및 엣지 라이팅을 차단하는 기능 추가.
+* **해결**:
+  - `AppSettings.kt` & `SettingsRepository.kt`: `discoveredAppPackages`, `excludedPackages`, `blockedKeywords` DataStore 상태 관리 및 추가/삭제 API 구현.
+  - `NotificationListener.kt`: 알림 수신 시 `discoveredAppPackages`에 패키지명을 자동 누적하고, `excludedPackages` 및 `blockedKeywords` 조건에 걸리는 알림을 선별 필터링.
+  - `SettingsScreen.kt`: One UI 스타일의 `NotificationFilterSettingsCard` 추가 (수신 앱 리스트 토글, 기록 비우기, 키워드 입력 및 Chip 태그 관리).
+  - 단위 테스트(`AppSettingsTest.kt`, `SettingsRepositoryTest.kt`)에 필터링 및 키워드/앱 제외 동작 테스트 추가 및 검증 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -373,9 +384,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.3`)
-   - `AppUpdateCard(currentVersionName = "1.3.3")`
-   - `AppInfoCard` (예: `버전 1.3.3 (Build 133) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.4`)
+   - `AppUpdateCard(currentVersionName = "1.3.4")`
+   - `AppInfoCard` (예: `버전 1.3.4 (Build 134) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

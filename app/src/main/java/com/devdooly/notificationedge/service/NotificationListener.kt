@@ -9,11 +9,38 @@ import android.os.Build
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
+import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.NotificationActionItem
 import com.devdooly.notificationedge.data.repository.NotificationRepository
+import com.devdooly.notificationedge.data.repository.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class NotificationListener : NotificationListenerService() {
+
+    private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private lateinit var settingsRepo: SettingsRepository
+    private var currentSettings: AppSettings = AppSettings()
+
+    override fun onCreate() {
+        super.onCreate()
+        settingsRepo = SettingsRepository(applicationContext)
+        serviceScope.launch {
+            settingsRepo.settingsFlow.collect {
+                currentSettings = it
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
+    }
 
     override fun onListenerConnected() {
         super.onListenerConnected()
@@ -66,6 +93,18 @@ class NotificationListener : NotificationListenerService() {
         val packageName = sbn.packageName
         // 본인 앱의 포그라운드 서비스 알림 등은 제외
         if (packageName == applicationContext.packageName) return
+
+        // 0. 수신된 앱 목록(발견된 앱)에 자동 누적
+        serviceScope.launch {
+            try {
+                settingsRepo.addDiscoveredPackage(packageName)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        // 0-1. 사용자가 알림 제외(차단)로 지정한 앱 필터링
+        if (currentSettings.excludedPackages.contains(packageName)) return
 
         val notification = sbn.notification ?: return
         val extras = notification.extras ?: return
@@ -137,6 +176,20 @@ class NotificationListener : NotificationListenerService() {
             com.devdooly.notificationedge.util.NotificationTextCleaner.formatGroupTitle(parsed.roomTitle)
         } else {
             parsed.roomTitle
+        }
+
+        // 5. 특정 차단 키워드 필터링 (제목, 본문, 대화 메시지에 차단 키워드가 포함된 경우 알림 제외)
+        val blockedKeywords = currentSettings.blockedKeywords
+        if (blockedKeywords.isNotEmpty()) {
+            val contentToInspect = buildString {
+                append(formattedTitle).append(" ")
+                append(parsed.cleanText).append(" ")
+                parsed.messages.forEach { append(it.sender).append(" ").append(it.text).append(" ") }
+            }
+            val isBlocked = blockedKeywords.any { kw ->
+                kw.isNotBlank() && contentToInspect.contains(kw.trim(), ignoreCase = true)
+            }
+            if (isBlocked) return
         }
 
         val pm = applicationContext.packageManager

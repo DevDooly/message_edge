@@ -40,4 +40,19 @@ class SettingsRepositoryTest {
         repository.updateLaunchDirectToPanel(true)
         assertTrue(repository.isLaunchDirectToPanelSync())
     }
+
+    @Test
+    fun `discovered packages and excluded packages operations should update state correctly`() = runTest {
+        repository.addDiscoveredPackage("com.kakao.talk")
+        repository.addDiscoveredPackage("com.google.android.gm")
+
+        repository.setPackageExcluded("com.kakao.talk", true)
+    }
+
+    @Test
+    fun `blocked keywords add and remove operations should update state correctly`() = runTest {
+        repository.addBlockedKeyword("광고")
+        repository.addBlockedKeyword("스팸")
+        repository.removeBlockedKeyword("스팸")
+    }
 }
