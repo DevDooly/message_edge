@@ -12,7 +12,7 @@ class AppSettingsTest {
         val settings = AppSettings()
 
         assertTrue(settings.isServiceEnabled)
-        assertEquals(EdgeSide.RIGHT, settings.edgeSide)
+        assertEquals(EdgeSide.LEFT, settings.edgeSide)
         assertEquals(0.5f, settings.handlePositionRatio, 0.001f)
         assertEquals(8, settings.handleWidthDp)
         assertEquals(110, settings.handleHeightDp)
@@ -20,7 +20,7 @@ class AppSettingsTest {
         assertEquals(0.75f, settings.handleAlpha, 0.001f)
         assertTrue(settings.isHandleVisible)
         assertTrue(settings.launchDirectToPanel)
-        assertEquals(280, settings.panelWidthDp)
+        assertEquals(260, settings.panelWidthDp)
         assertTrue(settings.autoDismissOnOpen)
         assertTrue(settings.isEdgeLightingEnabled)
         assertEquals(3000L, settings.edgeLightingDurationMs)

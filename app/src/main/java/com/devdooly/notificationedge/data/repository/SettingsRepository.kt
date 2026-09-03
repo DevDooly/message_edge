@@ -59,7 +59,7 @@ class SettingsRepository(private val context: Context) {
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
         AppSettings(
             isServiceEnabled = prefs[PreferencesKeys.SERVICE_ENABLED] ?: true,
-            edgeSide = if ((prefs[PreferencesKeys.EDGE_SIDE] ?: 1) == 0) EdgeSide.LEFT else EdgeSide.RIGHT,
+            edgeSide = if ((prefs[PreferencesKeys.EDGE_SIDE] ?: 0) == 0) EdgeSide.LEFT else EdgeSide.RIGHT,
             handlePositionRatio = prefs[PreferencesKeys.HANDLE_POS_RATIO] ?: 0.5f,
             handleWidthDp = prefs[PreferencesKeys.HANDLE_WIDTH_DP] ?: 8,
             handleHeightDp = prefs[PreferencesKeys.HANDLE_HEIGHT_DP] ?: 110,
@@ -67,7 +67,7 @@ class SettingsRepository(private val context: Context) {
             handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
             isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
             launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
-            panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: 280,
+            panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: 260,
             autoDismissOnOpen = prefs[PreferencesKeys.AUTO_DISMISS_ON_OPEN] ?: true,
             isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
             edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,

@@ -463,6 +463,12 @@ graph TD
     - **바깥 투명 영역 터치 / X 버튼 / 엣지 핸들 재터치**: 즉시 닫힘 100.0% 보장.
   - **유튜브 PiP 현황 유지**: 사용자 요청에 따라 무리한 강제 우회 로직을 배제하고 안전한 상태로 보존.
 
+### 55) 엣지 핸들 초기 위치 왼쪽(LEFT) 및 패널 너비 기본값 260dp 변경 (`v1.3.13`, Build 143)
+* **요구사항 및 변경 내용**:
+  - **엣지 핸들 초기 위치 기본값 변경**: `AppSettings.edgeSide` 기본값 및 `SettingsRepository` DataStore 미설정 시의 초기 폴백 값을 기존 `EdgeSide.RIGHT`(오른쪽)에서 `EdgeSide.LEFT`(왼쪽)으로 변경.
+  - **패널 가로 너비 기본값 최적화**: `AppSettings.panelWidthDp` 및 `EdgePanelContent` 컴포저블 기본값을 기존 280dp에서 260dp로 변경.
+  - `AppSettingsTest` 단위 테스트 검증 케이스 동기화 완료.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -471,9 +477,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.12`)
-   - `AppUpdateCard(currentVersionName = "1.3.12")`
-   - `AppInfoCard` (예: `버전 1.3.12 (Build 142) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.13`)
+   - `AppUpdateCard(currentVersionName = "1.3.13")`
+   - `AppInfoCard` (예: `버전 1.3.13 (Build 143) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

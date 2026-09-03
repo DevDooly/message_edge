@@ -75,7 +75,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun EdgePanelContent(
     edgeSide: EdgeSide,
-    panelWidthDp: Int = 280,
+    panelWidthDp: Int = 260,
     autoDismissOnOpen: Boolean = true,
     onClose: () -> Unit,
     onOpenSettings: () -> Unit,
