@@ -414,6 +414,16 @@ graph TD
   - **일시정지 유무 설정 관리**: "패널 열릴 때 유튜브 일시 정지" 옵션(`pauseMediaOnOpen`) 기본값을 **OFF(`false`)**로 변경하여, 사용자가 원할 때만 명시적으로 켤 수 있도록 제어권 제공.
   - **5중 닫기/뒤로가기 보장**: 바깥 화면 터치(0ms), 엣지 핸들 재터치, 패널 드래그 밀어내기, 상단 X 버튼, Android 13/14 `OnBackInvokedDispatcher` 완벽 지원.
 
+### 51) 네비게이션 홈/뒤로가기/최근앱 100% 즉시 닫힘 및 PiP 원천 차단 완결 (`v1.3.9`, Build 139)
+* **원인 및 문제**:
+  - 오버레이 윈도우 환경에서 하단 소프트키(뒤로가기, 홈, 최근앱) 및 제스처 동작 시 패널이 닫히지 않고 화면에 고정되어 남던 현상.
+  - 뒤로가기가 동작하지 않아 홈/최근앱을 누르는 과정에서 OS가 백그라운드 유튜브를 PiP로 전환시키거나, 런처 액티비티(`MainActivity`) 실행 시 태스크 스위치로 인식되어 PiP가 발동하던 문제.
+* **해결**:
+  - **`OverlayPanelRootLayout` 신설**: WindowManager 직속 루트 `FrameLayout`에서 `dispatchKeyEvent` 및 `dispatchKeyEventPreIme`를 오버라이드하여 **소프트키 뒤로가기, 키보드 뒤로가기, ESC 키, Android 13+ 제스처 네비게이션 뒤로가기(OnBackInvokedCallback)를 100.0% 가로채어 즉각 닫힘 보장**.
+  - **`ACTION_CLOSE_SYSTEM_DIALOGS` 리시버 바인딩**: 시스템 네비게이션 **홈(Home) 버튼** 및 **최근앱(Recent Apps) 버튼** 입력 시 즉각 패널을 닫도록 브로드캐스트 리시버 연동.
+  - **윈도우 레이아웃 최적화**: `FLAG_LAYOUT_NO_LIMITS`를 제거하고 `FLAG_LAYOUT_IN_SCREEN`을 적용하여 시스템 네비게이션 바 영역의 터치/키 이벤트가 방해받지 않도록 개선.
+  - **런처 트램펄린 PiP 방지 강화**: `MainActivity` 및 `OpenPanelActivity`의 `taskAffinity=""` 설정 및 `windowIsFloating=true` 적용으로 런처 실행 시에도 OS 레벨 태스크 전환 판정을 차단하여 유튜브 PiP 방지 완결.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -422,9 +432,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.8`)
-   - `AppUpdateCard(currentVersionName = "1.3.8")`
-   - `AppInfoCard` (예: `버전 1.3.8 (Build 138) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.9`)
+   - `AppUpdateCard(currentVersionName = "1.3.9")`
+   - `AppInfoCard` (예: `버전 1.3.9 (Build 139) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

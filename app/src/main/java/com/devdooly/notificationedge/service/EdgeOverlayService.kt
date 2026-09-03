@@ -6,8 +6,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Color as AndroidColor
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
@@ -32,6 +34,7 @@ import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
 import com.devdooly.notificationedge.ui.overlay.EdgePanelContent
+import com.devdooly.notificationedge.ui.overlay.OverlayPanelRootLayout
 import com.devdooly.notificationedge.ui.settings.SettingsActivity
 import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 import com.devdooly.notificationedge.util.MediaControlHelper
@@ -57,6 +60,7 @@ class EdgeOverlayService : Service() {
     private var panelLifecycleOwner: OverlayLifecycleOwner? = null
     private var lightingComposeView: ComposeView? = null
     private var lightingLifecycleOwner: OverlayLifecycleOwner? = null
+    private var systemDialogReceiver: BroadcastReceiver? = null
 
     private var currentSettings = AppSettings()
 
@@ -310,6 +314,39 @@ class EdgeOverlayService : Service() {
         }
     }
 
+    private fun registerSystemDialogReceiver() {
+        if (systemDialogReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_CLOSE_SYSTEM_DIALOGS) {
+                    closePanel()
+                }
+            }
+        }
+        systemDialogReceiver = receiver
+        val filter = IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                registerReceiver(receiver, filter)
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+    }
+
+    private fun unregisterSystemDialogReceiver() {
+        systemDialogReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                // ignore
+            }
+            systemDialogReceiver = null
+        }
+    }
+
     private fun openPanel() {
         if (isPanelOpen) return
         isPanelOpen = true
@@ -329,8 +366,7 @@ class EdgeOverlayService : Service() {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             layoutFlag,
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -347,26 +383,14 @@ class EdgeOverlayService : Service() {
         val lifecycleOwner = OverlayLifecycleOwner()
         panelLifecycleOwner = lifecycleOwner
 
+        val rootLayout = OverlayPanelRootLayout(this).apply {
+            setBackgroundColor(AndroidColor.TRANSPARENT)
+            onClose = { closePanel() }
+        }
+
         val composeView = ComposeView(this).apply {
             setBackgroundColor(AndroidColor.TRANSPARENT)
             lifecycleOwner.attachToView(this)
-            isFocusableInTouchMode = true
-
-            // Android 13+ 제스처 네비게이션 뒤로가기 감지
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
-                    android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY
-                ) {
-                    closePanel()
-                }
-            }
-
-            setOnKeyListener { _, keyCode, event ->
-                if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) && event.action == KeyEvent.ACTION_UP) {
-                    closePanel()
-                    true
-                } else false
-            }
 
             setContent {
                 NotificationEdgeTheme(
@@ -394,23 +418,34 @@ class EdgeOverlayService : Service() {
             }
         }
 
-        panelComposeView = composeView
+        rootLayout.addView(
+            composeView,
+            android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
+
+        panelComposeView = rootLayout
         lifecycleOwner.onCreate()
+        registerSystemDialogReceiver()
 
         try {
-            windowManager.addView(composeView, params)
-            composeView.post {
-                composeView.requestFocus()
+            windowManager.addView(rootLayout, params)
+            rootLayout.post {
+                rootLayout.requestFocus()
             }
         } catch (e: Exception) {
             e.printStackTrace()
             isPanelOpen = false
+            unregisterSystemDialogReceiver()
         }
     }
 
     private fun closePanel() {
         if (!isPanelOpen) return
         isPanelOpen = false
+        unregisterSystemDialogReceiver()
 
         val view = panelComposeView
         val owner = panelLifecycleOwner

@@ -42,7 +42,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
-            android:taskAffinity="com.devdooly.notificationedge.launcher"
+            android:taskAffinity=""
             android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true">
@@ -80,7 +80,7 @@
             android:exported="true"
             android:label="@string/open_panel_activity_label"
             android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
-            android:taskAffinity="com.devdooly.notificationedge.openpanel"
+            android:taskAffinity=""
             android:launchMode="singleInstance"
             android:noHistory="true"
             android:excludeFromRecents="true">
