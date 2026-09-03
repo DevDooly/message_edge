@@ -19,14 +19,13 @@ class OpenPanelActivity : Activity() {
         super.onCreate(savedInstanceState)
 
         if (Settings.canDrawOverlays(this)) {
-            if (com.devdooly.notificationedge.ui.overlay.EdgePanelActivity.isInstanceActive) {
-                com.devdooly.notificationedge.ui.overlay.EdgePanelActivity.closeActiveInstance()
+            val serviceIntent = Intent(this, EdgeOverlayService::class.java).apply {
+                action = EdgeOverlayService.ACTION_TOGGLE_PANEL
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
             } else {
-                com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
-                val panelIntent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-                startActivity(panelIntent)
+                startService(serviceIntent)
             }
         } else {
             Toast.makeText(this, "Notification Edge 권한 설정이 필요합니다.", Toast.LENGTH_SHORT).show()

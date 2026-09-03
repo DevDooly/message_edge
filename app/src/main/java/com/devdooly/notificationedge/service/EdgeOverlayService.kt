@@ -17,6 +17,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -30,7 +31,10 @@ import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
-import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
+import com.devdooly.notificationedge.ui.overlay.EdgePanelContent
+import com.devdooly.notificationedge.ui.settings.SettingsActivity
+import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
+import com.devdooly.notificationedge.util.MediaControlHelper
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +53,8 @@ class EdgeOverlayService : Service() {
     private lateinit var settingsRepository: SettingsRepository
 
     private var handleView: View? = null
+    private var panelComposeView: View? = null
+    private var panelLifecycleOwner: OverlayLifecycleOwner? = null
     private var lightingComposeView: ComposeView? = null
     private var lightingLifecycleOwner: OverlayLifecycleOwner? = null
 
@@ -70,12 +76,10 @@ class EdgeOverlayService : Service() {
         when (intent?.action) {
             ACTION_OPEN_PANEL -> {
                 triggerHaptic()
-                if (!EdgePanelActivity.isInstanceActive) {
-                    openPanel()
-                }
+                openPanel()
             }
             ACTION_CLOSE_PANEL -> {
-                EdgePanelActivity.closeActiveInstance()
+                closePanel()
             }
             ACTION_TOGGLE_PANEL -> {
                 triggerHaptic()
@@ -299,21 +303,149 @@ class EdgeOverlayService : Service() {
     }
 
     private fun togglePanel() {
-        if (EdgePanelActivity.isInstanceActive) {
-            EdgePanelActivity.closeActiveInstance()
+        if (isPanelOpen) {
+            closePanel()
         } else {
             openPanel()
         }
     }
 
     private fun openPanel() {
+        if (isPanelOpen) return
+        isPanelOpen = true
+
         if (currentSettings.pauseMediaOnOpen) {
-            com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
+            MediaControlHelper.pauseYouTubeOnly(this)
         }
-        val intent = Intent(this, EdgePanelActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+
+        val layoutFlag = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            @Suppress("DEPRECATION")
+            WindowManager.LayoutParams.TYPE_PHONE
         }
-        startActivity(intent)
+
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            layoutFlag,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            PixelFormat.TRANSLUCENT
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            windowAnimations = 0
+            format = PixelFormat.TRANSLUCENT
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
+        }
+
+        val lifecycleOwner = OverlayLifecycleOwner()
+        panelLifecycleOwner = lifecycleOwner
+
+        val composeView = ComposeView(this).apply {
+            setBackgroundColor(AndroidColor.TRANSPARENT)
+            lifecycleOwner.attachToView(this)
+            isFocusableInTouchMode = true
+
+            // Android 13+ 제스처 네비게이션 뒤로가기 감지
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
+                    android.window.OnBackInvokedDispatcher.PRIORITY_OVERLAY
+                ) {
+                    closePanel()
+                }
+            }
+
+            setOnKeyListener { _, keyCode, event ->
+                if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) && event.action == KeyEvent.ACTION_UP) {
+                    closePanel()
+                    true
+                } else false
+            }
+
+            setContent {
+                NotificationEdgeTheme(
+                    fontId = currentSettings.selectedFont,
+                    transparentStatusBar = true
+                ) {
+                    EdgePanelContent(
+                        edgeSide = currentSettings.edgeSide,
+                        panelWidthDp = currentSettings.panelWidthDp,
+                        autoDismissOnOpen = currentSettings.autoDismissOnOpen,
+                        onClose = { closePanel() },
+                        onOpenSettings = {
+                            closePanel()
+                            val settingsIntent = Intent(this@EdgeOverlayService, SettingsActivity::class.java).apply {
+                                putExtra(SettingsActivity.EXTRA_OPEN_SETTINGS, true)
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            }
+                            startActivity(settingsIntent)
+                        },
+                        onRequestFocus = { focusable ->
+                            setPanelFocusable(focusable)
+                        }
+                    )
+                }
+            }
+        }
+
+        panelComposeView = composeView
+        lifecycleOwner.onCreate()
+
+        try {
+            windowManager.addView(composeView, params)
+            composeView.post {
+                composeView.requestFocus()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            isPanelOpen = false
+        }
+    }
+
+    private fun closePanel() {
+        if (!isPanelOpen) return
+        isPanelOpen = false
+
+        val view = panelComposeView
+        val owner = panelLifecycleOwner
+        panelComposeView = null
+        panelLifecycleOwner = null
+
+        if (view != null) {
+            view.visibility = View.GONE
+            try {
+                windowManager.removeViewImmediate(view)
+            } catch (e: Exception) {
+                try {
+                    windowManager.removeView(view)
+                } catch (e2: Exception) {
+                    e2.printStackTrace()
+                }
+            }
+        }
+        owner?.onDestroy()
+    }
+
+    private fun setPanelFocusable(focusable: Boolean) {
+        val view = panelComposeView ?: return
+        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+        if (focusable) {
+            params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+            params.softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        } else {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+        }
+        try {
+            windowManager.updateViewLayout(view, params)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun showEdgeLighting() {
@@ -387,6 +519,7 @@ class EdgeOverlayService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         removeHandleView()
+        closePanel()
         removeEdgeLighting()
         serviceScope.cancel()
     }
@@ -396,5 +529,9 @@ class EdgeOverlayService : Service() {
         const val ACTION_OPEN_PANEL = "com.devdooly.notificationedge.ACTION_OPEN_PANEL"
         const val ACTION_CLOSE_PANEL = "com.devdooly.notificationedge.ACTION_CLOSE_PANEL"
         const val ACTION_TOGGLE_PANEL = "com.devdooly.notificationedge.ACTION_TOGGLE_PANEL"
+
+        @Volatile
+        var isPanelOpen: Boolean = false
+            private set
     }
 }

@@ -404,6 +404,16 @@ graph TD
   5. `SettingsRepository.kt`: 스레드 안전 싱글톤 팩토리(`getInstance`) 도입으로 컴포넌트 간 인스턴스 중복 할당 제거.
   6. `SettingsActivity.kt` / `SettingsScreen.kt` / `EdgePanelActivity.kt`: Jetpack Compose 생명주기 안전 상태 수집(`collectAsStateWithLifecycle`) 도입으로 백그라운드 불필요 리컴포지션 방지.
 
+### 50) 유튜브 PiP 원천 차단(순수 WindowManager 오버레이 전환) 및 일시정지 제어 (`v1.3.8`, Build 138)
+* **원인 및 문제**:
+  - `EdgePanelActivity`(투명 액티비티)가 실행될 때 안드로이드 OS의 ActivityTaskManager가 YouTube 앱의 포커스 상실을 감지하고 `autoEnterEnabled=true`를 강제 발동하여 작은 PiP 팝업 창을 띄움.
+  - 또한 이전 `pauseMediaOnOpen=true` 기본값 설정으로 인해 패널이 열릴 때마다 유튜브 영상/소리가 강제로 멈추던 현상 발생.
+* **해결**:
+  - **순수 WindowManager 오버레이(`TYPE_APPLICATION_OVERLAY`) 아키텍처 전환**: `EdgeOverlayService`에서 `EdgePanelContent`를 직접 WindowManager 오버레이로 렌더링하도록 개편. 액티비티를 띄우지 않으므로 YouTube가 최상단 포그라운드(`RESUMED`) 상태를 100% 유지하여 **안드로이드 OS의 PiP 모드 자동 진입을 원천 차단**.
+  - **유튜브 백그라운드 끊김 없는 연속 재생**: 패널 뒤에서 유튜브 영상과 소리가 멈춤 없이 계속 재생.
+  - **일시정지 유무 설정 관리**: "패널 열릴 때 유튜브 일시 정지" 옵션(`pauseMediaOnOpen`) 기본값을 **OFF(`false`)**로 변경하여, 사용자가 원할 때만 명시적으로 켤 수 있도록 제어권 제공.
+  - **5중 닫기/뒤로가기 보장**: 바깥 화면 터치(0ms), 엣지 핸들 재터치, 패널 드래그 밀어내기, 상단 X 버튼, Android 13/14 `OnBackInvokedDispatcher` 완벽 지원.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -412,9 +422,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.7`)
-   - `AppUpdateCard(currentVersionName = "1.3.7")`
-   - `AppInfoCard` (예: `버전 1.3.7 (Build 137) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.8`)
+   - `AppUpdateCard(currentVersionName = "1.3.8")`
+   - `AppInfoCard` (예: `버전 1.3.8 (Build 138) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

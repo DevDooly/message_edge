@@ -29,20 +29,21 @@
        │  ├─ StateFlow<List<EdgeNotification>> (In-Memory Hot Stream)
        │  └─ SharedFlow<EdgeNotification> (신규 알림 이벤트 방출)
        ▼
-[EdgeOverlayService] / [EdgePanelActivity] (Jetpack Compose UI)
-       │  ├─ EdgeOverlayService : 플로팅 핸들 Window & 엣지 라이팅 ComposeView
-       │  └─ EdgePanelActivity  : 100% OS 뒤로가기 보장 완전 투명 호스트 패널
+[EdgeOverlayService] (Jetpack Compose UI)
+       │  ├─ 플로팅 핸들 Window & 엣지 라이팅 ComposeView
+       │  └─ 엣지 패널 Overlay Window (TYPE_APPLICATION_OVERLAY): 유튜브 PiP 100% 원천 차단 및 연속 재생
 ```
 
 ### 2) 상태 영속화 (Persistence)
-* **`SettingsRepository`**: Jetpack DataStore Preferences 기반.
+* **`SettingsRepository`**: Jetpack DataStore Preferences 기반 스레드 안전 싱글톤.
 * **`AppSettings`**: 불변(Immutable) Data Class 모델. `settingsFlow: Flow<AppSettings>`로 전체 앱에 상태 브로드캐스팅.
 
 ### 3) 엣지 패널 윈도우 & 생명주기 관리
-* **`EdgePanelActivity`**: `Theme.NotificationEdge.TranslucentPanel` 테마 기반의 투명 액티비티.
-  - OS 네비게이션 뒤로가기(하단 바 및 화면 제스처) 콜백을 100% 수신 및 보장.
-  - 패널 활성화 상태를 싱글톤(`isInstanceActive`)으로 추적하여 핸들 재터치 시 즉시 토글 닫기(`closeActiveInstance()`) 수행.
-* **`MainActivity`**: `Theme.NotificationEdge.TranslucentLauncher` 무화면 트램펄린. 0ms만에 패널 또는 설정을 열고 즉시 `finish()`.
+* **`EdgeOverlayService`**: 시스템 오버레이 윈도우(`TYPE_APPLICATION_OVERLAY`) 기반 직접 렌더링.
+  - 액티비티를 띄우지 않아 포그라운드 앱(YouTube)의 `autoEnterEnabled` PiP 모드 진입을 100% 원천 차단.
+  - 패널 뒤에서 유튜브 영상 및 소리가 멈춤 없이 100% 연속 재생.
+  - 바깥 터치(0ms), 엣지 핸들 재터치 토글, 패널 밀어내기 드래그, Android 13/14 `OnBackInvokedDispatcher`로 5중 닫기 지원.
+* **`MainActivity` / `OpenPanelActivity`**: 0ms 무화면 트램펄린으로 서비스에 `ACTION_TOGGLE_PANEL`을 전송하고 즉시 `finish()`.
 
 ---
 
@@ -130,9 +131,9 @@ app/src/main/java/com/devdooly/notificationedge/
 ### 2) 버전 판올림 시 동기화 체크리스트 (4곳 필수 동기화)
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.7`)
-   - `AppUpdateCard(currentVersionName = "1.3.7")`
-   - `AppInfoCard` (예: `버전 1.3.7 (Build 137) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.8`)
+   - `AppUpdateCard(currentVersionName = "1.3.8")`
+   - `AppInfoCard` (예: `버전 1.3.8 (Build 138) | Target Android 14`)
 3. `docs/DEVELOPMENT_REFERENCE.md`: 최신 릴리즈 내역 및 체크리스트 갱신
 4. `AGY.md`: 현재 기준 버전 명시
 

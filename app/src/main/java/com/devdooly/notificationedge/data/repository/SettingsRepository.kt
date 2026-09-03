@@ -75,7 +75,7 @@ class SettingsRepository(private val context: Context) {
             edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
             selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: "default",
             hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
-            pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: true,
+            pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: false,
             excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet(),
             discoveredAppPackages = prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] ?: emptySet(),
             blockedKeywords = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: emptySet()

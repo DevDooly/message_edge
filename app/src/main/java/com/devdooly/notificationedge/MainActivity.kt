@@ -22,14 +22,13 @@ class MainActivity : Activity() {
         val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
 
         if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {
-            if (com.devdooly.notificationedge.ui.overlay.EdgePanelActivity.isInstanceActive) {
-                com.devdooly.notificationedge.ui.overlay.EdgePanelActivity.closeActiveInstance()
+            val serviceIntent = Intent(this, EdgeOverlayService::class.java).apply {
+                action = EdgeOverlayService.ACTION_TOGGLE_PANEL
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent)
             } else {
-                com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
-                val panelIntent = Intent(this, com.devdooly.notificationedge.ui.overlay.EdgePanelActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-                startActivity(panelIntent)
+                startService(serviceIntent)
             }
         } else {
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {

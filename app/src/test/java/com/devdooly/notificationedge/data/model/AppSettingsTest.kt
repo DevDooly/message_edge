@@ -1,6 +1,7 @@
 package com.devdooly.notificationedge.data.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -27,6 +28,7 @@ class AppSettingsTest {
         assertEquals(32, settings.edgeLightingCornerRadiusDp)
         assertEquals("default", settings.selectedFont)
         assertTrue(settings.hapticFeedbackEnabled)
+        assertFalse(settings.pauseMediaOnOpen)
         assertTrue(settings.excludedPackages.isEmpty())
         assertTrue(settings.discoveredAppPackages.isEmpty())
         assertTrue(settings.blockedKeywords.isEmpty())
