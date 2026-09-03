@@ -314,12 +314,23 @@ class EdgeOverlayService : Service() {
         }
     }
 
+    private var panelOpenedTimeMs: Long = 0L
+
     private fun registerSystemDialogReceiver() {
         if (systemDialogReceiver != null) return
+        panelOpenedTimeMs = System.currentTimeMillis()
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_CLOSE_SYSTEM_DIALOGS) {
-                    closePanel()
+                    val reason = intent.getStringExtra("reason")
+                    // 패널 오픈 직후 800ms 이내에 수신되는 시스템 잔여 브로드캐스트(앱 실행/전환 시)는 무시
+                    if (System.currentTimeMillis() - panelOpenedTimeMs < 800L) {
+                        return
+                    }
+                    // 사용자가 명시적으로 홈 버튼, 최근앱 버튼, 홈 제스처를 실행했을 때만 패널 닫기
+                    if (reason == "homekey" || reason == "recentapps" || reason == "fs_gesture") {
+                        closePanel()
+                    }
                 }
             }
         }
@@ -366,7 +377,8 @@ class EdgeOverlayService : Service() {
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             layoutFlag,
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -385,6 +397,7 @@ class EdgeOverlayService : Service() {
 
         val rootLayout = OverlayPanelRootLayout(this).apply {
             setBackgroundColor(AndroidColor.TRANSPARENT)
+            lifecycleOwner.attachToView(this)
             onClose = { closePanel() }
         }
 

@@ -421,8 +421,15 @@ graph TD
 * **해결**:
   - **`OverlayPanelRootLayout` 신설**: WindowManager 직속 루트 `FrameLayout`에서 `dispatchKeyEvent` 및 `dispatchKeyEventPreIme`를 오버라이드하여 **소프트키 뒤로가기, 키보드 뒤로가기, ESC 키, Android 13+ 제스처 네비게이션 뒤로가기(OnBackInvokedCallback)를 100.0% 가로채어 즉각 닫힘 보장**.
   - **`ACTION_CLOSE_SYSTEM_DIALOGS` 리시버 바인딩**: 시스템 네비게이션 **홈(Home) 버튼** 및 **최근앱(Recent Apps) 버튼** 입력 시 즉각 패널을 닫도록 브로드캐스트 리시버 연동.
-  - **윈도우 레이아웃 최적화**: `FLAG_LAYOUT_NO_LIMITS`를 제거하고 `FLAG_LAYOUT_IN_SCREEN`을 적용하여 시스템 네비게이션 바 영역의 터치/키 이벤트가 방해받지 않도록 개선.
-  - **런처 트램펄린 PiP 방지 강화**: `MainActivity` 및 `OpenPanelActivity`의 `taskAffinity=""` 설정 및 `windowIsFloating=true` 적용으로 런처 실행 시에도 OS 레벨 태스크 전환 판정을 차단하여 유튜브 PiP 방지 완결.
+
+### 52) 패널 오픈 직후 즉시 닫힘(앱 미실행) 방지 및 LifecycleOwner 완전 연동 (`v1.3.10`, Build 140)
+* **원인 및 문제**:
+  - `v1.3.9`에서 런처/Good Lock으로 앱을 켤 때 `MainActivity`가 종료되면서 안드로이드 OS가 브로드캐스트하는 `ACTION_CLOSE_SYSTEM_DIALOGS(reason="activity")`를 `EdgeOverlayService`가 즉시 수신하여 패널이 열리자마자 0.001초 만에 닫혀 사용자가 볼 때 앱이 아예 안 열리던 문제.
+  - `taskAffinity=""`와 `windowIsFloating=true` 설정으로 인해 일부 런처에서 액티비티 태스크 생성이 거부되던 문제.
+* **해결**:
+  - **`systemDialogReceiver` 800ms 디바운스 및 reason 필터링**: 패널이 열린 직후 800ms 이내에 들어오는 시스템 잔여 브로드캐스트를 무시하고, `reason`이 명시적인 홈 버튼(`"homekey"`), 최근앱(`"recentapps"`), 풀스크린 제스처(`"fs_gesture"`)일 때만 닫히도록 완벽 분기.
+  - **`OverlayLifecycleOwner` 루트 레이아웃 동시 바인딩**: `ComposeView`뿐만 아니라 최상단 `rootLayout`에도 `attachToView()`를 등록하여 Jetpack Compose 수명주기/상태 복원 100% 안정성 확보.
+  - **태스크 및 테마 원복**: `MainActivity`와 `OpenPanelActivity`의 `taskAffinity` 및 `windowIsFloating=false` 표준 런처 속성 복원으로 런처/Good Lock에서 100% 즉시 정상 구동 보장.
 
 ---
 
@@ -432,9 +439,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.9`)
-   - `AppUpdateCard(currentVersionName = "1.3.9")`
-   - `AppInfoCard` (예: `버전 1.3.9 (Build 139) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.10`)
+   - `AppUpdateCard(currentVersionName = "1.3.10")`
+   - `AppInfoCard` (예: `버전 1.3.10 (Build 140) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
