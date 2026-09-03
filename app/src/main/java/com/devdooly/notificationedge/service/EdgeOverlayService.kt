@@ -396,6 +396,7 @@ class EdgeOverlayService : Service() {
         panelLifecycleOwner = lifecycleOwner
 
         val rootLayout = OverlayPanelRootLayout(this).apply {
+            this.lifecycleOwner = lifecycleOwner
             setBackgroundColor(AndroidColor.TRANSPARENT)
             lifecycleOwner.attachToView(this)
             onClose = { closePanel() }

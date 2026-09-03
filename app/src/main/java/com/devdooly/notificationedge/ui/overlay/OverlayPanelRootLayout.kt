@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.widget.FrameLayout
 import android.window.OnBackInvokedCallback
 import android.window.OnBackInvokedDispatcher
+import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 
 /**
  * WindowManager 오버레이 윈도우 환경에서 하단 네비게이션 뒤로가기 버튼,
@@ -16,6 +17,7 @@ import android.window.OnBackInvokedDispatcher
 class OverlayPanelRootLayout(context: Context) : FrameLayout(context) {
 
     var onClose: (() -> Unit)? = null
+    var lifecycleOwner: OverlayLifecycleOwner? = null
 
     private var onBackInvokedCallback: OnBackInvokedCallback? = null
 
@@ -24,22 +26,34 @@ class OverlayPanelRootLayout(context: Context) : FrameLayout(context) {
         isFocusableInTouchMode = true
     }
 
+    private fun triggerBack() {
+        val handled = lifecycleOwner?.handleOnBackPressed() ?: false
+        if (!handled) {
+            onClose?.invoke()
+        }
+    }
+
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                onClose?.invoke()
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                event.startTracking()
+                if (event.repeatCount == 0) {
+                    triggerBack()
+                }
+                return true
+            } else if (event.action == KeyEvent.ACTION_UP) {
+                return true
             }
-            return true
         }
         return super.dispatchKeyEvent(event)
     }
 
     override fun dispatchKeyEventPreIme(event: KeyEvent): Boolean {
         if (event.keyCode == KeyEvent.KEYCODE_BACK || event.keyCode == KeyEvent.KEYCODE_ESCAPE) {
-            if (event.action == KeyEvent.ACTION_UP) {
-                onClose?.invoke()
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                triggerBack()
+                return true
             }
-            return true
         }
         return super.dispatchKeyEventPreIme(event)
     }
@@ -50,7 +64,7 @@ class OverlayPanelRootLayout(context: Context) : FrameLayout(context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 val callback = OnBackInvokedCallback {
-                    onClose?.invoke()
+                    triggerBack()
                 }
                 onBackInvokedCallback = callback
                 findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(

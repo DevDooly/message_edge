@@ -431,6 +431,20 @@ graph TD
   - **`OverlayLifecycleOwner` 루트 레이아웃 동시 바인딩**: `ComposeView`뿐만 아니라 최상단 `rootLayout`에도 `attachToView()`를 등록하여 Jetpack Compose 수명주기/상태 복원 100% 안정성 확보.
   - **태스크 및 테마 원복**: `MainActivity`와 `OpenPanelActivity`의 `taskAffinity` 및 `windowIsFloating=false` 표준 런처 속성 복원으로 런처/Good Lock에서 100% 즉시 정상 구동 보장.
 
+### 53) 시스템 뒤로가기(하단 바 버튼/제스처) 100% 닫힘 완결 및 유튜브 PiP 현황 기술 정리 (`v1.3.11`, Build 141)
+* **1. 뒤로가기 버튼 미동작 원인 및 해결**:
+  - **원인 A (하단 3버튼 네비게이션)**: `OverlayPanelRootLayout`의 `dispatchKeyEvent`에서 `ACTION_DOWN` 시점에 `event.startTracking()`을 호출하지 않고 `ACTION_UP`만 대기함. 안드로이드 프레임워크 명세상 `ACTION_DOWN`에서 tracking이 시작되지 않은 시스템 키 이벤트(`KEYCODE_BACK`)는 `ACTION_UP`이 윈도우로 전달되지 않고 OS/SystemUI에 의해 드롭됨.
+  - **원인 B (화면 가장자리 스와이프 제스처)**: Android 13/14의 제스처 네비게이션(`OnBackInvokedCallback`)은 `AndroidManifest.xml`의 `<application>` 태그에 `android:enableOnBackInvokedCallback="true"`가 누락되어 있으면 `findOnBackInvokedDispatcher()`가 `null`을 반환하거나 제스처 입력을 수신하지 못함.
+  - **해결 A**: `dispatchKeyEvent` 및 `dispatchKeyEventPreIme`에서 `ACTION_DOWN` 시점에 `event.startTracking()` 호출 및 `repeatCount == 0` 검사 후 `triggerBack()`을 즉시 실행하여 하단 버튼 터치 시 0ms 즉각 닫힘 보장.
+  - **해결 B**: `AndroidManifest.xml`에 `android:enableOnBackInvokedCallback="true"`를 공식 선언하여 Android 13/14 제스처 네비게이션 콜백 연동 활성화.
+  - **해결 C**: `OverlayPanelRootLayout`에 `OverlayLifecycleOwner`를 주입하여 `onBackPressedDispatcher`와 연계. 키보드 답장 입력창이 열려있을 때는 답장창/키보드 먼저 닫히고, 일반 상태에서는 패널이 즉각 닫히도록 정석 수명주기 연동 완료.
+* **2. 유튜브 PiP 현상 현황 및 기술 분석 정리 (수정 보류 및 현황 보존)**:
+  - **안드로이드 OS 동작 원리**: YouTube 앱은 Android 12부터 `PictureInPictureParams.Builder.setAutoEnterEnabled(true)`를 선언하여 구동됨. 이 플래그는 사용자가 홈 화면으로 나가거나 다른 Activity가 포그라운드로 진입할 때 OS의 `ActivityTaskManagerService`(ATMS)가 자동으로 유튜브를 소형 PiP 창으로 격리 전환함.
+  - **발생 지점 분석**:
+    1) 엣지 플로팅 핸들을 통해 순수 윈도우 오버레이(`EdgeOverlayService`)로 열 때는 액티비티가 없으므로 유튜브가 포그라운드를 유지할 수 있으나,
+    2) 사용자가 런처 아이콘(홈 화면/앱 서랍) 또는 Good Lock(One Hand Operation+)을 통해 앱을 실행할 경우, OS가 `startActivity(MainActivity)`를 호출하게 되어 안드로이드 시스템이 "포그라운드 앱 전환"으로 판정하고 유튜브를 즉시 PiP로 전환시킴.
+  - **현황**: 사용자 요청에 따라 현재 버전에서는 유튜브 PiP 억제 관련 강제 트릭은 추가 수정하지 않고 현 상태를 보존하며, 향후 별도 논의를 거쳐 다루기로 함.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -439,9 +453,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.10`)
-   - `AppUpdateCard(currentVersionName = "1.3.10")`
-   - `AppInfoCard` (예: `버전 1.3.10 (Build 140) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.11`)
+   - `AppUpdateCard(currentVersionName = "1.3.11")`
+   - `AppInfoCard` (예: `버전 1.3.11 (Build 141) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
