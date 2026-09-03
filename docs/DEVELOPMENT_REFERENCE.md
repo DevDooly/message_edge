@@ -393,6 +393,17 @@ graph TD
   - `EdgeOverlayService.kt`: 플로팅 핸들 터치(Tap/Swipe) 및 `ACTION_TOGGLE_PANEL` 수신 시 `isInstanceActive`를 확인하여 패널이 열려 있으면 즉시 닫고, 닫혀 있으면 여는 `togglePanel()` 로직 적용.
   - `OpenPanelActivity.kt` 및 `MainActivity.kt`: 제스처/숏컷을 통해 다시 실행될 때도 이미 열려 있는 패널을 감지하여 토글 닫기 처리.
 
+### 49) AGY.md 기준 코드베이스 전수 최적화 및 안정성 강화 (`v1.3.7`, Build 137)
+* **목표 및 배경**:
+  - `AGY.md` 단일 컨텍스트 기준 문서를 바탕으로 프로젝트 전 소스코드를 전수 검토하여 아키텍처 규칙, 안티패턴 금지 조항, 자원 관리, 수명주기 무결성을 강화.
+* **주요 개선 내역**:
+  1. `BootReceiver.kt`: `onReceive()` 내부 코루틴 실행 시 OS 프로세스 조기 종료를 방지하기 위해 `goAsync()` 정석 패턴 적용 (`try-finally`로 `pendingResult.finish()` 보장).
+  2. `AppUpdateManager.kt`: APK 다운로드 및 릴리즈 체크 중 HTTP 소켓 누수를 방지하기 위해 `finally` 블록에서 `HttpURLConnection.disconnect()` 명시적 해제 보장.
+  3. `NotificationListener.kt`: `AGY.md` 5.2.3(무음 예외 금지) 위반인 RemoteViews 빈 catch 블록 제거 및 디버그 로깅/안전 fallback 처리.
+  4. `util/OverlayPanelLayout.kt`: `EdgePanelActivity` 도입 후 완전히 미사용 상태로 남아있던 109줄의 레거시 데드코드 안전 삭제.
+  5. `SettingsRepository.kt`: 스레드 안전 싱글톤 팩토리(`getInstance`) 도입으로 컴포넌트 간 인스턴스 중복 할당 제거.
+  6. `SettingsActivity.kt` / `SettingsScreen.kt` / `EdgePanelActivity.kt`: Jetpack Compose 생명주기 안전 상태 수집(`collectAsStateWithLifecycle`) 도입으로 백그라운드 불필요 리컴포지션 방지.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -401,9 +412,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.6`)
-   - `AppUpdateCard(currentVersionName = "1.3.6")`
-   - `AppInfoCard` (예: `버전 1.3.6 (Build 136) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.7`)
+   - `AppUpdateCard(currentVersionName = "1.3.7")`
+   - `AppInfoCard` (예: `버전 1.3.7 (Build 137) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

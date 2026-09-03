@@ -19,16 +19,23 @@ class BootReceiver : BroadcastReceiver {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             // 오버레이 권한이 허용되어 있는지 확인
             if (Settings.canDrawOverlays(context)) {
-                val repository = SettingsRepository(context)
+                val pendingResult = goAsync()
+                val repository = SettingsRepository.getInstance(context)
                 CoroutineScope(Dispatchers.IO).launch {
-                    val settings = repository.settingsFlow.first()
-                    if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
-                        val serviceIntent = Intent(context, EdgeOverlayService::class.java)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            context.startForegroundService(serviceIntent)
-                        } else {
-                            context.startService(serviceIntent)
+                    try {
+                        val settings = repository.settingsFlow.first()
+                        if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
+                            val serviceIntent = Intent(context, EdgeOverlayService::class.java)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                context.startForegroundService(serviceIntent)
+                            } else {
+                                context.startService(serviceIntent)
+                            }
                         }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    } finally {
+                        pendingResult.finish()
                     }
                 }
             }

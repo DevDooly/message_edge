@@ -21,6 +21,15 @@ class SettingsRepository(private val context: Context) {
     companion object {
         private const val SYNC_PREFS_NAME = "notification_edge_sync_prefs"
         private const val KEY_LAUNCH_DIRECT = "launch_direct_to_panel"
+
+        @Volatile
+        private var INSTANCE: SettingsRepository? = null
+
+        fun getInstance(context: Context): SettingsRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: SettingsRepository(context.applicationContext).also { INSTANCE = it }
+            }
+        }
     }
 
     private object PreferencesKeys {

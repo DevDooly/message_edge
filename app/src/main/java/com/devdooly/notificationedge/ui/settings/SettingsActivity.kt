@@ -7,8 +7,8 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.AppSettings
@@ -27,7 +27,7 @@ class SettingsActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        settingsRepository = SettingsRepository(applicationContext)
+        settingsRepository = SettingsRepository.getInstance(applicationContext)
 
         setTheme(R.style.Theme_NotificationEdge)
         enableEdgeToEdge()
@@ -40,7 +40,7 @@ class SettingsActivity : ComponentActivity() {
         })
 
         setContent {
-            val liveSettings by settingsRepository.settingsFlow.collectAsState(initial = AppSettings())
+            val liveSettings by settingsRepository.settingsFlow.collectAsStateWithLifecycle(initialValue = AppSettings())
             NotificationEdgeTheme(
                 fontId = liveSettings.selectedFont
             ) {

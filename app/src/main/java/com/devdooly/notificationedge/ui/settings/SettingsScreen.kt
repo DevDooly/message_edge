@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,8 +59,8 @@ import kotlinx.coroutines.launch
 fun SettingsScreen() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val settingsRepo = remember { SettingsRepository(context) }
-    val settings by settingsRepo.settingsFlow.collectAsState(initial = AppSettings())
+    val settingsRepo = remember { SettingsRepository.getInstance(context) }
+    val settings by settingsRepo.settingsFlow.collectAsStateWithLifecycle(initialValue = AppSettings())
 
     var hasOverlayPermission by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     var hasNotificationPermission by remember { mutableStateOf(isNotificationServiceEnabled(context)) }
@@ -93,7 +94,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.3.6",
+                                text = "v1.3.7",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -287,7 +288,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.3.6")
+            AppUpdateCard(currentVersionName = "1.3.7")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -435,7 +436,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.3.6 (Build 136) | Target Android 14",
+                text = "버전 1.3.7 (Build 137) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium

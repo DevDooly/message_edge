@@ -130,9 +130,9 @@ app/src/main/java/com/devdooly/notificationedge/
 ### 2) 버전 판올림 시 동기화 체크리스트 (4곳 필수 동기화)
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.6`)
-   - `AppUpdateCard(currentVersionName = "1.3.6")`
-   - `AppInfoCard` (예: `버전 1.3.6 (Build 136) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.7`)
+   - `AppUpdateCard(currentVersionName = "1.3.7")`
+   - `AppInfoCard` (예: `버전 1.3.7 (Build 137) | Target Android 14`)
 3. `docs/DEVELOPMENT_REFERENCE.md`: 최신 릴리즈 내역 및 체크리스트 갱신
 4. `AGY.md`: 현재 기준 버전 명시
 

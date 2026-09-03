@@ -33,9 +33,10 @@ object AppUpdateManager {
      * GitHub Releases API를 조회하여 최신 릴리즈 정보 확인
      */
     suspend fun checkForUpdate(currentVersionName: String): Result<ReleaseInfo> = withContext(Dispatchers.IO) {
+        var connection: HttpURLConnection? = null
         try {
             val url = URL(API_URL)
-            val connection = (url.openConnection() as HttpURLConnection).apply {
+            connection = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 setRequestProperty("Accept", "application/vnd.github.v3+json")
                 setRequestProperty("User-Agent", "NotificationEdge-Android")
@@ -87,6 +88,8 @@ object AppUpdateManager {
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)
+        } finally {
+            connection?.disconnect()
         }
     }
 
@@ -109,6 +112,8 @@ object AppUpdateManager {
         downloadUrl: String,
         onProgress: (Float) -> Unit
     ): Result<File> = withContext(Dispatchers.IO) {
+        var initialConnection: HttpURLConnection? = null
+        var currentConnection: HttpURLConnection? = null
         try {
             val url = URL(downloadUrl)
             val connection = (url.openConnection() as HttpURLConnection).apply {
@@ -117,9 +122,10 @@ object AppUpdateManager {
                 connectTimeout = 15000
                 readTimeout = 30000
             }
+            initialConnection = connection
+            currentConnection = connection
 
             // 리다이렉트 대응 (GitHub Release download는 aws s3로 리다이렉트됨)
-            var currentConnection = connection
             var redirect = false
             val status = currentConnection.responseCode
             if (status == HttpURLConnection.HTTP_MOVED_TEMP || 
@@ -130,8 +136,12 @@ object AppUpdateManager {
 
             if (redirect) {
                 val newUrl = currentConnection.getHeaderField("Location")
-                currentConnection = (URL(newUrl).openConnection() as HttpURLConnection).apply {
-                    setRequestProperty("User-Agent", "NotificationEdge-Android")
+                if (!newUrl.isNullOrBlank()) {
+                    currentConnection = (URL(newUrl).openConnection() as HttpURLConnection).apply {
+                        setRequestProperty("User-Agent", "NotificationEdge-Android")
+                        connectTimeout = 15000
+                        readTimeout = 30000
+                    }
                 }
             }
 
@@ -168,6 +178,15 @@ object AppUpdateManager {
         } catch (e: Exception) {
             e.printStackTrace()
             Result.failure(e)
+        } finally {
+            try {
+                if (currentConnection != initialConnection) {
+                    currentConnection?.disconnect()
+                }
+                initialConnection?.disconnect()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 

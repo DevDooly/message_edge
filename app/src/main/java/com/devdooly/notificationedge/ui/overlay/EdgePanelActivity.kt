@@ -9,8 +9,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.model.AppSettings
@@ -52,7 +52,7 @@ class EdgePanelActivity : ComponentActivity() {
             }
         })
 
-        val settingsRepo = SettingsRepository(applicationContext)
+        val settingsRepo = SettingsRepository.getInstance(applicationContext)
 
         // 패널 오픈 시 유튜브 재생 일시 정지 트리거 (유튜브 뮤직 제외)
         lifecycleScope.launch {
@@ -63,7 +63,7 @@ class EdgePanelActivity : ComponentActivity() {
         }
 
         setContent {
-            val settings by settingsRepo.settingsFlow.collectAsState(initial = AppSettings())
+            val settings by settingsRepo.settingsFlow.collectAsStateWithLifecycle(initialValue = AppSettings())
 
             NotificationEdgeTheme(
                 fontId = settings.selectedFont,

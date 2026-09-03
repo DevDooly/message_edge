@@ -29,7 +29,7 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-        settingsRepo = SettingsRepository(applicationContext)
+        settingsRepo = SettingsRepository.getInstance(applicationContext)
         serviceScope.launch {
             settingsRepo.settingsFlow.collect {
                 currentSettings = it
@@ -324,7 +324,7 @@ class NotificationListener : NotificationListenerService() {
                 }
             }
         } catch (e: Exception) {
-            // ignore
+            android.util.Log.d("NotificationListener", "RemoteViews extraction fallback: ${e.message}")
         }
         return texts
     }

@@ -18,7 +18,7 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settingsRepository = SettingsRepository(applicationContext)
+        val settingsRepository = SettingsRepository.getInstance(applicationContext)
         val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
 
         if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {

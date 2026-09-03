@@ -59,7 +59,7 @@ class EdgeOverlayService : Service() {
     override fun onCreate() {
         super.onCreate()
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        settingsRepository = SettingsRepository(applicationContext)
+        settingsRepository = SettingsRepository.getInstance(applicationContext)
 
         startForegroundNotification()
         observeSettings()
