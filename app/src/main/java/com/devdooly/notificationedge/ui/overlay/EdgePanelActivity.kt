@@ -110,7 +110,9 @@ class EdgePanelActivity : ComponentActivity() {
         if (activeInstance == this) {
             isInstanceActive = false
         }
-        if (isFinishing) {
+        if (!isFinishing) {
+            closeAndFinish()
+        } else {
             com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
         }
     }

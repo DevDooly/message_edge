@@ -445,6 +445,24 @@ graph TD
     2) 사용자가 런처 아이콘(홈 화면/앱 서랍) 또는 Good Lock(One Hand Operation+)을 통해 앱을 실행할 경우, OS가 `startActivity(MainActivity)`를 호출하게 되어 안드로이드 시스템이 "포그라운드 앱 전환"으로 판정하고 유튜브를 즉시 PiP로 전환시킴.
   - **현황**: 사용자 요청에 따라 현재 버전에서는 유튜브 PiP 억제 관련 강제 트릭은 추가 수정하지 않고 현 상태를 보존하며, 향후 별도 논의를 거쳐 다루기로 함.
 
+### 54) 스파게티 코드 완전 정리, 정석 EdgePanelActivity 복귀 및 하단 뒤로가기 100% 보장 (`v1.3.12`, Build 142)
+* **원인 및 문제**:
+  - `v1.3.8` 이후 유튜브 PiP 억제를 위해 순수 윈도우 오버레이(`TYPE_APPLICATION_OVERLAY`)로 전환하면서 발생했던 부작용:
+    1) 하단 3버튼 네비게이션 뒤로가기 키보드 이벤트 미수신
+    2) `ACTION_CLOSE_SYSTEM_DIALOGS` 리시버로 인한 패널 즉시 자멸
+    3) 커스텀 루트 레이아웃(`OverlayPanelRootLayout`) 및 복잡한 디바운스 등의 불안정한 스파게티 코드 양산.
+* **해결**:
+  - **불필요한 임시 오버레이 코드 전면 롤백 및 삭제**:
+    - `OverlayPanelRootLayout.kt` 삭제.
+    - `EdgeOverlayService`의 패널 윈도우 생성/제거, `systemDialogReceiver` 전면 제거하여 서비스 본연의 역할(플로팅 핸들 및 엣지 라이팅 관리)로 경량화.
+  - **정석 `EdgePanelActivity` 기반 완전 복귀**:
+    - `ComponentActivity` + Jetpack Compose의 정석 아키텍처로 원복.
+    - **하단 3버튼 네비게이션 뒤로가기**: 안드로이드 OS의 `onBackPressedDispatcher` 및 Compose `BackHandler`가 100.0% 보장.
+    - **화면 가장자리 스와이프 제스처**: 안드로이드 13/14 `OnBackInvokedDispatcher`가 OS 레벨에서 100.0% 보장.
+    - **홈(Home) / 최근앱(Recents) 버튼**: `onPause()` 시 `if (!isFinishing) closeAndFinish()`로 즉시 닫힘 보장.
+    - **바깥 투명 영역 터치 / X 버튼 / 엣지 핸들 재터치**: 즉시 닫힘 100.0% 보장.
+  - **유튜브 PiP 현황 유지**: 사용자 요청에 따라 무리한 강제 우회 로직을 배제하고 안전한 상태로 보존.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -453,9 +471,9 @@ graph TD
 버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
 2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.11`)
-   - `AppUpdateCard(currentVersionName = "1.3.11")`
-   - `AppInfoCard` (예: `버전 1.3.11 (Build 141) | Target Android 14`)
+   - TopAppBar 버전 뱃지 (예: `v1.3.12`)
+   - `AppUpdateCard(currentVersionName = "1.3.12")`
+   - `AppInfoCard` (예: `버전 1.3.12 (Build 142) | Target Android 14`)
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash

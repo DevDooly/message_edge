@@ -94,7 +94,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.3.11",
+                                text = "v1.3.12",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -288,7 +288,7 @@ fun SettingsScreen() {
             NotificationDebugDumpCard()
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.3.11")
+            AppUpdateCard(currentVersionName = "1.3.12")
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -436,7 +436,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.3.11 (Build 141) | Target Android 14",
+                text = "버전 1.3.12 (Build 142) | Target Android 14",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
