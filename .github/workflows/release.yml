@@ -183,18 +183,30 @@ jobs:
         run: |
           ADB="$ANDROID_HOME/platform-tools/adb"
           PACKAGE_NAME="com.devdooly.notificationedge"
+          EXPECTED_VERSION="${GITHUB_REF_NAME#v}"
+          package_uid() {
+            local uid
+            uid="$("$ADB" shell cmd package list packages -U "$PACKAGE_NAME" \
+              | tr -d '\r' \
+              | sed -nE 's/.*uid:([0-9]+).*/\1/p' \
+              | head -n 1)"
+            if [[ -z "$uid" ]]; then
+              uid="$("$ADB" shell dumpsys package "$PACKAGE_NAME" \
+                | tr -d '\r' \
+                | sed -nE 's/^[[:space:]]*userId=([0-9]+).*/\1/p' \
+                | head -n 1)"
+            fi
+            printf '%s' "$uid"
+          }
           "$ADB" install previous_release/NotificationEdge.apk
-          OLD_PACKAGE_INFO="$("$ADB" shell dumpsys package "$PACKAGE_NAME")"
-          OLD_UID="$(printf '%s' "$OLD_PACKAGE_INFO" | sed -n 's/.*userId=\([0-9]*\).*/\1/p' | head -n 1)"
-          OLD_VERSION="$(printf '%s' "$OLD_PACKAGE_INFO" | sed -n 's/.*versionCode=\([0-9]*\).*/\1/p' | head -n 1)"
+          OLD_UID="$(package_uid)"
           test -n "$OLD_UID"
-          test -n "$OLD_VERSION"
           "$ADB" install -r release_assets/NotificationEdge-candidate.apk
-          NEW_PACKAGE_INFO="$("$ADB" shell dumpsys package "$PACKAGE_NAME")"
-          NEW_UID="$(printf '%s' "$NEW_PACKAGE_INFO" | sed -n 's/.*userId=\([0-9]*\).*/\1/p' | head -n 1)"
-          NEW_VERSION="$(printf '%s' "$NEW_PACKAGE_INFO" | sed -n 's/.*versionCode=\([0-9]*\).*/\1/p' | head -n 1)"
+          NEW_UID="$(package_uid)"
           test "$NEW_UID" = "$OLD_UID"
-          test "$NEW_VERSION" -gt "$OLD_VERSION"
+          "$ADB" shell dumpsys package "$PACKAGE_NAME" \
+            | tr -d '\r' \
+            | grep -Fq "versionName=${EXPECTED_VERSION}"
 
       - name: Stop Emulator
         if: always()
