@@ -1,5 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
+import com.android.build.api.dsl.ManagedVirtualDevice
 
 plugins {
     alias(libs.plugins.android.application)
@@ -36,7 +37,10 @@ gradle.taskGraph.whenReady {
         task.project.path == appProjectPath && task.name in setOf(
             "assembleRelease",
             "bundleRelease",
-            "packageRelease"
+            "packageRelease",
+            "assembleMinifiedRelease",
+            "bundleMinifiedRelease",
+            "packageMinifiedRelease"
         )
     }
     if (releaseArtifactRequested && !hasReleaseSigning) {
@@ -54,8 +58,8 @@ android {
         applicationId = "com.devdooly.notificationedge"
         minSdk = 26
         targetSdk = 34
-        versionCode = 144
-        versionName = "1.3.14"
+        versionCode = 145
+        versionName = "1.3.15"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -80,6 +84,12 @@ android {
             )
             signingConfig = if (hasReleaseSigning) signingConfigs.getByName("release") else null
         }
+        create("minifiedRelease") {
+            initWith(getByName("release"))
+            isMinifyEnabled = true
+            isShrinkResources = true
+            matchingFallbacks += listOf("release")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -99,6 +109,17 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+        }
+        managedDevices {
+            devices {
+                listOf(26, 31, 34, 35).forEach { apiLevelValue ->
+                    maybeCreate<ManagedVirtualDevice>("pixel2Api$apiLevelValue").apply {
+                        device = "Pixel 2"
+                        apiLevel = apiLevelValue
+                        systemImageSource = "aosp"
+                    }
+                }
+            }
         }
     }
 }

@@ -493,6 +493,25 @@ graph TD
 * **버전 표시 단일화**:
   - 설정 화면의 버전·빌드·Target SDK 표시는 `BuildConfig`와 런타임 메타데이터에서 읽는다.
 
+### 57) Compose 책임 분리와 다중 API 품질 게이트 (`v1.3.15`, Build 145)
+
+* **설정 화면 구조 개선**:
+  - 약 2천 줄이던 `SettingsScreen.kt`를 화면 조립부, `SettingsViewModel`, 기능별 설정 카드 파일로 분리했다.
+  - 설정 저장과 오버레이 서비스 시작은 ViewModel이 담당하고 Composable은 상태 표시와 플랫폼 권한 화면 진입만 맡는다.
+  - 전체 세로 스크롤을 안정적인 항목 key가 있는 `LazyColumn`으로 바꿔 화면 밖 카드의 불필요한 조합 비용을 줄였다.
+* **엣지 패널 구조 개선**:
+  - 약 1천 줄이던 `EdgePanelContent.kt`에서 `PanelHeader`, `NotificationCard`, `KeyboardFloatingReplyBar`를 분리했다.
+  - 답장 대상·입력문·드래그·닫기 중복 방지 상태를 `EdgePanelUiState`로 통합하고 단위 테스트를 추가했다.
+  - `EdgeOverlayService`는 핸들과 라이팅만, 투명 `EdgePanelActivity`는 패널과 시스템 뒤로가기를 담당하는 기존 경계를 유지한다.
+* **R8 단계적 전환**:
+  - 실제 배포 `release`는 기존 축소 설정을 유지한다.
+  - `minifiedRelease` 변형에서 R8 전체 모드와 리소스 축소를 실행하고 CI에서 빌드·서명을 검증한다.
+  - 로컬 기준 APK 크기는 약 11.12MB에서 1.59MB로 줄었으며, One UI 수동 회귀를 통과한 뒤 배포 승격을 결정한다.
+* **API 호환성 자동화**:
+  - Gradle Managed Device에 API 26·31·34·35 Pixel 2 프로필을 구성했다.
+  - 주간·수동 GitHub Actions 매트릭스에서 컴포넌트 공개 정책과 알림 리스너 권한을 계측 검증한다.
+  - 제조사별 동작은 `ONE_UI_RELEASE_CHECKLIST.md`, 키 교체는 `SIGNING_KEY_ROTATION_RUNBOOK.md`를 승인 기준으로 사용한다.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
@@ -505,8 +524,11 @@ graph TD
 # 로컬 JVM 단위 테스트 실행
 ./gradlew testDebugUnitTest
 
-# 디버그 컴파일, Lint, 릴리즈 빌드 검증
-./gradlew compileDebugKotlin lintRelease assembleRelease
+# 디버그·계측 테스트 컴파일, Lint, 일반/축소 릴리즈 빌드 검증
+./gradlew compileDebugKotlin compileDebugAndroidTestKotlin lintRelease assembleRelease assembleMinifiedRelease
+
+# API별 Gradle Managed Device 계측 테스트 예시
+./gradlew pixel2Api34DebugAndroidTest
 ```
 *(테스트 및 빌드가 성공(`BUILD SUCCESSFUL`)하는지 반드시 확인)*
 
@@ -534,9 +556,15 @@ git push origin v버전
 | **`SettingsRepositoryTest`** | Robolectric 기반 DataStore 및 SharedPreferences 동기화 동작 검증 |
 | **`OpenPanelReceiverTest`** | 외부 제어 기본 거부, 명령 화이트리스트, 오버레이 권한 미보유 경로 검증 |
 | **`NotificationDumpSanitizerTest`** | 인증정보·이메일·전화번호·인증번호 및 중첩 Bundle 값 마스킹 검증 |
+| **`SettingsViewModelTest`** | 설정 이벤트 저장소 위임과 테스트 알림 생성 검증 |
+| **`EdgePanelUiStateTest`** | 답장 초기화, 닫기 중복 방지, 드래그 임계값 상태 검증 |
+| **`NotificationEdgeInstrumentedTest`** | API 26·31·34·35에서 컴포넌트 외부 공개 정책과 시스템 바인딩 권한 검증 |
 
 > [!TIP]
 > GitHub Actions CI 파이프라인(`.github/workflows/release.yml`)에 `testDebugUnitTest`가 자동 연동되어 있어, main 푸시 및 릴리즈 태그 생성 시 단위 테스트가 자동으로 실행 및 검증됩니다.
+
+> [!NOTE]
+> `.github/workflows/android-device-matrix.yml`은 매주 및 수동 실행으로 API 26·31·34·35 계측 테스트를 수행합니다. 삼성 One UI 실기기 승인은 [`ONE_UI_RELEASE_CHECKLIST.md`](ONE_UI_RELEASE_CHECKLIST.md)를 사용합니다.
 
 ---
 

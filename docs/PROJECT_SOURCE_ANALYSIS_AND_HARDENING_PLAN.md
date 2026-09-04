@@ -25,7 +25,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 - 대규모 리팩터링 전에 보안·동작 회귀 테스트를 먼저 추가한다.
 - 기존 `DEVELOPMENT_REFERENCE.md`의 설명보다 이 문서가 분석한 현재 소스를 우선한다.
 
-### 1.1 구현 진행 현황 (`v1.3.14`, Build 144)
+### 1.1 구현 진행 현황 (`v1.3.15`, Build 145)
 
 2026-09-04 기준으로 우선순위가 높은 개선 항목은 다음과 같이 반영했다.
 
@@ -41,13 +41,18 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | 중복 실행 정책 | 완료 | `OverlayServiceStarter`, `EdgePanelLauncher`로 공통화 |
 | 버전 표시 | 완료 | `BuildConfig`와 런타임 Target SDK를 단일 기준으로 사용 |
 | 자동 품질 게이트 | 완료 | 단위 테스트, 디버그 컴파일, Lint, 릴리스 빌드, APK 인증서 대조 |
+| Compose 구조 분리 | 완료 | 설정 화면을 기능별 카드와 `SettingsViewModel`로 분리하고 패널 상태·헤더·카드·답장 바를 독립 파일로 분리 |
+| 설정 목록 성능 | 완료 | 전체 `Column.verticalScroll`을 안정적인 key를 가진 `LazyColumn` 항목으로 전환 |
+| R8 단계 검증 | 완료 | 배포 `release`는 유지하면서 R8·리소스 축소 전용 `minifiedRelease`와 CI 서명 검증 추가 |
+| API 자동 매트릭스 | 구성 완료 | API 26·31·34·35 Gradle Managed Device 주간·수동 워크플로 및 컴포넌트 보안 계측 테스트 추가 |
+| 수동 배포 게이트 | 문서화 완료 | One UI 회귀 체크리스트와 서명키 교체 실행서를 별도 문서로 추가 |
 
 남은 작업은 호환성과 배포 정책 결정이 필요한 항목이다.
 
 - 공개 Git 기록에 남은 기존 서명키 제거와 원격 이력 재작성
 - 기존 설치본 업데이트 호환성을 고려한 새 서명키 전환 전략
-- 설정·패널 대형 Compose 파일의 단계적 화면/상태 계층 분리
-- R8/리소스 축소 활성화와 API 26·31·34·35 및 삼성 One UI 실기기 회귀 검증
+- API 26·31·34·35 원격 Managed Device 실행 결과 확인
+- `minifiedRelease`의 삼성 One UI 실기기 회귀 검증과 배포 `release` 승격
 
 기존 자체 배포 APK와의 업데이트 호환성을 보존하기 위해 이번 릴리스는 기존 인증서를 CI 비밀 저장소에서 사용한다. 따라서 서명키 노출 위험은 저장소 최신 상태에서 차단했지만, 공개 Git 기록에 이미 노출된 키 자체가 안전해진 것은 아니다.
 
@@ -61,7 +66,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 
 현행 소스의 사실은 다음과 같다.
 
-- 현재 릴리스: `v1.3.13`, `versionCode = 143`
+- 현재 릴리스 후보: `v1.3.15`, `versionCode = 145`
 - 패널 호스트: `EdgePanelActivity`
 - 오버레이 서비스 책임: 핸들 및 엣지 라이팅
 - 기본 핸들 방향: `LEFT`
@@ -84,7 +89,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | 테스트 | JUnit4, MockK, Turbine, Robolectric, AndroidX Test | JVM 테스트 56개, 계측 테스트 1개 |
 | 배포 | GitHub Actions + GitHub Releases | `main`은 검증만, `v*` 태그는 검증 후 배포 |
 
-분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.14` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `lintRelease`, `assembleRelease`와 `apksigner verify`로 다시 검증한다.
+분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.15` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `compileDebugAndroidTestKotlin`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`와 `apksigner verify`로 다시 검증한다.
 
 ---
 
@@ -201,9 +206,9 @@ flowchart LR
 
 [`SettingsRepository.kt`](../app/src/main/java/com/devdooly/notificationedge/data/repository/SettingsRepository.kt)는 Preferences DataStore를 설정의 주 저장소로 사용한다. 런처에서 코루틴 대기 없이 읽어야 하는 `launchDirectToPanel`만 SharedPreferences에도 복제한다.
 
-[`SettingsScreen.kt`](../app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt)는 약 2,046줄의 단일 파일에서 권한, Good Lock, 핸들, 패널 너비, 라이팅, 폰트, 햅틱, 미디어 정지, 필터, 디버그 덤프, 업데이트 UI를 모두 구성한다.
+초기 분석 시 [`SettingsScreen.kt`](../app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt)는 약 2천 줄의 단일 파일이었다. 현재는 약 220줄의 조립 화면, `SettingsViewModel`, 기능별 카드 파일로 분리됐고 목록은 `LazyColumn`으로 렌더링한다.
 
-[`EdgePanelContent.kt`](../app/src/main/java/com/devdooly/notificationedge/ui/overlay/EdgePanelContent.kt)는 약 1,033줄이며 패널 애니메이션, 뒤로가기, 목록, 카드, 답장 상태, 키보드 포커스를 한 파일에서 관리한다.
+초기 분석 시 [`EdgePanelContent.kt`](../app/src/main/java/com/devdooly/notificationedge/ui/overlay/EdgePanelContent.kt)는 약 1천 줄이었다. 현재는 약 310줄의 화면 조립부와 `EdgePanelUiState`, `PanelHeader`, `NotificationCard`, `KeyboardFloatingReplyBar`로 분리됐다.
 
 ### 5.6 인앱 업데이트와 배포
 
@@ -354,14 +359,14 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 작업:
 
-- [ ] 키스토어와 실제 `keystore.properties`를 Git 추적에서 제거하고 ignore 규칙을 추가한다.
-- [ ] 비밀번호를 환경변수 또는 로컬 `keystore.properties`에서만 읽는다.
-- [ ] CI에서는 GitHub Secrets의 Base64 키스토어를 작업 중 임시 파일로 복원하고 작업 후 폐기한다.
-- [ ] 디버그 빌드는 Android 기본 디버그 키를 사용하고 릴리스 빌드만 릴리스 키를 요구한다.
-- [ ] 릴리스 키가 없을 때 `assembleRelease`는 명확한 오류로 실패하게 한다.
-- [ ] 일반 검증 작업은 `contents: read`, 태그 Release 작업만 `contents: write`를 갖게 분리한다.
-- [ ] `main` 푸시는 테스트·빌드 산출물만 만들고 GitHub Release는 `v*` 태그에서만 생성하도록 변경한다.
-- [ ] 외부 GitHub Action은 커밋 SHA 고정과 Dependabot 갱신을 적용한다.
+- [x] 키스토어와 실제 `keystore.properties`를 Git 추적에서 제거하고 ignore 규칙을 추가한다.
+- [x] 비밀번호를 환경변수 또는 로컬 `keystore.properties`에서만 읽는다.
+- [x] CI에서는 GitHub Secrets의 Base64 키스토어를 작업 중 임시 파일로 복원하고 작업 후 폐기한다.
+- [x] 디버그 빌드는 Android 기본 디버그 키를 사용하고 릴리스 빌드만 릴리스 키를 요구한다.
+- [x] 릴리스 키가 없을 때 `assembleRelease`는 명확한 오류로 실패하게 한다.
+- [x] 일반 검증 작업은 `contents: read`, 태그 Release 작업만 `contents: write`를 갖게 분리한다.
+- [x] `main` 푸시는 테스트·빌드 산출물만 만들고 GitHub Release는 `v*` 태그에서만 생성하도록 변경한다.
+- [x] 외부 GitHub Action은 커밋 SHA 고정과 Dependabot 갱신을 적용한다.
 - [ ] 필요하면 Git 기록 정리와 GitHub 비밀 스캔 결과 확인을 별도 운영 작업으로 수행한다.
 
 완료 기준:
@@ -384,18 +389,18 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 작업:
 
-- [ ] 알림 원본 덤프는 기본 비활성인 개발자 진단 모드에서만 생성한다.
+- [x] 알림 원본 덤프는 기본 비활성인 개발자 진단 모드에서만 생성한다.
 - [ ] 진단 모드는 명확한 개인정보 경고와 만료 시간을 가진 사용자 옵트인으로 만든다.
-- [ ] 전화번호, 이메일, OTP, 토큰/인증/세션 관련 키와 긴 바이너리·배열을 마스킹하는 `NotificationDumpSanitizer`를 추가한다.
-- [ ] 덤프 길이, 항목 수, 중첩 깊이를 제한한다.
-- [ ] 클립보드에는 `ClipDescription.EXTRA_IS_SENSITIVE`를 설정하고 선택적으로 일정 시간 뒤 비운다.
-- [ ] 운영 UI의 알림 카드에서 디버그 복사 버튼을 기본 숨김 처리한다.
-- [ ] `OpenPanelReceiver`의 공개 요구사항을 결정한다.
+- [x] 전화번호, 이메일, OTP, 토큰/인증/세션 관련 키와 긴 바이너리·배열을 마스킹하는 `NotificationDumpSanitizer`를 추가한다.
+- [x] 덤프 길이, 항목 수, 중첩 깊이를 제한한다.
+- [x] 클립보드에는 `ClipDescription.EXTRA_IS_SENSITIVE`를 설정하고 선택적으로 일정 시간 뒤 비운다.
+- [x] 운영 UI의 알림 카드에서 디버그 복사 버튼을 기본 숨김 처리한다.
+- [x] `OpenPanelReceiver`는 사용자 옵트인 외부 연동으로 유지한다.
   - 외부 연동이 불필요하면 `exported=false`로 전환한다.
   - Good Lock/Tasker 연동이 필수면 사용자 설정에서 외부 제어를 명시적으로 활성화하고, 허용 호출자·토큰·명령 범위를 설계한다.
   - 내부 앱 명령은 별도 비공개 경로로 분리한다.
-- [ ] 알 수 없는 액션을 기본 열기로 처리하지 말고 즉시 무시한다.
-- [ ] 권한이 없을 때 공개 리시버가 임의로 설정 Activity를 띄우지 않게 한다.
+- [x] 알 수 없는 액션을 기본 열기로 처리하지 말고 즉시 무시한다.
+- [x] 권한이 없을 때 공개 리시버가 임의로 설정 Activity를 띄우지 않게 한다.
 
 완료 기준:
 
@@ -416,16 +421,16 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 작업:
 
-- [ ] `onNotificationPosted()`는 최소 검증과 불변 스냅샷만 수행하고, 순서가 보장되는 전용 작업 큐에서 파싱한다.
-- [ ] 앱 라벨·아이콘은 패키지 단위 LRU 캐시로 중복 조회를 줄인다.
+- [x] `onNotificationPosted()`는 최소 검증과 불변 스냅샷만 수행하고, 순서가 보장되는 전용 작업 큐에서 파싱한다.
+- [x] 앱 라벨·아이콘은 패키지 단위 LRU 캐시로 중복 조회를 줄인다.
 - [ ] RemoteViews 리플렉션은 최후 수단으로 격리하고 API/제조사 실패 지표를 남긴다.
 - [ ] 로그는 `printStackTrace()` 대신 태그·수준·민감정보 제거 정책이 있는 로거로 통일한다.
 - [ ] `currentSettings` 접근을 `StateFlow.value` 또는 명확한 동시성 경계로 바꾼다.
-- [ ] 알림 취소 콜백을 인터페이스로 교체하거나 최소한 `onDestroy()`에서도 해제한다.
-- [ ] 메시지 중복 키에 발신자와 `isFromUser`를 포함하고 상수 `MAX_MESSAGES_PER_NOTIFICATION`을 일관되게 사용한다.
-- [ ] YouTube 일시정지는 패널 열기 명령의 한 지점에서만 수행한다.
-- [ ] FGS 시작 제한 예외를 처리하고 Android 15+에서는 서비스가 없고 가시 오버레이도 없는 경우 안전한 사용자 알림 또는 명시적 Activity 경로로 유도한다.
-- [ ] 부팅 복구, 외부 명령, 설정 화면 시작 경로별 서비스 시작 정책을 하나의 `OverlayServiceStarter`로 통합한다.
+- [x] 알림 취소 콜백을 `onDestroy()`에서도 해제한다.
+- [x] 메시지 중복 키에 발신자와 `isFromUser`를 포함하고 상수 `MAX_MESSAGES_PER_NOTIFICATION`을 일관되게 사용한다.
+- [x] YouTube 일시정지는 패널 열기 명령의 한 지점에서만 수행한다.
+- [x] FGS 시작 제한 예외를 처리하고 실패 시 안전하게 중단한다.
+- [x] 부팅 복구, 외부 명령, 설정 화면 시작 경로별 서비스 시작 정책을 하나의 `OverlayServiceStarter`로 통합한다.
 
 완료 기준:
 
@@ -445,12 +450,12 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 작업:
 
-- [ ] `dataStore.data.catch`에서 `IOException`은 기본 Preferences로 복구하고 다른 예외는 재발생시킨다.
-- [ ] DataStore 손상 시 복구 정책과 사용자 안내를 정의한다.
+- [x] `dataStore.data.catch`에서 `IOException`은 기본 Preferences로 복구하고 다른 예외는 재발생시킨다.
+- [x] DataStore 손상 시 빈 Preferences로 복구하는 정책을 정의한다.
 - [ ] `launchDirectToPanel`의 SharedPreferences 미러를 제거하거나 DataStore와 원자적으로 동기화되는 명시적 마이그레이션을 추가한다.
 - [ ] 앱 시작 0ms 요구가 실제로 필요한지 측정하고, 필요하면 작은 전용 동기 설정 저장소의 소유권을 명확히 한다.
-- [ ] 백업 정책에서 `files/datastore/*.preferences_pb`를 포함할지, 민감 설정은 제외할지 결정한다.
-- [ ] 설정 기본값을 한 곳에서 정의해 `AppSettings`와 DataStore fallback의 중복을 줄인다.
+- [x] 백업 정책에서 실제 DataStore 경로를 포함하고 캐시·진단 데이터는 제외한다.
+- [x] 설정 기본값은 `AppSettings`를 기준으로 DataStore fallback에 사용한다.
 
 완료 기준:
 
@@ -496,12 +501,12 @@ ui/overlay/
 
 작업:
 
-- [ ] Repository 접근과 서비스 시작·권한 Intent를 ViewModel 또는 플랫폼 컨트롤러로 이동한다.
-- [ ] Composable은 불변 UI 상태와 이벤트 람다만 받게 한다.
-- [ ] 패널의 답장 키, 입력문, 닫기 단계, 애니메이션 상태를 명시적 상태 홀더로 만든다.
-- [ ] 리스트 항목 모델의 안정성을 검토하고 앱 아이콘 Bitmap 변환을 캐시한다.
-- [ ] 설정 화면의 전체 `Column.verticalScroll`은 항목이 늘어날 경우 `LazyColumn`으로 전환한다.
-- [ ] 폰트 파일 로드 결과를 메모리 캐시하고 파일 변경 시에만 무효화한다.
+- [x] Repository 접근과 서비스 시작을 `SettingsViewModel`로 이동하고 권한 Intent는 UI 플랫폼 경계에 유지한다.
+- [x] 기능별 Composable은 불변 UI 상태와 이벤트 람다만 받게 한다.
+- [x] 패널의 답장 키, 입력문, 닫기 단계, 애니메이션 상태를 `EdgePanelUiState`로 만든다.
+- [x] 앱 아이콘 Bitmap 변환을 `remember`로 캐시한다.
+- [x] 설정 화면을 안정적인 항목 key를 가진 `LazyColumn`으로 전환한다.
+- [x] 폰트 파일 로드 결과를 파일 수정 시각 기준 메모리 캐시로 관리한다.
 - [ ] 시스템 글꼴 크기, 고대비, TalkBack 설명, 120Hz 스크롤을 검증한다.
 
 완료 기준:
@@ -520,15 +525,15 @@ ui/overlay/
 
 작업:
 
-- [ ] 단순 불일치가 아닌 SemVer 비교 정책을 정의한다.
+- [x] 단순 불일치가 아닌 SemVer 비교 정책을 정의한다.
 - [ ] 버전 리셋이 필요하면 예외를 코드에 숨기지 말고 별도 배포 메타데이터 또는 단조 증가 `versionCode` 정책으로 표현한다.
-- [ ] API 및 자산 URL의 `https`와 허용 호스트를 검증한다.
-- [ ] 2xx 응답, APK MIME/확장자, 최대 다운로드 크기, 실제 읽은 바이트 수를 확인한다.
-- [ ] 임시 파일에 내려받은 뒤 검증 성공 시 원자적으로 최종 파일명으로 이동한다.
-- [ ] Release에 SHA-256 체크섬 자산을 만들고 앱에서 비교한다.
-- [ ] 설치 전 APK의 패키지명, versionCode, 서명 인증서 지문을 확인한다.
-- [ ] 리다이렉트 횟수와 최종 호스트를 제한한다.
-- [ ] 취소·타임아웃·저장공간 부족 시 임시 파일을 정리한다.
+- [x] API 및 자산 URL의 `https`와 허용 호스트를 검증한다.
+- [x] 2xx 응답, APK 확장자, 최대 다운로드 크기, 실제 읽은 바이트 수를 확인한다.
+- [x] 임시 파일에 내려받은 뒤 검증 성공 시 최종 파일명으로 이동한다.
+- [x] Release에 SHA-256 체크섬 자산을 만들고 앱에서 비교한다.
+- [x] 설치 전 APK의 패키지명, versionCode, 서명 인증서 지문을 확인한다.
+- [x] 리다이렉트 횟수와 최종 호스트를 제한한다.
+- [x] 취소·타임아웃·저장공간 부족 시 임시 파일을 정리한다.
 
 Android 패키지 설치기가 기존 앱과의 서명 일치를 검사하더라도, 다운로드 단계의 해시·호스트·크기 검증은 손상 파일과 잘못된 공급망 입력을 조기에 차단하는 방어 계층으로 유지한다.
 
@@ -542,14 +547,14 @@ Android 패키지 설치기가 기존 앱과의 서명 일치를 검사하더라
 
 작업:
 
-- [ ] `testDebugUnitTest`, `compileDebugKotlin`, `lintRelease`, `assembleRelease`를 CI 필수 단계로 만든다.
-- [ ] 릴리스 APK에 `apksigner verify --verbose --print-certs`를 수행한다.
-- [ ] R8/리소스 축소를 단계적으로 활성화하고 필요한 keep 규칙을 테스트한다.
-- [ ] API 26, 31, 34, 35 이상 에뮬레이터/실기기 매트릭스를 구성한다.
-- [ ] 삼성 One UI 수동 회귀 체크리스트를 Release 승인 조건에 포함한다.
-- [ ] `DEVELOPMENT_REFERENCE.md`에서 현재 소스와 불일치하는 파일·버전 설명을 정리한다.
-- [ ] 앱 버전 UI를 `BuildConfig`에서 읽도록 바꿔 4곳 수동 동기화를 제거한다.
-- [ ] 보안 변경과 사용자 영향, 키 전환, 외부 연동 변경을 릴리스 노트에 명확히 기록한다.
+- [x] `testDebugUnitTest`, `compileDebugKotlin`, `lintRelease`, `assembleRelease`를 CI 필수 단계로 만든다.
+- [x] 릴리스 APK에 `apksigner verify --verbose --print-certs`를 수행한다.
+- [x] R8/리소스 축소 `minifiedRelease`를 만들고 CI에서 빌드·서명 검증한다.
+- [x] API 26, 31, 34, 35 Gradle Managed Device 매트릭스를 구성한다.
+- [x] 삼성 One UI 수동 회귀 체크리스트를 Release 승인 조건으로 문서화한다.
+- [x] `DEVELOPMENT_REFERENCE.md`에 현행 구조와 검증 절차를 기록한다.
+- [x] 앱 버전 UI를 `BuildConfig`에서 읽도록 바꿔 수동 동기화를 제거한다.
+- [x] 보안 변경과 사용자 영향을 릴리스 기록에 반영한다.
 
 완료 기준:
 
@@ -612,17 +617,22 @@ Android 패키지 설치기가 기존 앱과의 서명 일치를 검사하더라
 아래 조건을 모두 만족해야 전체 개선 작업이 완료된 것으로 본다.
 
 - [ ] 저장소와 빌드 로그에 개인키·비밀번호가 없다.
-- [ ] 승인된 키로만 릴리스 APK가 서명되고 인증서 지문을 CI에서 검증한다.
-- [ ] 운영 기본값에서 알림 원문 덤프를 만들지 않는다.
-- [ ] 외부 앱은 명시적 사용자 허용 범위 밖에서 패널을 제어하지 못한다.
+- [x] 승인된 키로만 릴리스 APK가 서명되고 인증서 지문을 CI에서 검증한다.
+- [x] 운영 기본값에서 알림 원문 덤프를 만들지 않는다.
+- [x] 외부 앱은 명시적 사용자 허용 범위 밖에서 패널을 제어하지 못한다.
 - [ ] Android 8~15 이상에서 서비스 시작, 부팅 복구, 패널 토글이 크래시 없이 동작한다.
 - [ ] 시스템 뒤로가기와 키보드 2단계 닫기가 유지된다.
-- [ ] 단체방/1:1/일반 알림 병합과 빠른 답장 테스트가 모두 통과한다.
+- [x] 단체방/1:1/일반 알림 병합과 빠른 답장 관련 JVM 테스트가 통과한다.
 - [ ] DataStore 오류와 백업 복원 정책이 테스트된다.
-- [ ] 업데이트 파일의 버전·호스트·해시·패키지·서명을 검증한다.
-- [ ] `testDebugUnitTest`, `compileDebugKotlin`, `lintRelease`, `assembleRelease`가 성공한다.
+- [x] 업데이트 파일의 버전·호스트·해시·패키지·서명을 검증한다.
+- [x] `testDebugUnitTest`, `compileDebugKotlin`, `compileDebugAndroidTestKotlin`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`가 성공한다.
 - [ ] 삼성 One UI 실기기 회귀 체크리스트를 통과한다.
-- [ ] 소스, 버전 UI, README, 개발 참조 문서, 릴리스 노트가 일치한다.
+- [x] 소스, 버전 UI, README, 개발 참조 문서가 일치한다.
+
+실행 문서:
+
+- [`SIGNING_KEY_ROTATION_RUNBOOK.md`](SIGNING_KEY_ROTATION_RUNBOOK.md): 사용자 호환성 확인이 필요한 서명키 교체와 Git 이력 정리 절차
+- [`ONE_UI_RELEASE_CHECKLIST.md`](ONE_UI_RELEASE_CHECKLIST.md): 자동화할 수 없는 삼성 기기·내비게이션·키보드·배터리 회귀 승인표
 
 ---
 

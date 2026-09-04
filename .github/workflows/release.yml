@@ -62,7 +62,15 @@ jobs:
           test "v${VERSION_NAME}" = "$GITHUB_REF_NAME"
 
       - name: Run Tests and Build Release APK
-        run: ./gradlew testDebugUnitTest compileDebugKotlin lintRelease assembleRelease --no-daemon
+        run: ./gradlew testDebugUnitTest compileDebugKotlin lintRelease assembleRelease assembleMinifiedRelease --no-daemon
+
+      - name: Verify Minified APK
+        run: |
+          MINIFIED_APK="app/build/outputs/apk/minifiedRelease/app-minifiedRelease.apk"
+          test -f "$MINIFIED_APK"
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$MINIFIED_APK"
 
       - name: Verify APK Signature
         run: |
