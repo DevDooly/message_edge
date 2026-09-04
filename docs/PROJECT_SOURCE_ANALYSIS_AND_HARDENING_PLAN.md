@@ -60,6 +60,8 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 
 API 호환성 매트릭스는 최종 CI 구성에서 API 26·31·34·35 모두 통과했다. 검증 실행은 [Android Device Matrix #33875421131](https://github.com/DevDooly/message_edge/actions/runs/33875421131)에서 확인할 수 있다.
 
+서명키 회전 릴리스는 API 26과 API 35에서 v1.3.15 설치 후 v1.3.16 후보를 덮어쓰기 설치해 패키지 UID 유지와 태그 버전 반영을 확인한 뒤 게시했다. 결과는 [Build and Release APK #33880465688](https://github.com/DevDooly/message_edge/actions/runs/33880465688)과 [v1.3.16 Release](https://github.com/DevDooly/message_edge/releases/tag/v1.3.16)에서 확인할 수 있다.
+
 ---
 
 ## 2. 현재 기준과 문서 불일치

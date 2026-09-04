@@ -53,7 +53,8 @@ GitHub Releases에서 APK를 직접 배포하므로 Play App Signing이 아닌 `
 - [x] 현재 정상 릴리스 v1.3.15 APK와 SHA-256을 로컬 복구 폴더에 보관한다.
 - [x] 기존 인증서와 새 인증서 SHA-256 지문을 복구 문서와 GitHub Secrets에 기록한다.
 - [ ] 기존 설치본의 버전 코드와 배포 채널별 설치 수를 기록한다.
-- [ ] API 26·35의 자동 업데이트 설치 결과와 One UI 실기기 결과를 기록한다.
+- [x] API 26·35의 자동 업데이트 설치 결과를 기록한다.
+- [ ] One UI 실기기 업데이트 결과를 기록한다.
 - [ ] 설정 DataStore, 알림 접근 권한, 오버레이 권한 유지 여부를 기록한다.
 
 ### 4.2 새 키 생성과 보관
@@ -68,7 +69,7 @@ GitHub Releases에서 APK를 직접 배포하므로 Play App Signing이 아닌 `
 
 - [x] 로컬 `testDebugUnitTest`, `compileDebugKotlin`, `assembleDebugAndroidTest`, `lintRelease`가 통과한다.
 - [x] 로컬 일반·축소 APK에 서명 계보를 적용하고 `apksigner verify`와 새 인증서 지문을 확인한다.
-- [ ] 기존 설치본 위에 후보 APK를 설치해 업데이트 성공 여부를 확인한다.
+- [x] API 26·35에서 v1.3.15 기존 설치본 위에 v1.3.16 후보 APK를 설치해 업데이트 성공을 확인한다.
 - [ ] 신규 설치, 앱 재시작, 재부팅 복구, 알림 수신, 빠른 답장을 확인한다.
 - [x] API 26·35 덮어쓰기 설치가 실패하면 GitHub Release 게시를 중단하는 CI 게이트를 추가한다.
 
@@ -93,3 +94,5 @@ GitHub Releases에서 APK를 직접 배포하므로 Play App Signing이 아닌 `
 로컬 복구 사본은 `C:\Users\sunho\Documents\NotificationEdge-Signing-Backup-2026-09-04`에 있다. 개인키와 DPAPI 비밀 파일은 Git 추적 대상이 아니며, Windows 계정 폐기 전에 별도의 암호화된 오프라인 저장소로 추가 복사해야 한다.
 
 공식 동작 기준은 [Android apksigner 문서](https://developer.android.com/tools/apksigner)의 서명키 회전 및 `--rotation-min-sdk-version` 설명을 따른다.
+
+자동 검증과 배포 결과는 [Build and Release APK #33880465688](https://github.com/DevDooly/message_edge/actions/runs/33880465688) 및 [v1.3.16 Release](https://github.com/DevDooly/message_edge/releases/tag/v1.3.16)에 기록되어 있다. 게시 APK SHA-256은 `9effec46bb5a14d2459de31f7146fc7e0dcaa956a06c2855d9a15985c1f5e9ed`이며 새 인증서 지문과 일치하는 서명을 확인했다.
