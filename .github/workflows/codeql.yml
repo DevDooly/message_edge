@@ -50,7 +50,7 @@ jobs:
       - name: Build Debug APK for Analysis
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew clean assembleDebug --no-daemon --no-build-cache --rerun-tasks
 
       - name: Analyze
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
