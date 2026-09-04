@@ -42,6 +42,28 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `external control should be disabled by default and synchronize immediately`() = runTest {
+        assertFalse(repository.isExternalControlEnabledSync())
+
+        repository.updateExternalControlEnabled(true)
+        assertTrue(repository.isExternalControlEnabledSync())
+
+        repository.updateExternalControlEnabled(false)
+        assertFalse(repository.isExternalControlEnabledSync())
+    }
+
+    @Test
+    fun `diagnostic mode should be disabled by default and synchronize immediately`() = runTest {
+        assertFalse(repository.isDiagnosticModeEnabledSync())
+
+        repository.updateDiagnosticModeEnabled(true)
+        assertTrue(repository.isDiagnosticModeEnabledSync())
+
+        repository.updateDiagnosticModeEnabled(false)
+        assertFalse(repository.isDiagnosticModeEnabledSync())
+    }
+
+    @Test
     fun `discovered packages and excluded packages operations should update state correctly`() = runTest {
         repository.addDiscoveredPackage("com.kakao.talk")
         repository.addDiscoveredPackage("com.google.android.gm")

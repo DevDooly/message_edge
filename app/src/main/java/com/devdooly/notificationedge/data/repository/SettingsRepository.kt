@@ -1,8 +1,11 @@
 package com.devdooly.notificationedge.data.repository
 
+import android.annotation.SuppressLint
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -12,16 +15,25 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeSide
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
-private val Context.dataStore by preferencesDataStore(name = "notification_edge_settings")
+private val Context.dataStore by preferencesDataStore(
+    name = "notification_edge_settings",
+    corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 class SettingsRepository(private val context: Context) {
 
     companion object {
         private const val SYNC_PREFS_NAME = "notification_edge_sync_prefs"
         private const val KEY_LAUNCH_DIRECT = "launch_direct_to_panel"
+        private const val KEY_EXTERNAL_CONTROL = "external_control_enabled"
+        private const val KEY_DIAGNOSTIC_MODE = "diagnostic_mode_enabled"
 
+        // INSTANCE는 Activity가 아닌 applicationContext만 보관한다.
+        @SuppressLint("StaticFieldLeak")
         @Volatile
         private var INSTANCE: SettingsRepository? = null
 
@@ -51,36 +63,53 @@ class SettingsRepository(private val context: Context) {
         val SELECTED_FONT = stringPreferencesKey("selected_font")
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
         val PAUSE_MEDIA_ON_OPEN = booleanPreferencesKey("pause_media_on_open")
+        val DIAGNOSTIC_MODE_ENABLED = booleanPreferencesKey("diagnostic_mode_enabled")
+        val EXTERNAL_CONTROL_ENABLED = booleanPreferencesKey("external_control_enabled")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
         val DISCOVERED_APP_PACKAGES = stringSetPreferencesKey("discovered_app_packages")
         val BLOCKED_KEYWORDS = stringSetPreferencesKey("blocked_keywords")
     }
 
-    val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { prefs ->
-        AppSettings(
-            isServiceEnabled = prefs[PreferencesKeys.SERVICE_ENABLED] ?: true,
-            edgeSide = if ((prefs[PreferencesKeys.EDGE_SIDE] ?: 0) == 0) EdgeSide.LEFT else EdgeSide.RIGHT,
-            handlePositionRatio = prefs[PreferencesKeys.HANDLE_POS_RATIO] ?: 0.5f,
-            handleWidthDp = prefs[PreferencesKeys.HANDLE_WIDTH_DP] ?: 8,
-            handleHeightDp = prefs[PreferencesKeys.HANDLE_HEIGHT_DP] ?: 110,
-            handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: 0xFF82D8D0,
-            handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: 0.75f,
-            isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: true,
-            launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: true,
-            panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: 260,
-            autoDismissOnOpen = prefs[PreferencesKeys.AUTO_DISMISS_ON_OPEN] ?: true,
-            isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: true,
-            edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: 3000L,
-            edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: 0xFF82D8D0,
-            edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP] ?: 32,
-            selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: "default",
-            hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: true,
-            pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: false,
-            excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: emptySet(),
-            discoveredAppPackages = prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES] ?: emptySet(),
-            blockedKeywords = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: emptySet()
-        )
-    }
+    val settingsFlow: Flow<AppSettings> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { prefs ->
+            val defaults = AppSettings()
+            AppSettings(
+                isServiceEnabled = prefs[PreferencesKeys.SERVICE_ENABLED] ?: defaults.isServiceEnabled,
+                edgeSide = if ((prefs[PreferencesKeys.EDGE_SIDE] ?: 0) == 0) EdgeSide.LEFT else EdgeSide.RIGHT,
+                handlePositionRatio = prefs[PreferencesKeys.HANDLE_POS_RATIO] ?: defaults.handlePositionRatio,
+                handleWidthDp = prefs[PreferencesKeys.HANDLE_WIDTH_DP] ?: defaults.handleWidthDp,
+                handleHeightDp = prefs[PreferencesKeys.HANDLE_HEIGHT_DP] ?: defaults.handleHeightDp,
+                handleColor = prefs[PreferencesKeys.HANDLE_COLOR] ?: defaults.handleColor,
+                handleAlpha = prefs[PreferencesKeys.HANDLE_ALPHA] ?: defaults.handleAlpha,
+                isHandleVisible = prefs[PreferencesKeys.HANDLE_VISIBLE] ?: defaults.isHandleVisible,
+                launchDirectToPanel = prefs[PreferencesKeys.LAUNCH_DIRECT_TO_PANEL] ?: defaults.launchDirectToPanel,
+                panelWidthDp = prefs[PreferencesKeys.PANEL_WIDTH_DP] ?: defaults.panelWidthDp,
+                autoDismissOnOpen = prefs[PreferencesKeys.AUTO_DISMISS_ON_OPEN] ?: defaults.autoDismissOnOpen,
+                isEdgeLightingEnabled = prefs[PreferencesKeys.EDGE_LIGHTING_ENABLED] ?: defaults.isEdgeLightingEnabled,
+                edgeLightingDurationMs = prefs[PreferencesKeys.EDGE_LIGHTING_DURATION_MS] ?: defaults.edgeLightingDurationMs,
+                edgeLightingColor = prefs[PreferencesKeys.EDGE_LIGHTING_COLOR] ?: defaults.edgeLightingColor,
+                edgeLightingCornerRadiusDp = prefs[PreferencesKeys.EDGE_LIGHTING_CORNER_RADIUS_DP]
+                    ?: defaults.edgeLightingCornerRadiusDp,
+                selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: defaults.selectedFont,
+                hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: defaults.hapticFeedbackEnabled,
+                pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: defaults.pauseMediaOnOpen,
+                diagnosticModeEnabled = prefs[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED]
+                    ?: defaults.diagnosticModeEnabled,
+                externalControlEnabled = prefs[PreferencesKeys.EXTERNAL_CONTROL_ENABLED]
+                    ?: defaults.externalControlEnabled,
+                excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: defaults.excludedPackages,
+                discoveredAppPackages = prefs[PreferencesKeys.DISCOVERED_APP_PACKAGES]
+                    ?: defaults.discoveredAppPackages,
+                blockedKeywords = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: defaults.blockedKeywords
+            )
+        }
 
     suspend fun updateServiceEnabled(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.SERVICE_ENABLED] = enabled }
@@ -159,6 +188,32 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun updatePauseMediaOnOpen(enabled: Boolean) {
         context.dataStore.edit { it[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] = enabled }
+    }
+
+    suspend fun updateDiagnosticModeEnabled(enabled: Boolean) {
+        context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_DIAGNOSTIC_MODE, enabled)
+            .apply()
+        context.dataStore.edit { it[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED] = enabled }
+    }
+
+    fun isDiagnosticModeEnabledSync(): Boolean {
+        val sp = context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+        return sp.getBoolean(KEY_DIAGNOSTIC_MODE, false)
+    }
+
+    suspend fun updateExternalControlEnabled(enabled: Boolean) {
+        context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_EXTERNAL_CONTROL, enabled)
+            .apply()
+        context.dataStore.edit { it[PreferencesKeys.EXTERNAL_CONTROL_ENABLED] = enabled }
+    }
+
+    fun isExternalControlEnabledSync(): Boolean {
+        val sp = context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
+        return sp.getBoolean(KEY_EXTERNAL_CONTROL, false)
     }
 
     suspend fun setPackageExcluded(packageName: String, excluded: Boolean) {

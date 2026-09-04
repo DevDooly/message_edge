@@ -936,17 +936,19 @@ private fun NotificationCard(
                     Spacer(modifier = Modifier.width(1.dp))
                 }
 
-                // 디버그 데이터 복사 버튼 (단체방/알림 원본 분석용)
+                // 개인정보를 마스킹한 진단 데이터 복사 버튼
                 if (!notification.debugExtrasDump.isNullOrBlank()) {
                     Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(Color(0xFF2C2C2C))
                             .clickable {
-                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText("Notification Debug Dump", notification.debugExtrasDump)
-                                clipboard?.setPrimaryClip(clip)
-                                android.widget.Toast.makeText(context, "알림 원본 데이터가 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_SHORT).show()
+                                com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
+                                    context,
+                                    "Notification Debug Dump",
+                                    notification.debugExtrasDump.orEmpty()
+                                )
+                                android.widget.Toast.makeText(context, "알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
                             }
                             .padding(horizontal = 7.dp, vertical = 3.5.dp),
                         verticalAlignment = Alignment.CenterVertically

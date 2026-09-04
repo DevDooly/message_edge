@@ -18,9 +18,6 @@
     <!-- Auto start after reboot -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     
-    <!-- Request ignore battery optimization -->
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    
     <!-- Internet for checking & downloading GitHub Releases update -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
@@ -32,6 +29,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:usesCleartextTraffic="false"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NotificationEdge"
@@ -58,7 +56,6 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.NotificationEdge"
-            android:label="@string/app_name"
             android:taskAffinity="com.devdooly.notificationedge.settings"
             android:launchMode="singleTask"
             android:noHistory="false"
@@ -94,7 +91,8 @@
         <!-- Good Lock (One Hand Operation +) / Tasker / Broadcast Intent용 무액티비티 리시버 (미디어 재생 완벽 유지) -->
         <receiver
             android:name=".service.OpenPanelReceiver"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.devdooly.notificationedge.OPEN_PANEL" />
                 <action android:name="com.devdooly.notificationedge.CLOSE_PANEL" />

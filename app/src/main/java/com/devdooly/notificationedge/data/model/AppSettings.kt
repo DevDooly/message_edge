@@ -23,6 +23,8 @@ data class AppSettings(
     val selectedFont: String = "default",
     val hapticFeedbackEnabled: Boolean = true,
     val pauseMediaOnOpen: Boolean = false,
+    val diagnosticModeEnabled: Boolean = false,
+    val externalControlEnabled: Boolean = false,
     val excludedPackages: Set<String> = emptySet(),
     val discoveredAppPackages: Set<String> = emptySet(),
     val blockedKeywords: Set<String> = emptySet()

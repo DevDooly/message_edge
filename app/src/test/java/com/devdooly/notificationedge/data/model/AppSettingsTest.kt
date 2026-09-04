@@ -29,6 +29,8 @@ class AppSettingsTest {
         assertEquals("default", settings.selectedFont)
         assertTrue(settings.hapticFeedbackEnabled)
         assertFalse(settings.pauseMediaOnOpen)
+        assertFalse(settings.diagnosticModeEnabled)
+        assertFalse(settings.externalControlEnabled)
         assertTrue(settings.excludedPackages.isEmpty())
         assertTrue(settings.discoveredAppPackages.isEmpty())
         assertTrue(settings.blockedKeywords.isEmpty())

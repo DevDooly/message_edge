@@ -5,7 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
-import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
+import com.devdooly.notificationedge.ui.overlay.EdgePanelLauncher
 import com.devdooly.notificationedge.ui.settings.SettingsActivity
 
 /**
@@ -20,14 +20,7 @@ class MainActivity : Activity() {
         val openSettings = intent.getBooleanExtra(EXTRA_OPEN_SETTINGS, false)
 
         if (!openSettings && Settings.canDrawOverlays(this) && settingsRepository.isLaunchDirectToPanelSync()) {
-            if (EdgePanelActivity.isInstanceActive) {
-                EdgePanelActivity.closeActiveInstance()
-            } else {
-                val panelIntent = Intent(this, EdgePanelActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                }
-                startActivity(panelIntent)
-            }
+            EdgePanelLauncher.toggle(this)
         } else {
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
                 if (openSettings) putExtra(SettingsActivity.EXTRA_OPEN_SETTINGS, true)

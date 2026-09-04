@@ -1,5 +1,6 @@
 *.iml
 .gradle/
+.kotlin/
 local.properties
 .idea/
 .DS_Store
@@ -10,3 +11,8 @@ captures/
 .cxx/
 *.apk
 *.aab
+
+# 릴리스 서명 정보는 로컬/CI 비밀 저장소에서만 관리
+keystore.properties
+*.keystore
+*.jks

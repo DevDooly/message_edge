@@ -50,12 +50,12 @@ object NotificationRepository {
                         )
                     )
                 }
-                combined.distinctBy { "${it.timestamp}_${it.text}" }
+                combined.distinctBy { "${it.timestamp}_${it.sender}_${it.isFromUser}_${it.text}" }
                     .sortedBy { it.timestamp }
-                    .takeLast(50)
+                    .takeLast(MAX_MESSAGES_PER_NOTIFICATION)
             } else {
                 if (notification.messages.isNotEmpty()) {
-                    notification.messages.takeLast(50)
+                    notification.messages.takeLast(MAX_MESSAGES_PER_NOTIFICATION)
                 } else if (notification.text.isNotBlank()) {
                     listOf(
                         MessageItem(
@@ -114,6 +114,16 @@ object NotificationRepository {
     fun clearAll() {
         _notifications.value = emptyList()
         cancelAllNotificationsCallback?.invoke()
+    }
+
+    /** 진단 모드를 끌 때 메모리에 남은 Extras 덤프를 즉시 제거한다. */
+    fun clearDiagnosticDumps() {
+        _notifications.update { list ->
+            list.map { notification ->
+                if (notification.debugExtrasDump == null) notification
+                else notification.copy(debugExtrasDump = null)
+            }
+        }
     }
 
     fun dismissNotification(key: String) {

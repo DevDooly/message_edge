@@ -2,5 +2,6 @@
 <data-extraction-rules>
     <cloud-backup>
         <include domain="sharedpref" path="."/>
+        <include domain="file" path="datastore/notification_edge_settings.preferences_pb"/>
     </cloud-backup>
 </data-extraction-rules>

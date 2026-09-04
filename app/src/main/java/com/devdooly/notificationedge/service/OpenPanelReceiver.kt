@@ -3,9 +3,8 @@ package com.devdooly.notificationedge.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
-import com.devdooly.notificationedge.MainActivity
+import com.devdooly.notificationedge.data.repository.SettingsRepository
 
 /**
  * Good Lock(One Hand Operation +), Tasker, 숏컷 등에서
@@ -15,26 +14,17 @@ import com.devdooly.notificationedge.MainActivity
 class OpenPanelReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (Settings.canDrawOverlays(context)) {
-            val serviceAction = when (intent.action) {
-                ACTION_CLOSE_PANEL -> EdgeOverlayService.ACTION_CLOSE_PANEL
-                ACTION_TOGGLE_PANEL -> EdgeOverlayService.ACTION_TOGGLE_PANEL
-                else -> EdgeOverlayService.ACTION_OPEN_PANEL
-            }
-            val serviceIntent = Intent(context, EdgeOverlayService::class.java).apply {
-                action = serviceAction
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.startService(serviceIntent)
-            }
-        } else {
-            val settingsIntent = Intent(context, com.devdooly.notificationedge.ui.settings.SettingsActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(settingsIntent)
+        val repository = SettingsRepository.getInstance(context)
+        if (!repository.isExternalControlEnabledSync()) return
+        if (!Settings.canDrawOverlays(context)) return
+
+        val serviceAction = when (intent.action) {
+            ACTION_OPEN_PANEL -> EdgeOverlayService.ACTION_OPEN_PANEL
+            ACTION_CLOSE_PANEL -> EdgeOverlayService.ACTION_CLOSE_PANEL
+            ACTION_TOGGLE_PANEL -> EdgeOverlayService.ACTION_TOGGLE_PANEL
+            else -> return
         }
+        OverlayServiceStarter.start(context, serviceAction)
     }
 
     companion object {

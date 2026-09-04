@@ -8,6 +8,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 
 data class CustomFontInfo(
     val id: String, // "custom:filename.ttf"
@@ -19,6 +20,8 @@ data class CustomFontInfo(
 object CustomFontManager {
 
     private const val FONTS_DIR_NAME = "custom_fonts"
+    private const val MAX_FONT_FILE_BYTES = 20L * 1024L * 1024L
+    private val fontCache = ConcurrentHashMap<String, Pair<Long, FontFamily>>()
 
     private fun getFontsDir(context: Context): File {
         val dir = File(context.filesDir, FONTS_DIR_NAME)
@@ -47,26 +50,43 @@ object CustomFontManager {
     }
 
     fun getFontFile(context: Context, fileName: String): File? {
-        val file = File(getFontsDir(context), fileName)
+        val file = resolveSafeFontFile(context, fileName) ?: return null
         return if (file.exists() && file.canRead()) file else null
     }
 
     fun saveCustomFont(context: Context, uri: Uri): Result<CustomFontInfo> {
         return runCatching {
             var fileName = getFileNameFromUri(context, uri) ?: "custom_font_${System.currentTimeMillis()}.ttf"
-            if (!fileName.lowercase().endsWith(".ttf") && !fileName.lowercase().endsWith(".otf")) {
+            if (listOf(".ttf", ".otf", ".ttc").none { fileName.lowercase().endsWith(it) }) {
                 fileName = "$fileName.ttf"
             }
 
             // 파일명 정제
             val safeFileName = fileName.replace("[^a-zA-Z0-9._-]".toRegex(), "_")
-            val targetFile = File(getFontsDir(context), safeFileName)
+            val targetFile = requireNotNull(resolveSafeFontFile(context, safeFileName)) {
+                "안전하지 않은 폰트 파일명입니다."
+            }
 
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(targetFile).use { output ->
-                    input.copyTo(output)
-                }
-            } ?: throw IllegalStateException("폰트 파일을 읽을 수 없습니다.")
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(targetFile).use { output ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                        var totalBytes = 0L
+                        while (true) {
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            totalBytes += count
+                            if (totalBytes > MAX_FONT_FILE_BYTES) {
+                                throw IllegalArgumentException("폰트 파일은 20MB 이하여야 합니다.")
+                            }
+                            output.write(buffer, 0, count)
+                        }
+                    }
+                } ?: throw IllegalStateException("폰트 파일을 읽을 수 없습니다.")
+            } catch (error: Exception) {
+                targetFile.delete()
+                throw error
+            }
 
             // 폰트 유효성 검사 (실제 파싱 가능한지 Typeface로 확인)
             try {
@@ -81,6 +101,7 @@ object CustomFontManager {
             }
 
             val nameWithoutExt = targetFile.nameWithoutExtension
+            fontCache.remove(targetFile.absolutePath)
             CustomFontInfo(
                 id = "custom:${targetFile.name}",
                 fileName = targetFile.name,
@@ -91,7 +112,8 @@ object CustomFontManager {
     }
 
     fun deleteCustomFont(context: Context, fileName: String): Boolean {
-        val file = File(getFontsDir(context), fileName)
+        val file = resolveSafeFontFile(context, fileName) ?: return false
+        fontCache.remove(file.absolutePath)
         return if (file.exists()) file.delete() else false
     }
 
@@ -99,12 +121,24 @@ object CustomFontManager {
         if (!fontId.startsWith("custom:")) return null
         val fileName = fontId.removePrefix("custom:")
         val file = getFontFile(context, fileName) ?: return null
+        fontCache[file.absolutePath]?.let { (lastModified, family) ->
+            if (lastModified == file.lastModified()) return family
+        }
         return try {
-            FontFamily(Font(file))
+            FontFamily(Font(file)).also { family ->
+                fontCache[file.absolutePath] = file.lastModified() to family
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         }
+    }
+
+    private fun resolveSafeFontFile(context: Context, fileName: String): File? {
+        if (fileName.isBlank() || fileName != File(fileName).name) return null
+        val directory = getFontsDir(context).canonicalFile
+        val candidate = File(directory, fileName).canonicalFile
+        return candidate.takeIf { it.parentFile == directory }
     }
 
     private fun getFileNameFromUri(context: Context, uri: Uri): String? {

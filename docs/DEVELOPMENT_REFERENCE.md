@@ -469,25 +469,44 @@ graph TD
   - **패널 가로 너비 기본값 최적화**: `AppSettings.panelWidthDp` 및 `EdgePanelContent` 컴포저블 기본값을 기존 280dp에서 260dp로 변경.
   - `AppSettingsTest` 단위 테스트 검증 케이스 동기화 완료.
 
+### 56) 보안·신뢰성 개선과 릴리스 검증 강화 (`v1.3.14`, Build 144)
+
+* **릴리스 서명 비밀 분리**:
+  - 저장소에서 키스토어 추적과 Gradle 평문 비밀번호를 제거했다.
+  - 로컬은 Git에서 제외된 `keystore.properties`, CI는 GitHub Actions Secrets를 사용한다.
+  - CI가 릴리스 APK의 서명 인증서 SHA-256 지문을 승인된 값과 대조한다.
+* **알림 개인정보 보호**:
+  - 알림 Extras 덤프는 기본 비활성인 진단 모드에서만 만든다.
+  - 토큰·인증정보·이메일·전화번호·인증번호를 마스킹하고 덤프 크기를 제한한다.
+  - 진단 덤프와 메시지 복사에는 Android 민감 클립보드 플래그를 적용한다.
+* **외부 제어와 서비스 시작 안정화**:
+  - Tasker 브로드캐스트는 사용자 옵트인 후 알려진 세 명령만 처리한다.
+  - 포그라운드 서비스 시작 정책은 `OverlayServiceStarter`로 통합하고 시작 제한 예외를 안전하게 처리한다.
+  - 패널 실행은 `EdgePanelLauncher`로 통합하며 `EdgePanelActivity` 기반 뒤로가기 구조는 그대로 유지한다.
+* **데이터와 알림 처리 안정화**:
+  - 알림 콜백의 중량 파싱을 크기 제한 직렬 큐에서 처리한다.
+  - 서비스 종료 시 전역 취소 콜백을 해제하고, 동일 시각·본문의 서로 다른 발신자 메시지를 보존한다.
+  - DataStore 손상·읽기 오류 복구와 실제 설정 파일 백업 규칙을 추가했다.
+* **업데이트 공급망 보강**:
+  - HTTPS 허용 호스트, 리다이렉트 횟수, APK 크기, SHA-256, 패키지명, 버전 코드, 서명 인증서를 검증한다.
+  - CI 릴리스는 APK와 체크섬을 함께 게시하며 외부 Actions를 커밋 SHA로 고정한다.
+* **버전 표시 단일화**:
+  - 설정 화면의 버전·빌드·Target SDK 표시는 `BuildConfig`와 런타임 메타데이터에서 읽는다.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
 
 ### 1) 버전 판올림 체크리스트
-버전을 올릴 때는 다음 2개 파일(총 4곳)의 버전을 동시에 수정합니다:
-1. `app/build.gradle.kts`: `versionCode`, `versionName`
-2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.13`)
-   - `AppUpdateCard(currentVersionName = "1.3.13")`
-   - `AppInfoCard` (예: `버전 1.3.13 (Build 143) | Target Android 14`)
+버전을 올릴 때는 `app/build.gradle.kts`의 `versionCode`, `versionName`만 수정합니다. 설정 화면은 `BuildConfig`에서 버전 정보를 읽으므로 별도 동기화가 필요하지 않습니다.
 
 ### 2) 테스트 및 빌드 검증 명령어
 ```bash
 # 로컬 JVM 단위 테스트 실행
 ./gradlew testDebugUnitTest
 
-# 디버그 & 릴리즈 빌드 검증
-./gradlew compileDebugKotlin assembleRelease
+# 디버그 컴파일, Lint, 릴리즈 빌드 검증
+./gradlew compileDebugKotlin lintRelease assembleRelease
 ```
 *(테스트 및 빌드가 성공(`BUILD SUCCESSFUL`)하는지 반드시 확인)*
 
@@ -513,6 +532,8 @@ git push origin v버전
 | **`EdgeNotificationTest`** | 알림 엔티티 기본값, 메시지 모델, 빠른 답장 액션 플래그 검증 |
 | **`AppSettingsTest`** | 앱 설정 기본값(패널 크기, 투명도, 엣지 라이팅 등) 검증 |
 | **`SettingsRepositoryTest`** | Robolectric 기반 DataStore 및 SharedPreferences 동기화 동작 검증 |
+| **`OpenPanelReceiverTest`** | 외부 제어 기본 거부, 명령 화이트리스트, 오버레이 권한 미보유 경로 검증 |
+| **`NotificationDumpSanitizerTest`** | 인증정보·이메일·전화번호·인증번호 및 중첩 Bundle 값 마스킹 검증 |
 
 > [!TIP]
 > GitHub Actions CI 파이프라인(`.github/workflows/release.yml`)에 `testDebugUnitTest`가 자동 연동되어 있어, main 푸시 및 릴리즈 태그 생성 시 단위 테스트가 자동으로 실행 및 검증됩니다.
@@ -523,8 +544,8 @@ git push origin v버전
 
 1. **커밋 메시지 및 마크다운 파일은 반드시 한글로 작성할 것** (사용자 글로벌 룰).
 2. **코드 변경 및 빌드 검증 후 git commit 및 원격 저장소 push를 자동으로 진행할 것**.
-3. **오버레이 윈도우(`WindowManager`) 수정 시 주의**:
-   - `FLAG_NOT_FOCUSABLE`을 적용하면 시스템의 `KEYCODE_BACK`(뒤로가기 키/제스처)이 오버레이 창으로 들어오지 않습니다.
-   - 키보드 입력이나 뒤로가기 처리가 필요할 때는 `OverlayPanelLayout`의 `dispatchKeyEvent` 및 `dispatchKeyEventPreIme`가 정상 동작하는지 항상 검증할 것.
+3. **오버레이와 패널 호스트 수정 시 주의**:
+   - `EdgeOverlayService`는 엣지 핸들과 라이팅만 담당하고, 패널은 반드시 투명 `EdgePanelActivity`에서 호스팅합니다.
+   - 키보드 입력과 시스템 뒤로가기는 `EdgePanelActivity`의 `BackHandler`·`onBackPressedDispatcher` 경로를 유지하여 검증합니다.
 4. **알림 텍스트 처리 시 주의**:
    - 새로운 메신저/앱 알림을 파싱할 때는 반드시 `NotificationTextCleaner.cleanMessageText`를 통과시켜 중복 접두어가 붙지 않도록 할 것.

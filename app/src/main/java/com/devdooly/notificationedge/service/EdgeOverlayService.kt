@@ -31,6 +31,7 @@ import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
 import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
+import com.devdooly.notificationedge.ui.overlay.EdgePanelLauncher
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -299,21 +300,11 @@ class EdgeOverlayService : Service() {
     }
 
     private fun togglePanel() {
-        if (EdgePanelActivity.isInstanceActive) {
-            EdgePanelActivity.closeActiveInstance()
-        } else {
-            openPanel()
-        }
+        EdgePanelLauncher.toggle(this)
     }
 
     private fun openPanel() {
-        if (currentSettings.pauseMediaOnOpen) {
-            com.devdooly.notificationedge.util.MediaControlHelper.pauseYouTubeOnly(this)
-        }
-        val intent = Intent(this, EdgePanelActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        }
-        startActivity(intent)
+        EdgePanelLauncher.open(this)
     }
 
     private fun showEdgeLighting() {

@@ -1,7 +1,5 @@
 package com.devdooly.notificationedge.ui.settings
 
-import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -13,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
-import com.devdooly.notificationedge.service.EdgeOverlayService
+import com.devdooly.notificationedge.service.OverlayServiceStarter
 import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -68,12 +66,7 @@ class SettingsActivity : ComponentActivity() {
             lifecycleScope.launch {
                 val settings = settingsRepository.settingsFlow.first()
                 if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
-                    val serviceIntent = Intent(this@SettingsActivity, EdgeOverlayService::class.java)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        startForegroundService(serviceIntent)
-                    } else {
-                        startService(serviceIntent)
-                    }
+                    OverlayServiceStarter.start(this@SettingsActivity)
                 }
             }
         }

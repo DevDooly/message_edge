@@ -3,7 +3,7 @@ package com.devdooly.notificationedge.data.repository
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.MessageItem
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 
@@ -169,5 +169,52 @@ class NotificationRepositoryTest {
         assertEquals(2, list.size)
         assertEquals("KODEX SK하이닉스단일종목레버리지 📈", list[0].title)
         assertEquals("SK이터닉스 📉", list[1].title)
+    }
+
+    @Test
+    fun `같은 시각과 본문이어도 발신자가 다르면 모두 보존한다`() {
+        val first = EdgeNotification(
+            key = "group_1",
+            id = 501,
+            packageName = "com.kakao.talk",
+            appName = "카카오톡",
+            title = "개발팀",
+            text = "확인했습니다",
+            messages = listOf(MessageItem("홍길동", "확인했습니다", 1000L)),
+            isGroupChat = true
+        )
+        val second = first.copy(
+            key = "group_2",
+            id = 502,
+            messages = listOf(MessageItem("김영희", "확인했습니다", 1000L))
+        )
+
+        NotificationRepository.addOrUpdateNotification(first)
+        NotificationRepository.addOrUpdateNotification(second)
+
+        val messages = NotificationRepository.notifications.value.single().messages
+        assertEquals(2, messages.size)
+        assertEquals(listOf("홍길동", "김영희"), messages.map { it.sender })
+    }
+
+    @Test
+    fun `진단 모드를 끄면 메모리의 덤프만 즉시 제거한다`() {
+        NotificationRepository.addOrUpdateNotification(
+            EdgeNotification(
+                key = "diagnostic_1",
+                id = 601,
+                packageName = "com.example.messenger",
+                appName = "메신저",
+                title = "테스트",
+                text = "본문",
+                debugExtrasDump = "마스킹된 진단 데이터"
+            )
+        )
+
+        NotificationRepository.clearDiagnosticDumps()
+
+        val notification = NotificationRepository.notifications.value.single()
+        assertEquals("본문", notification.text)
+        assertNull(notification.debugExtrasDump)
     }
 }

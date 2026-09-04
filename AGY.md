@@ -125,17 +125,14 @@ app/src/main/java/com/devdooly/notificationedge/
 ./gradlew testDebugUnitTest
 
 # 릴리즈 빌드 무결성 검증
-./gradlew compileDebugKotlin assembleRelease
+./gradlew compileDebugKotlin lintRelease assembleRelease
 ```
 
-### 2) 버전 판올림 시 동기화 체크리스트 (4곳 필수 동기화)
+### 2) 버전 판올림 시 동기화 체크리스트
 1. `app/build.gradle.kts`: `versionCode`, `versionName`
-2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt`:
-   - TopAppBar 버전 뱃지 (예: `v1.3.13`)
-   - `AppUpdateCard(currentVersionName = "1.3.13")`
-   - `AppInfoCard` (예: `버전 1.3.13 (Build 143) | Target Android 14`)
-3. `docs/DEVELOPMENT_REFERENCE.md`: 최신 릴리즈 내역 및 체크리스트 갱신
-4. `AGY.md`: 현재 기준 버전 명시
+2. 설정 화면은 `BuildConfig`와 런타임 메타데이터에서 버전·빌드·Target SDK를 자동으로 읽으므로 별도 수정하지 않음
+3. `docs/DEVELOPMENT_REFERENCE.md`: 최신 릴리스 내역 및 체크리스트 갱신
+4. `apksigner verify --verbose --print-certs`로 승인된 서명 인증서 확인
 
 ### 3) 표준 배포 및 원격 자동 푸시 명령어
 ```bash

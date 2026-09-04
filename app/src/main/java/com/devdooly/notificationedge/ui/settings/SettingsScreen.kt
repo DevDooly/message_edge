@@ -1,7 +1,5 @@
 package com.devdooly.notificationedge.ui.settings
 
-import android.app.NotificationManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -42,13 +40,13 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.widget.Toast
+import com.devdooly.notificationedge.BuildConfig
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
-import com.devdooly.notificationedge.service.EdgeOverlayService
-import com.devdooly.notificationedge.service.NotificationListener
+import com.devdooly.notificationedge.service.OverlayServiceStarter
 import com.devdooly.notificationedge.ui.theme.*
 import com.devdooly.notificationedge.util.CustomFontInfo
 import com.devdooly.notificationedge.util.CustomFontManager
@@ -94,7 +92,7 @@ fun SettingsScreen() {
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
                         ) {
                             Text(
-                                text = "v1.3.13",
+                                text = "v${BuildConfig.VERSION_NAME}",
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
@@ -151,9 +149,7 @@ fun SettingsScreen() {
                 onGrantBattery = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         try {
-                            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                                data = Uri.parse("package:${context.packageName}")
-                            }
+                            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                             context.startActivity(intent)
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -166,6 +162,8 @@ fun SettingsScreen() {
             GoodLockIntegrationCard(
                 launchDirectToPanel = settings.launchDirectToPanel,
                 onToggleLaunchDirect = { scope.launch { settingsRepo.updateLaunchDirectToPanel(it) } },
+                externalControlEnabled = settings.externalControlEnabled,
+                onToggleExternalControl = { scope.launch { settingsRepo.updateExternalControlEnabled(it) } },
                 onTestOpenPanel = {
                     val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -284,11 +282,19 @@ fun SettingsScreen() {
                 }
             )
 
-            // 알림 원본 데이터(Bundle Extras) 실시간 덤프 및 복사 카드 (단체방/메신저 분석용)
-            NotificationDebugDumpCard()
+            // 개인정보를 마스킹한 알림 진단 데이터 카드 (단체방/메신저 분석용)
+            NotificationDebugDumpCard(
+                enabled = settings.diagnosticModeEnabled,
+                onEnabledChange = { enabled ->
+                    scope.launch {
+                        settingsRepo.updateDiagnosticModeEnabled(enabled)
+                        if (!enabled) NotificationRepository.clearDiagnosticDumps()
+                    }
+                }
+            )
 
             // 인앱 자동 업데이트 확인 및 설치 카드
-            AppUpdateCard(currentVersionName = "1.3.13")
+            AppUpdateCard(currentVersionName = BuildConfig.VERSION_NAME)
 
             // 앱 버전 및 시스템 정보 카드
             AppInfoCard()
@@ -347,6 +353,8 @@ private fun MasterSwitchCard(
 private fun GoodLockIntegrationCard(
     launchDirectToPanel: Boolean,
     onToggleLaunchDirect: (Boolean) -> Unit,
+    externalControlEnabled: Boolean,
+    onToggleExternalControl: (Boolean) -> Unit,
     onTestOpenPanel: () -> Unit
 ) {
     Card(
@@ -401,6 +409,27 @@ private fun GoodLockIntegrationCard(
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color(0xFF252525))
+                    .padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Tasker 외부 브로드캐스트 허용", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text("다른 앱의 패널 열기·닫기 명령을 허용합니다. 필요할 때만 켜세요.", color = Color.Gray, fontSize = 11.sp)
+                }
+                Switch(
+                    checked = externalControlEnabled,
+                    onCheckedChange = onToggleExternalControl,
+                    colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = onTestOpenPanel,
                 colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
@@ -417,6 +446,7 @@ private fun GoodLockIntegrationCard(
 
 @Composable
 private fun AppInfoCard() {
+    val context = LocalContext.current
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
         shape = RoundedCornerShape(16.dp),
@@ -436,7 +466,7 @@ private fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 1.3.13 (Build 143) | Target Android 14",
+                text = "버전 ${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}) | Target SDK ${context.applicationInfo.targetSdkVersion}",
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -452,7 +482,10 @@ private fun AppInfoCard() {
 }
 
 @Composable
-private fun NotificationDebugDumpCard() {
+private fun NotificationDebugDumpCard(
+    enabled: Boolean,
+    onEnabledChange: (Boolean) -> Unit
+) {
     val context = LocalContext.current
     val notifications by com.devdooly.notificationedge.data.repository.NotificationRepository.notifications.collectAsState()
     val dumpableList = remember(notifications) {
@@ -479,23 +512,46 @@ private fun NotificationDebugDumpCard() {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "알림 원본 데이터 인스펙터",
+                        text = "알림 진단 데이터 인스펙터",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                 }
 
-                if (dumpableList.isNotEmpty()) {
+                Switch(
+                    checked = enabled,
+                    onCheckedChange = onEnabledChange,
+                    colors = SwitchDefaults.colors(checkedThumbColor = EdgeCyan)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = if (enabled) {
+                    "진단 모드가 켜져 있습니다. 새로 수신한 알림은 개인정보가 마스킹된 진단 데이터로 보관됩니다."
+                } else {
+                    "기본적으로 꺼져 있습니다. 메신저 파서 문제를 분석할 때만 잠시 켜세요."
+                },
+                color = if (enabled) Color(0xFFFFCC80) else Color.Gray,
+                fontSize = 12.sp,
+                lineHeight = 16.sp
+            )
+
+            if (enabled && dumpableList.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                     Button(
                         onClick = {
                             val allDumps = dumpableList.joinToString("\n\n") { 
                                 "[${it.appName}] ${it.title}\n${it.debugExtrasDump}" 
                             }
-                            val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("All Notification Dumps", allDumps)
-                            clipboard?.setPrimaryClip(clip)
-                            android.widget.Toast.makeText(context, "최근 ${dumpableList.size}개 알림 원본 데이터가 모두 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_LONG).show()
+                            com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
+                                context,
+                                "All Notification Dumps",
+                                allDumps
+                            )
+                            android.widget.Toast.makeText(context, "최근 ${dumpableList.size}개 알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_LONG).show()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
                         shape = RoundedCornerShape(8.dp),
@@ -507,22 +563,14 @@ private fun NotificationDebugDumpCard() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "카카오톡 단체방 알림이 올 때 알림 내부의 모든 Key-Value 원본 데이터를 확인하고 복사할 수 있습니다. 복사된 내용을 채팅창에 공유해주시면 즉시 완벽한 맞춤 파서를 제작해 드립니다.",
-                color = Color.Gray,
-                fontSize = 12.sp,
-                lineHeight = 16.sp
-            )
-
-            if (dumpableList.isEmpty()) {
+            if (enabled && dumpableList.isEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "(아직 수신된 알림이 없습니다. 카카오톡 메시지를 받으신 후 확인해주세요)",
                     color = Color.DarkGray,
                     fontSize = 11.sp
                 )
-            } else {
+            } else if (enabled) {
                 Spacer(modifier = Modifier.height(10.dp))
                 dumpableList.take(3).forEach { notif ->
                     Surface(
@@ -548,10 +596,12 @@ private fun NotificationDebugDumpCard() {
                                 )
                                 Button(
                                     onClick = {
-                                        val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                                        val clip = android.content.ClipData.newPlainText("Notification Debug Dump", notif.debugExtrasDump)
-                                        clipboard?.setPrimaryClip(clip)
-                                        android.widget.Toast.makeText(context, "'${notif.title}' 알림 데이터가 복사되었습니다! 채팅에 붙여넣어주세요.", android.widget.Toast.LENGTH_SHORT).show()
+                                        com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
+                                            context,
+                                            "Notification Debug Dump",
+                                            notif.debugExtrasDump.orEmpty()
+                                        )
+                                        android.widget.Toast.makeText(context, "'${notif.title}' 알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
                                     shape = RoundedCornerShape(6.dp),
@@ -585,6 +635,12 @@ private fun AppUpdateCard(currentVersionName: String) {
     var updateStatus by remember { mutableStateOf<UpdateUIState>(UpdateUIState.Idle) }
     var releaseInfo by remember { mutableStateOf<com.devdooly.notificationedge.data.updater.ReleaseInfo?>(null) }
     var downloadProgress by remember { mutableFloatStateOf(0f) }
+    val installDownloadedApk: (java.io.File) -> Unit = { apkFile ->
+        com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, apkFile)
+            .onFailure { error ->
+                updateStatus = UpdateUIState.Error(error.message ?: "APK 검증 또는 설치 실패")
+            }
+    }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
@@ -712,12 +768,13 @@ private fun AppUpdateCard(currentVersionName: String) {
                                         com.devdooly.notificationedge.data.updater.AppUpdateManager.downloadApk(
                                             context = context,
                                             downloadUrl = info.downloadUrl,
+                                            expectedSha256 = info.sha256,
                                             onProgress = { progress ->
                                                 downloadProgress = progress
                                             }
                                         ).onSuccess { apkFile ->
                                             updateStatus = UpdateUIState.Downloaded(apkFile)
-                                            com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, apkFile)
+                                            installDownloadedApk(apkFile)
                                         }.onFailure { error ->
                                             updateStatus = UpdateUIState.Error(error.message ?: "다운로드 실패")
                                         }
@@ -800,11 +857,12 @@ private fun AppUpdateCard(currentVersionName: String) {
                                 val result = com.devdooly.notificationedge.data.updater.AppUpdateManager.downloadApk(
                                     context = context,
                                     downloadUrl = info.downloadUrl,
+                                    expectedSha256 = info.sha256,
                                     onProgress = { downloadProgress = it }
                                 )
                                 result.onSuccess { apkFile ->
                                     updateStatus = UpdateUIState.Downloaded(apkFile)
-                                    com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, apkFile)
+                                    installDownloadedApk(apkFile)
                                 }.onFailure { error ->
                                     updateStatus = UpdateUIState.Error("다운로드 실패: ${error.message}")
                                 }
@@ -852,7 +910,7 @@ private fun AppUpdateCard(currentVersionName: String) {
                         Spacer(modifier = Modifier.height(10.dp))
                         Button(
                             onClick = {
-                                com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, state.apkFile)
+                                installDownloadedApk(state.apkFile)
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = EdgeGreen),
                             shape = RoundedCornerShape(8.dp),
@@ -1693,12 +1751,7 @@ private fun isBatteryOptimized(context: Context): Boolean {
 }
 
 private fun startOverlayService(context: Context) {
-    val intent = Intent(context, EdgeOverlayService::class.java)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.startForegroundService(intent)
-    } else {
-        context.startService(intent)
-    }
+    OverlayServiceStarter.start(context)
 }
 
 /**

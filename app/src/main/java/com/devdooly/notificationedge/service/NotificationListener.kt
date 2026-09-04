@@ -20,12 +20,24 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 
 class NotificationListener : NotificationListenerService() {
 
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val notificationEvents = Channel<NotificationEvent>(
+        capacity = 256,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private lateinit var settingsRepo: SettingsRepository
+    @Volatile
     private var currentSettings: AppSettings = AppSettings()
+
+    private sealed interface NotificationEvent {
+        data class Posted(val notification: StatusBarNotification) : NotificationEvent
+        data class Removed(val key: String) : NotificationEvent
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -35,10 +47,20 @@ class NotificationListener : NotificationListenerService() {
                 currentSettings = it
             }
         }
+        serviceScope.launch {
+            for (event in notificationEvents) {
+                when (event) {
+                    is NotificationEvent.Posted -> parseAndAddNotification(event.notification)
+                    is NotificationEvent.Removed -> NotificationRepository.markAsDismissed(event.key)
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        notificationEvents.close()
+        clearRepositoryCallbacks()
         serviceScope.cancel()
     }
 
@@ -64,7 +86,7 @@ class NotificationListener : NotificationListenerService() {
         // 연결 시점에 현재 쌓여있는 활성 알림들 로드
         try {
             activeNotifications?.forEach { sbn ->
-                parseAndAddNotification(sbn)
+                notificationEvents.trySend(NotificationEvent.Posted(sbn))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -73,6 +95,10 @@ class NotificationListener : NotificationListenerService() {
 
     override fun onListenerDisconnected() {
         super.onListenerDisconnected()
+        clearRepositoryCallbacks()
+    }
+
+    private fun clearRepositoryCallbacks() {
         NotificationRepository.cancelNotificationCallback = null
         NotificationRepository.cancelAllNotificationsCallback = null
     }
@@ -80,13 +106,13 @@ class NotificationListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
-        parseAndAddNotification(sbn)
+        notificationEvents.trySend(NotificationEvent.Posted(sbn))
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
         if (sbn == null) return
-        NotificationRepository.markAsDismissed(sbn.key)
+        notificationEvents.trySend(NotificationEvent.Removed(sbn.key))
     }
 
     private fun parseAndAddNotification(sbn: StatusBarNotification) {
@@ -137,7 +163,7 @@ class NotificationListener : NotificationListenerService() {
             val ranking = Ranking()
             if (currentRanking?.getRanking(sbn.key, ranking) == true) {
                 channelObj = ranking.channel
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     rankingShortcutInfo = ranking.conversationShortcutInfo
                     rankingIsConversation = ranking.isConversation
                 }
@@ -146,7 +172,7 @@ class NotificationListener : NotificationListenerService() {
         } else null
         val tickerText = notification.tickerText?.toString()?.trim()
 
-        // 1. Ranking 객체에서 제공하는 OS 공인 ShortcutInfo 라벨 조회 (API 30+)
+        // 1. Ranking 객체에서 제공하는 OS 공인 ShortcutInfo 라벨 조회 (API 31+)
         val rankingShortcutLabel = rankingShortcutInfo?.shortLabel?.toString()?.trim()
             ?: rankingShortcutInfo?.longLabel?.toString()?.trim()
 
@@ -233,17 +259,21 @@ class NotificationListener : NotificationListenerService() {
 
         val finalTitle = if (formattedTitle.isNotBlank()) formattedTitle else appName
 
-        val extrasDump = dumpExtras(
-            extras = extras,
-            sbn = sbn,
-            channel = channelObj,
-            viewTexts = allViewTexts,
-            rankingShortcutInfo = rankingShortcutInfo,
-            rankingIsConversation = rankingIsConversation,
-            launcherShortcutLabel = launcherShortcutLabel,
-            launcherDebugInfo = launcherDebugInfo,
-            effectiveShortcutLabel = effectiveShortcutLabel
-        )
+        val extrasDump = if (settingsRepo.isDiagnosticModeEnabledSync()) {
+            dumpExtras(
+                extras = extras,
+                sbn = sbn,
+                channel = channelObj,
+                viewTexts = allViewTexts,
+                rankingShortcutInfo = rankingShortcutInfo,
+                rankingIsConversation = rankingIsConversation,
+                launcherShortcutLabel = launcherShortcutLabel,
+                launcherDebugInfo = launcherDebugInfo,
+                effectiveShortcutLabel = effectiveShortcutLabel
+            )
+        } else {
+            null
+        }
 
         val edgeNotification = EdgeNotification(
             key = sbn.key,
@@ -428,6 +458,6 @@ class NotificationListener : NotificationListenerService() {
             }
         }
         sb.append("=========================================")
-        return sb.toString()
+        return com.devdooly.notificationedge.util.NotificationDumpSanitizer.sanitize(sb.toString())
     }
 }

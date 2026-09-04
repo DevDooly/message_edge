@@ -7,7 +7,7 @@
 ## 📌 1. 필수 사용자 규칙 (User Rules)
 
 * **언어 표준**: Git 커밋 메시지, 태그 메시지, README 등 모든 마크다운(`*.md`) 문서는 **반드시 한글로 작성**해야 합니다.
-* **자동 Git 워크플로우**: 코드 수정 및 기능 구현 후 빌드 검증(`compileDebugKotlin assembleRelease`)을 수행하고, 별도의 추가 확인 요청 없이 **로컬 커밋 및 원격 저장소(`git push origin main` 및 태그 푸시)까지 자동으로 진행**해야 합니다.
+* **자동 Git 워크플로우**: 코드 수정 및 기능 구현 후 빌드 검증(`testDebugUnitTest compileDebugKotlin lintRelease assembleRelease`)을 수행하고, 별도의 추가 확인 요청 없이 **로컬 커밋 및 원격 저장소(`git push origin main` 및 태그 푸시)까지 자동으로 진행**해야 합니다.
 
 ---
 
@@ -47,10 +47,11 @@
 ## 🔄 5. 표준 버전 판올림 절차
 
 새로운 기능 추가나 버그 수정 후 릴리즈 시:
-1. `app/build.gradle.kts` (`versionCode`, `versionName`) 수정
-2. `app/src/main/java/com/devdooly/notificationedge/ui/settings/SettingsScreen.kt` (TopAppBar 뱃지, AppUpdateCard, AppInfoCard) 수정
-3. 빌드 검증: `./gradlew testDebugUnitTest assembleRelease`
-4. 커밋 & 푸시:
+1. `app/build.gradle.kts` (`versionCode`, `versionName`) 수정. 설정 화면은 `BuildConfig`를 사용하므로 별도 수정하지 않습니다.
+2. `docs/DEVELOPMENT_REFERENCE.md`에 최신 릴리스 내역 추가
+3. 빌드 검증: `./gradlew testDebugUnitTest compileDebugKotlin lintRelease assembleRelease`
+4. `apksigner verify --verbose --print-certs`로 APK 서명 확인
+5. 커밋 & 푸시:
    ```bash
    git add .
    git commit -m "타입: 한글 설명(v버전)"

@@ -3,7 +3,6 @@ package com.devdooly.notificationedge.service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -25,12 +24,7 @@ class BootReceiver : BroadcastReceiver {
                     try {
                         val settings = repository.settingsFlow.first()
                         if (settings.isServiceEnabled || settings.isEdgeLightingEnabled) {
-                            val serviceIntent = Intent(context, EdgeOverlayService::class.java)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                context.startForegroundService(serviceIntent)
-                            } else {
-                                context.startService(serviceIntent)
-                            }
+                            OverlayServiceStarter.start(context)
                         }
                     } catch (e: Exception) {
                         e.printStackTrace()
