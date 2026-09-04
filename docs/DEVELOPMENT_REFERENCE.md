@@ -510,6 +510,7 @@ graph TD
 * **API 호환성 자동화**:
   - API 31·34·35는 Gradle Managed Device Pixel 2 프로필, API 26은 SDK 도구로 직접 생성하는 AVD를 구성했다.
   - 주간·수동 GitHub Actions 매트릭스에서 컴포넌트 공개 정책과 알림 리스너 권한을 계측 검증한다.
+  - 최초 전체 실행에서 API 26·31·34·35가 모두 통과했다([검증 실행](https://github.com/DevDooly/message_edge/actions/runs/33875421131)).
   - 제조사별 동작은 `ONE_UI_RELEASE_CHECKLIST.md`, 키 교체는 `SIGNING_KEY_ROTATION_RUNBOOK.md`를 승인 기준으로 사용한다.
 
 ---
