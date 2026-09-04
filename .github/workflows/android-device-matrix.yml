@@ -77,7 +77,11 @@ jobs:
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
-          "$SDKMANAGER" --install "system-images;android-26;default;x86_64"
+          ADB="$ANDROID_HOME/platform-tools/adb"
+          "$SDKMANAGER" --install \
+            "platform-tools" \
+            "emulator" \
+            "system-images;android-26;default;x86_64"
           echo "no" | "$AVDMANAGER" create avd --force \
             --name notification-edge-api26 \
             --package "system-images;android-26;default;x86_64" \
@@ -91,11 +95,19 @@ jobs:
             -gpu swiftshader_indirect \
             > "$RUNNER_TEMP/emulator-api26.log" 2>&1 &
           echo "EMULATOR_PID=$!" >> "$GITHUB_ENV"
-          adb wait-for-device
-          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == "1" ]]; do sleep 5; done'
-          adb shell settings put global window_animation_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global animator_duration_scale 0
+          "$ADB" wait-for-device
+          BOOT_COMPLETED=""
+          for attempt in {1..60}; do
+            BOOT_COMPLETED="$("$ADB" shell getprop sys.boot_completed | tr -d '\r')"
+            if [[ "$BOOT_COMPLETED" == "1" ]]; then
+              break
+            fi
+            sleep 5
+          done
+          test "$BOOT_COMPLETED" = "1"
+          "$ADB" shell settings put global window_animation_scale 0
+          "$ADB" shell settings put global transition_animation_scale 0
+          "$ADB" shell settings put global animator_duration_scale 0
 
       - name: Run API 26 Test
         run: ./gradlew connectedDebugAndroidTest --no-daemon
@@ -103,7 +115,7 @@ jobs:
       - name: Stop API 26 Emulator
         if: always()
         run: |
-          adb emu kill || true
+          "$ANDROID_HOME/platform-tools/adb" emu kill || true
           if [[ -n "${EMULATOR_PID:-}" ]]; then
             kill "$EMULATOR_PID" || true
           fi
