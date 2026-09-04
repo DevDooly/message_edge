@@ -112,7 +112,7 @@ android {
         }
         managedDevices {
             devices {
-                listOf(26, 31, 34, 35).forEach { apiLevelValue ->
+                listOf(31, 34, 35).forEach { apiLevelValue ->
                     maybeCreate<ManagedVirtualDevice>("pixel2Api$apiLevelValue").apply {
                         device = "Pixel 2"
                         apiLevel = apiLevelValue

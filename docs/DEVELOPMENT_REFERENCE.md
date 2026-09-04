@@ -508,7 +508,7 @@ graph TD
   - `minifiedRelease` 변형에서 R8 전체 모드와 리소스 축소를 실행하고 CI에서 빌드·서명을 검증한다.
   - 로컬 기준 APK 크기는 약 11.12MB에서 1.59MB로 줄었으며, One UI 수동 회귀를 통과한 뒤 배포 승격을 결정한다.
 * **API 호환성 자동화**:
-  - Gradle Managed Device에 API 26·31·34·35 Pixel 2 프로필을 구성했다.
+  - API 31·34·35는 Gradle Managed Device Pixel 2 프로필, API 26은 SDK 도구로 직접 생성하는 AVD를 구성했다.
   - 주간·수동 GitHub Actions 매트릭스에서 컴포넌트 공개 정책과 알림 리스너 권한을 계측 검증한다.
   - 제조사별 동작은 `ONE_UI_RELEASE_CHECKLIST.md`, 키 교체는 `SIGNING_KEY_ROTATION_RUNBOOK.md`를 승인 기준으로 사용한다.
 

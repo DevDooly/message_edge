@@ -21,8 +21,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - api-level: 26
-            task: pixel2Api26DebugAndroidTest
           - api-level: 31
             task: pixel2Api31DebugAndroidTest
           - api-level: 34
@@ -51,3 +49,62 @@ jobs:
 
       - name: Run Managed Device Test
         run: ./gradlew "${{ matrix.task }}" --no-daemon
+
+  legacy-api-26-test:
+    name: API 26 계측 테스트
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle & Build Cache
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-read-only: false
+
+      - name: Enable KVM
+        run: sudo chmod 666 /dev/kvm
+
+      - name: Create and Start API 26 Emulator
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
+          "$SDKMANAGER" --install "system-images;android-26;default;x86_64"
+          echo "no" | "$AVDMANAGER" create avd --force \
+            --name notification-edge-api26 \
+            --package "system-images;android-26;default;x86_64" \
+            --device "pixel_2"
+          "$ANDROID_HOME/emulator/emulator" \
+            -avd notification-edge-api26 \
+            -no-window \
+            -no-audio \
+            -no-boot-anim \
+            -no-snapshot \
+            -gpu swiftshader_indirect \
+            > "$RUNNER_TEMP/emulator-api26.log" 2>&1 &
+          echo "EMULATOR_PID=$!" >> "$GITHUB_ENV"
+          adb wait-for-device
+          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == "1" ]]; do sleep 5; done'
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+
+      - name: Run API 26 Test
+        run: ./gradlew connectedDebugAndroidTest --no-daemon
+
+      - name: Stop API 26 Emulator
+        if: always()
+        run: |
+          adb emu kill || true
+          if [[ -n "${EMULATOR_PID:-}" ]]; then
+            kill "$EMULATOR_PID" || true
+          fi
+          tail -n 200 "$RUNNER_TEMP/emulator-api26.log" || true

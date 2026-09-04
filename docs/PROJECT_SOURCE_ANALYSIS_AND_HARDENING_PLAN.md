@@ -44,7 +44,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | Compose 구조 분리 | 완료 | 설정 화면을 기능별 카드와 `SettingsViewModel`로 분리하고 패널 상태·헤더·카드·답장 바를 독립 파일로 분리 |
 | 설정 목록 성능 | 완료 | 전체 `Column.verticalScroll`을 안정적인 key를 가진 `LazyColumn` 항목으로 전환 |
 | R8 단계 검증 | 완료 | 배포 `release`는 유지하면서 R8·리소스 축소 전용 `minifiedRelease`와 CI 서명 검증 추가 |
-| API 자동 매트릭스 | 구성 완료 | API 26·31·34·35 Gradle Managed Device 주간·수동 워크플로 및 컴포넌트 보안 계측 테스트 추가 |
+| API 자동 매트릭스 | 구성 완료 | API 26 직접 AVD와 API 31·34·35 Managed Device 주간·수동 워크플로 및 컴포넌트 보안 계측 테스트 추가 |
 | 수동 배포 게이트 | 문서화 완료 | One UI 회귀 체크리스트와 서명키 교체 실행서를 별도 문서로 추가 |
 
 남은 작업은 호환성과 배포 정책 결정이 필요한 항목이다.
@@ -550,7 +550,7 @@ Android 패키지 설치기가 기존 앱과의 서명 일치를 검사하더라
 - [x] `testDebugUnitTest`, `compileDebugKotlin`, `lintRelease`, `assembleRelease`를 CI 필수 단계로 만든다.
 - [x] 릴리스 APK에 `apksigner verify --verbose --print-certs`를 수행한다.
 - [x] R8/리소스 축소 `minifiedRelease`를 만들고 CI에서 빌드·서명 검증한다.
-- [x] API 26, 31, 34, 35 Gradle Managed Device 매트릭스를 구성한다.
+- [x] API 26 직접 AVD와 API 31, 34, 35 Gradle Managed Device 매트릭스를 구성한다.
 - [x] 삼성 One UI 수동 회귀 체크리스트를 Release 승인 조건으로 문서화한다.
 - [x] `DEVELOPMENT_REFERENCE.md`에 현행 구조와 검증 절차를 기록한다.
 - [x] 앱 버전 UI를 `BuildConfig`에서 읽도록 바꿔 수동 동기화를 제거한다.
