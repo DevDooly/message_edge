@@ -54,6 +54,8 @@ jobs:
     name: API 26 계측 테스트
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      ANDROID_AVD_HOME: ${{ runner.temp }}/android-avd
 
     steps:
       - name: Checkout Code
@@ -78,6 +80,7 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           AVDMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager"
           ADB="$ANDROID_HOME/platform-tools/adb"
+          mkdir -p "$ANDROID_AVD_HOME"
           "$SDKMANAGER" --install \
             "platform-tools" \
             "emulator" \
@@ -85,7 +88,10 @@ jobs:
           echo "no" | "$AVDMANAGER" create avd --force \
             --name notification-edge-api26 \
             --package "system-images;android-26;default;x86_64" \
-            --device "pixel_2"
+            --device "pixel_2" \
+            --path "$ANDROID_AVD_HOME/notification-edge-api26.avd"
+          test -f "$ANDROID_AVD_HOME/notification-edge-api26.ini"
+          "$ANDROID_HOME/emulator/emulator" -list-avds
           "$ANDROID_HOME/emulator/emulator" \
             -avd notification-edge-api26 \
             -no-window \
