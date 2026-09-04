@@ -524,8 +524,8 @@ graph TD
 # 로컬 JVM 단위 테스트 실행
 ./gradlew testDebugUnitTest
 
-# 디버그·계측 테스트 컴파일, Lint, 일반/축소 릴리즈 빌드 검증
-./gradlew compileDebugKotlin compileDebugAndroidTestKotlin lintRelease assembleRelease assembleMinifiedRelease
+# 디버그·계측 테스트 APK, Lint, 일반/축소 릴리즈 빌드 검증
+./gradlew compileDebugKotlin assembleDebugAndroidTest lintRelease assembleRelease assembleMinifiedRelease
 
 # API별 Gradle Managed Device 계측 테스트 예시
 ./gradlew pixel2Api34DebugAndroidTest

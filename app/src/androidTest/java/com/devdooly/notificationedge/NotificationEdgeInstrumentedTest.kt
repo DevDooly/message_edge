@@ -14,13 +14,13 @@ import org.junit.runner.RunWith
 class NotificationEdgeInstrumentedTest {
 
     @Test
-    fun `애플리케이션 ID가 유지된다`() {
+    fun applicationId_isPreserved() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.devdooly.notificationedge", appContext.packageName)
     }
 
     @Test
-    fun `민감 컴포넌트의 외부 공개 정책이 유지된다`() {
+    fun sensitiveComponents_areNotExported() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val packageInfo = context.packageManager.getPackageInfoCompat(context.packageName)
 
@@ -44,7 +44,7 @@ class NotificationEdgeInstrumentedTest {
     }
 
     @Test
-    fun `알림 리스너 서비스는 시스템 바인딩 권한으로 보호된다`() {
+    fun notificationListener_isProtectedBySystemBindingPermission() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val packageInfo = context.packageManager.getPackageInfoCompat(context.packageName)
         val listener = packageInfo.services.single {

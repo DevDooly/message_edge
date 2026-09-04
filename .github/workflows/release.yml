@@ -62,7 +62,7 @@ jobs:
           test "v${VERSION_NAME}" = "$GITHUB_REF_NAME"
 
       - name: Run Tests and Build Release APK
-        run: ./gradlew testDebugUnitTest compileDebugKotlin lintRelease assembleRelease assembleMinifiedRelease --no-daemon
+        run: ./gradlew testDebugUnitTest compileDebugKotlin assembleDebugAndroidTest lintRelease assembleRelease assembleMinifiedRelease --no-daemon
 
       - name: Verify Minified APK
         run: |

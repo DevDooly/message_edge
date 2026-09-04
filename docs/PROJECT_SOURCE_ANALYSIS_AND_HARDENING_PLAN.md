@@ -89,7 +89,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | 테스트 | JUnit4, MockK, Turbine, Robolectric, AndroidX Test | JVM 테스트 56개, 계측 테스트 1개 |
 | 배포 | GitHub Actions + GitHub Releases | `main`은 검증만, `v*` 태그는 검증 후 배포 |
 
-분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.15` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `compileDebugAndroidTestKotlin`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`와 `apksigner verify`로 다시 검증한다.
+분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.15` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `assembleDebugAndroidTest`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`와 `apksigner verify`로 다시 검증한다.
 
 ---
 
@@ -625,7 +625,7 @@ Android 패키지 설치기가 기존 앱과의 서명 일치를 검사하더라
 - [x] 단체방/1:1/일반 알림 병합과 빠른 답장 관련 JVM 테스트가 통과한다.
 - [ ] DataStore 오류와 백업 복원 정책이 테스트된다.
 - [x] 업데이트 파일의 버전·호스트·해시·패키지·서명을 검증한다.
-- [x] `testDebugUnitTest`, `compileDebugKotlin`, `compileDebugAndroidTestKotlin`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`가 성공한다.
+- [x] `testDebugUnitTest`, `compileDebugKotlin`, `assembleDebugAndroidTest`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`가 성공한다.
 - [ ] 삼성 One UI 실기기 회귀 체크리스트를 통과한다.
 - [x] 소스, 버전 UI, README, 개발 참조 문서가 일치한다.
 
