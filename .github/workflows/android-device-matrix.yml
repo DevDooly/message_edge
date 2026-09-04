@@ -95,7 +95,7 @@ jobs:
             -gpu swiftshader_indirect \
             > "$RUNNER_TEMP/emulator-api26.log" 2>&1 &
           echo "EMULATOR_PID=$!" >> "$GITHUB_ENV"
-          "$ADB" wait-for-device
+          timeout 180 "$ADB" wait-for-device
           BOOT_COMPLETED=""
           for attempt in {1..60}; do
             BOOT_COMPLETED="$("$ADB" shell getprop sys.boot_completed | tr -d '\r')"
