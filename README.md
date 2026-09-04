@@ -1,96 +1,176 @@
 <div align="center">
 
-# 📱 Notification Edge (알림 엣지)
+<img src="docs/images/notification_edge_readme_hero.png" alt="화면 오른쪽 가장자리에서 알림 패널이 열리는 Notification Edge 대표 이미지" width="960" />
 
-**화면 가장자리 제스처로 최근 알림을 확인하고 바로 답장하는 안드로이드 알림 패널 앱**
+# Notification Edge
 
-<p align="center">
-  <img src="docs/images/notification_edge_preview.jpg" alt="Notification Edge Preview" width="360" style="border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.4);" />
-</p>
+**앱을 전환하지 않고, 화면 가장자리에서 최근 알림을 확인하고 바로 답장하세요.**
 
-[![Latest Release](https://img.shields.io/github/v/release/DevDooly/message_edge?style=for-the-badge&color=00E5FF&logo=github&label=Release)](https://github.com/DevDooly/message_edge/releases/latest)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B%20(API%2026%2B)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![최신 릴리스](https://img.shields.io/github/v/release/DevDooly/message_edge?style=flat-square&color=00B8D4&label=%EC%B5%9C%EC%8B%A0%20%EB%A6%B4%EB%A6%AC%EC%8A%A4)](https://github.com/DevDooly/message_edge/releases/latest)
+[![빌드](https://img.shields.io/github/actions/workflow/status/DevDooly/message_edge/release.yml?branch=main&style=flat-square&label=%EB%B9%8C%EB%93%9C)](https://github.com/DevDooly/message_edge/actions/workflows/release.yml)
+[![보안 분석](https://img.shields.io/github/actions/workflow/status/DevDooly/message_edge/codeql.yml?branch=main&style=flat-square&label=CodeQL)](https://github.com/DevDooly/message_edge/actions/workflows/codeql.yml)
+[![안드로이드](https://img.shields.io/badge/Android-8.0%20%EC%9D%B4%EC%83%81-3DDC84?style=flat-square&logo=android&logoColor=white)](https://developer.android.com/about/versions/oreo)
+[![라이선스](https://img.shields.io/badge/%EB%9D%BC%EC%9D%B4%EC%84%A0%EC%8A%A4-Apache%202.0-7C4DFF?style=flat-square)](LICENSE)
 
-<br/>
-
-[📥 최신 APK 다운로드](https://github.com/DevDooly/message_edge/releases/latest) • 
-[📖 갤럭시 Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md) • 
-[📘 개발 참조 및 아키텍처 가이드](docs/DEVELOPMENT_REFERENCE.md) • 
-[📋 해결 과제 및 미해결 이슈](docs/PENDING_ISSUES.md) • 
-[🎨 앱 아이콘 후보 리스트](docs/App_Icon_Concepts.md) • 
-[🐛 이슈 제보 및 기능 제안](https://github.com/DevDooly/message_edge/issues)
+[최신 APK 받기](https://github.com/DevDooly/message_edge/releases/latest) · [설치 안내](#설치) · [Good Lock 연동](docs/Samsung_Edge_Integration_Guide.md) · [개발 문서](docs/DEVELOPMENT_REFERENCE.md) · [이슈 제보](https://github.com/DevDooly/message_edge/issues)
 
 </div>
 
----
+> 대표 이미지는 기능 이해를 돕기 위한 콘셉트 이미지입니다. 실제 화면은 기기, 안드로이드 버전, 테마와 설정에 따라 달라질 수 있습니다.
 
-## 📌 소개
+## 어떤 앱인가요?
 
-과거 삼성 갤럭시 스마트폰에서 제공되었던 **'알림 엣지'** 기능을 최신 안드로이드(Android 8.0 ~ 14+)에서 사용할 수 있도록 만든 앱입니다.
+Notification Edge는 안드로이드 알림을 화면 가장자리 패널로 모아 보여주는 오픈소스 앱입니다. 게임, 영상 시청, 웹 탐색 중에도 현재 화면을 벗어나지 않고 최근 알림을 확인할 수 있으며, 알림 앱이 `RemoteInput` 답장을 지원하면 패널에서 바로 답장할 수 있습니다.
 
-게임, 유튜브 시청, 웹 서핑 중에도 화면을 벗어나지 않고 **화면 가장자리 제스처로 최근 알림을 바로 확인**하고, **카카오톡이나 문자 앱으로 이동하지 않고도 엣지 패널 안에서 바로 답장**을 보낼 수 있습니다.
+삼성 Galaxy의 **Good Lock · One Hand Operation +**와 연결하면 화면 핸들을 숨긴 채 원하는 제스처로 패널을 열 수 있습니다. 일반 안드로이드 기기에서는 앱이 제공하는 좌·우 엣지 핸들을 사용할 수 있습니다.
 
----
+## 핵심 기능
 
-## ⚙️ 주요 기능
+| 기능 | 설명 |
+| --- | --- |
+| 엣지 알림 패널 | 투명 패널을 화면 가장자리에서 열어 최근 알림과 대화 흐름을 확인합니다. |
+| 알림 내 빠른 답장 | 지원 앱의 알림에 답장하고, 보낸 답장도 같은 대화 카드에 이어서 표시합니다. |
+| 메시지 정리 | 1:1 대화의 중복 발신자 접두어를 제거하고 단체 대화의 화자 구분은 유지합니다. |
+| 알림 필터 | 앱별 제외와 차단 키워드로 패널에 표시할 알림을 제어합니다. |
+| 엣지 맞춤 설정 | 좌·우 위치, 핸들 크기·색상·투명도, 패널 너비, 글꼴과 엣지 라이팅을 조절합니다. |
+| 자연스러운 화면 제어 | 시스템 상태 표시줄을 가리지 않으며, 뒤로가기 버튼과 제스처로 키보드와 패널을 단계적으로 닫습니다. |
+| 외부 실행 연동 | Good Lock, 런처 바로가기, 허용된 외부 명령으로 패널을 바로 열 수 있습니다. |
+| 인앱 업데이트 | GitHub Releases에서 새 버전을 확인하고 검증된 APK 다운로드·설치를 시작합니다. |
 
-- **빠른 답장 및 대화 내역 유지**: 알림에서 바로 답장을 보낼 수 있으며, 내가 보낸 답장도 목록에 추가되어 메신저 앱을 열지 않고 대화를 이어갈 수 있습니다.
-- **키보드 전송 버튼 & 자동 스크롤**: 답장 버튼을 누르면 가상 키보드가 뜨고, 키보드 바로 위에 전송 버튼이 위치하여 한 손으로 입력하기 편리합니다. 알림 카드도 키보드에 가려지지 않게 화면 상단으로 자동 이동합니다.
-- **상태바 가림 방지 & 뒤로가기 닫기**: 화면 상단의 배터리, 시계, 시스템 알림 아이콘을 가리지 않으며, 뒤로가기 버튼이나 제스처로 키보드 및 패널을 단계별로 닫을 수 있습니다.
-- **채팅방 이동 시 알림 자동 삭제**: 알림을 눌러 해당 앱(카카오톡 등)으로 이동하면 목록에서 해당 알림 카드가 자동으로 정리됩니다 (설정에서 켜고 끌 수 있음).
-- **화면 테두리 엣지 라이팅**: 알림이 오면 화면 테두리에 불빛 효과가 켜집니다 (색상, 시간, 모서리 둥글기 0~50dp 조절 가능).
-- **핸들 및 패널 크기 조절**:
-  - 패널 가로 너비: 220dp ~ 360dp (5dp 단위 조절)
-  - 핸들 두께: 4dp ~ 30dp
-  - 핸들 높이: 50dp ~ 200dp
-  - 핸들 위치(좌/우, 상하 위치), 투명도, 색상 조절 지원
-  - 핸들 숨김 모드: 핸들을 화면에서 완전히 숨기고 Good Lock 제스처로만 열기 가능
-- **인앱 원클릭 자동 업데이트**: 앱 설정 화면에서 최신 버전 확인 및 다운로드/설치를 바로 진행할 수 있습니다.
+## 설치
 
----
+### 1. APK 내려받기
 
-## 📥 설치 방법
+[최신 릴리스 페이지](https://github.com/DevDooly/message_edge/releases/latest)에서 버전명이 붙은 `NotificationEdge-vX.Y.Z.apk` 파일을 내려받아 설치합니다.
 
-1. 👉 **[최신 APK 다운로드](https://github.com/DevDooly/message_edge/releases/latest)**에서 APK 파일을 다운로드하여 설치합니다.
-2. 앱 실행 후 안내에 따라 **'다른 앱 위에 표시'** 및 **'알림 접근'** 권한을 허용합니다.
+보안을 위해 이 저장소의 GitHub Releases가 아닌 출처에서 받은 APK는 설치하지 않는 것을 권장합니다. 릴리스에 함께 첨부된 `.sha256` 파일과 내려받은 APK의 해시를 비교하려면 다음 명령을 사용할 수 있습니다.
 
-> **설치 차단 오류가 뜰 때**:
-> - 갤럭시 One UI 6+: 스마트폰 `설정` ➔ `보안 및 개인정보 보호` ➔ `보안 위험 자동 차단` ➔ **`사용 안 함`**
-> - Play 프로텍트 경고: `세부정보 더보기` ➔ **`무시하고 설치`** 선택
+```powershell
+Get-FileHash .\NotificationEdge-vX.Y.Z.apk -Algorithm SHA256
+```
 
----
+```bash
+sha256sum ./NotificationEdge-vX.Y.Z.apk
+```
 
-## 💡 갤럭시 Good Lock (One Hand Operation +) 제스처 연동
+### 2. 필수 권한 허용
 
-화면에 핸들을 띄우지 않고 갤럭시 기본 제스처로 열고 싶을 때 추천하는 설정입니다.
+앱의 설정 화면 안내에 따라 다음 권한을 허용합니다.
 
-1. Galaxy Store 또는 Play Store에서 **`Good Lock`** 및 **`One Hand Operation +`**을 설치합니다.
-2. `One Hand Operation +` 실행 ➔ `오른쪽 핸들` (또는 왼쪽) ➔ 원하는 제스처(예: `대각선 아래로 당기기`)를 선택합니다.
-3. 동작 목록에서 `애플리케이션 실행` ➔ **`Notification Edge`**를 지정합니다.
-4. Notification Edge 앱 설정에서 **`핸들 바 화면 표시`를 OFF**로 끕니다.
-5. 이제 수평 스와이프는 갤럭시 기본 엣지, 대각선 아래 스와이프는 알림 엣지로 분리해서 쓸 수 있습니다.
+| 권한 | 사용하는 이유 |
+| --- | --- |
+| 알림 접근 | 알림 제목·본문·답장 동작을 읽어 엣지 패널에 표시합니다. |
+| 다른 앱 위에 표시 | 다른 앱을 사용 중일 때 핸들, 패널과 엣지 라이팅을 표시합니다. |
+| 알림 보내기 | 백그라운드 서비스 동작 상태를 시스템 알림으로 안내합니다. |
+| 알 수 없는 앱 설치 | 사용자가 인앱 업데이트 설치를 선택한 경우에만 시스템 설치 화면을 엽니다. |
 
----
+설치가 차단되면 기기의 보안 안내에서 차단 원인을 먼저 확인하세요. Galaxy의 `보안 위험 자동 차단`을 일시적으로 꺼야 하는 환경이라면 APK 출처와 SHA-256을 확인한 뒤, 설치 직후 해당 보호 기능을 다시 켜는 것을 권장합니다.
 
-## ❓ 상단 '다른 앱 위에 표시됨' 시스템 알림 끄는 방법
+### 3. 서비스 시작
 
-안드로이드 OS 자체 안내 알림으로 상단 바에 알림이 계속 떠 있는 경우:
+1. 설정 화면에서 권한 상태가 모두 허용되었는지 확인합니다.
+2. `화면 가장자리 엣지 핸들`을 켭니다.
+3. 화면 가장자리의 핸들을 밀어 패널이 열리는지 확인합니다.
+4. 필요하면 배터리 최적화 설정에서 앱의 백그라운드 실행을 허용합니다.
 
-- **상단 바에서 끄기**: 상단 바의 `다른 앱 위에 표시됨` 알림을 **길게 꾹 누름** ➔ **`[알림 끄기]`** ➔ **`적용`**
-- **시스템 설정에서 끄기**: 스마트폰 `설정` ➔ `애플리케이션` ➔ `시스템 앱 표시 켜기` ➔ `Android 시스템` ➔ `알림` ➔ `알림 카테고리` ➔ `다른 앱 위에 표시되는 앱` OFF
+## Good Lock 제스처로 열기
 
----
+Samsung Galaxy에서는 핸들을 숨기고 One Hand Operation + 제스처만 사용할 수 있습니다.
 
-## 🔒 개인정보 보호
+1. Galaxy Store에서 `Good Lock`과 `One Hand Operation +`를 설치합니다.
+2. One Hand Operation +에서 사용할 핸들과 제스처를 선택합니다.
+3. 동작을 `애플리케이션 실행`으로 지정하고 `Notification Edge`를 선택합니다.
+4. Notification Edge 설정에서 `앱 실행 시 알림 엣지 바로 열기`를 켭니다.
+5. 앱의 `핸들 바 화면 표시`를 끕니다.
 
-- 알림 및 메시지 내용은 스마트폰 기기 내부 메모리에서만 처리되며, **외부 서버로 전송되지 않습니다.**
-- 인터넷 권한은 **앱 내 최신 버전 업데이트 확인 및 APK 다운로드 시에만 사용**됩니다.
-- 광고나 유료 결제가 없는 비상업적 오픈소스 앱입니다.
+세부 화면과 권장 제스처 조합은 [Galaxy Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md)에서 확인할 수 있습니다.
 
----
+## 개인정보와 보안
 
-## 📜 라이선스
+- 알림 내용과 빠른 답장 처리는 기기 안에서 수행되며 별도 분석 서버로 전송하지 않습니다.
+- 알림 목록은 메모리에서 관리하고, 사용자 설정만 Android DataStore에 저장합니다.
+- 인터넷 연결은 GitHub Releases의 업데이트 정보 확인과 사용자가 선택한 APK 다운로드에 사용합니다.
+- 업데이트 다운로드는 허용된 HTTPS 호스트만 사용하며, 릴리스 SHA-256 값이 제공되면 설치 전에 무결성을 확인합니다.
+- 진단 정보는 알림 원문과 민감한 값을 그대로 남기지 않도록 정제합니다.
+- 광고 SDK, 사용자 추적 SDK와 인앱 결제를 포함하지 않습니다.
 
-본 프로젝트는 **[Apache License 2.0](LICENSE)**에 따라 자유롭게 사용 및 수정, 재배포할 수 있습니다.
+알림 접근 권한은 운영체제 특성상 알림 내용을 읽을 수 있는 강한 권한입니다. 사용하지 않을 때는 Android 설정에서 언제든 권한을 해제할 수 있습니다.
+
+## 동작 구조
+
+```mermaid
+flowchart LR
+    A[안드로이드 알림] --> B[알림 수신 서비스]
+    B --> C[메신저 파서와 본문 정리]
+    C --> D[메모리 알림 저장소]
+    D --> E[투명 엣지 패널]
+    E --> F[RemoteInput 빠른 답장]
+    G[DataStore 설정] --> H[엣지 오버레이 서비스]
+    H --> E
+    H --> I[핸들과 엣지 라이팅]
+    J[GitHub Releases] --> K[업데이트 확인과 무결성 검증]
+```
+
+패널은 `EdgePanelActivity`의 투명 액티비티로 열리고, 핸들과 엣지 라이팅은 `EdgeOverlayService`가 관리합니다. 이 구조는 오버레이 위에서도 안드로이드의 뒤로가기 버튼과 가장자리 뒤로가기 제스처가 자연스럽게 동작하도록 설계되어 있습니다.
+
+## 개발 환경
+
+| 항목 | 기준 |
+| --- | --- |
+| 언어 | Kotlin 2.0.21 |
+| 사용자 인터페이스 | Jetpack Compose · Material 3 |
+| 최소 안드로이드 | Android 8.0 · API 26 |
+| 컴파일·대상 SDK | API 34 |
+| 자바 | JDK 17 |
+| 상태·설정 | Kotlin Coroutines · Flow · DataStore |
+| 테스트 | JUnit · MockK · Turbine · Robolectric · Compose UI Test |
+
+### 로컬 빌드
+
+Android SDK 34와 JDK 17을 준비한 뒤 저장소 루트에서 실행합니다.
+
+```powershell
+.\gradlew.bat testDebugUnitTest compileDebugKotlin assembleDebug lintRelease
+```
+
+릴리스 APK 빌드에는 별도의 서명 설정이 필요합니다. 실제 키나 비밀번호를 저장소에 추가하지 말고 [서명키 교체·복구 절차](docs/SIGNING_KEY_ROTATION_RUNBOOK.md)와 `keystore.properties.example`을 참고하세요.
+
+### 프로젝트 구성
+
+```text
+app/src/main/java/com/devdooly/notificationedge/
+├─ data/       알림 모델, 메모리 저장소, 설정 저장소, 업데이트
+├─ service/    알림 수신, 엣지 오버레이, 부팅 복원, 외부 실행
+├─ ui/
+│  ├─ overlay/ 투명 패널, 알림 카드, 빠른 답장, 엣지 라이팅
+│  ├─ settings/ 권한, 동작, 표시, 필터와 업데이트 설정
+│  └─ theme/   색상, 글꼴과 Compose 테마
+└─ util/       메시지 파싱, 본문 정리, 진단 정제와 보조 기능
+```
+
+`main` 브랜치에는 단위 테스트·릴리스 빌드, CodeQL 보안 분석이 연결되어 있습니다. API 31·34·35 기기 테스트는 예약 실행과 수동 실행으로 확인합니다.
+
+## 문서
+
+- [프로젝트 구조·소스 분석과 보완 계획](docs/PROJECT_SOURCE_ANALYSIS_AND_HARDENING_PLAN.md)
+- [개발 참조와 아키텍처 가이드](docs/DEVELOPMENT_REFERENCE.md)
+- [One UI 릴리스 점검표](docs/ONE_UI_RELEASE_CHECKLIST.md)
+- [서명키 교체·복구 절차](docs/SIGNING_KEY_ROTATION_RUNBOOK.md)
+- [사용자 인터페이스 명세](docs/UI_SPECIFICATION.md)
+- [해결 과제와 미해결 이슈](docs/PENDING_ISSUES.md)
+- [앱 아이콘 설계 기록](docs/App_Icon_Concepts.md)
+
+## 알려진 제약
+
+- 빠른 답장은 알림에 Android `RemoteInput` 동작을 제공하는 앱에서만 사용할 수 있습니다.
+- 제조사별 절전 정책에 따라 백그라운드 서비스 유지 방식이 다를 수 있습니다.
+- 전체 화면 영상, 게임, PiP 전환처럼 앱별 창 동작이 다른 환경에서는 표시 방식에 차이가 생길 수 있습니다.
+- 사이드로드 앱 설치와 업데이트 허용 절차는 Android 및 One UI 버전에 따라 다릅니다.
+
+## 참여와 문의
+
+버그 재현 절차, 기기 모델, Android·One UI 버전을 포함해 [GitHub Issues](https://github.com/DevDooly/message_edge/issues)에 남겨 주세요. 민감한 알림 원문, 전화번호, 계정 정보와 서명키 자료는 첨부하지 마세요.
+
+## 라이선스
+
+이 프로젝트는 [Apache License 2.0](LICENSE)에 따라 사용할 수 있습니다.
