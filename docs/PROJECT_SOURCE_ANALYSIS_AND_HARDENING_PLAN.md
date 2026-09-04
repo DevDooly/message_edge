@@ -50,6 +50,8 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | 예외 로그 정책 | 완료 | 공통 `AppLog`를 도입해 릴리스 로그에서 예외 메시지와 스택 트레이스를 제거 |
 | 진단 모드 만료 | 완료 | 개인정보 경고를 강화하고 활성화 후 12시간이 지나면 자동 비활성화 |
 | 서비스 설정 상태 | 완료 | `NotificationListener`와 `EdgeOverlayService`의 설정 스냅샷을 `MutableStateFlow.value` 경계로 통일 |
+| 저장소 보안 설정 | 완료 | 비밀 스캔·푸시 보호·Dependabot 보안 업데이트, `main` 강제 푸시·삭제 차단과 선형 이력 적용 |
+| CodeQL 분석 | 완료 | Java·Kotlin 수동 빌드 기반 CodeQL 정적 분석을 push·PR·주간 일정에 추가 |
 
 남은 작업은 호환성과 배포 정책 결정이 필요한 항목이다.
 
