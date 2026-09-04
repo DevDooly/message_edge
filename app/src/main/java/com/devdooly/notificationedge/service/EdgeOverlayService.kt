@@ -32,12 +32,14 @@ import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.overlay.EdgeLightingEffect
 import com.devdooly.notificationedge.ui.overlay.EdgePanelActivity
 import com.devdooly.notificationedge.ui.overlay.EdgePanelLauncher
+import com.devdooly.notificationedge.util.AppLog
 import com.devdooly.notificationedge.util.OverlayLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -53,7 +55,9 @@ class EdgeOverlayService : Service() {
     private var lightingComposeView: ComposeView? = null
     private var lightingLifecycleOwner: OverlayLifecycleOwner? = null
 
-    private var currentSettings = AppSettings()
+    private val currentSettingsState = MutableStateFlow(AppSettings())
+    private val currentSettings: AppSettings
+        get() = currentSettingsState.value
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -125,7 +129,7 @@ class EdgeOverlayService : Service() {
     private fun observeSettings() {
         serviceScope.launch {
             settingsRepository.settingsFlow.collectLatest { settings ->
-                currentSettings = settings
+                currentSettingsState.value = settings
                 if (settings.isServiceEnabled) {
                     updateHandleView()
                 } else {
@@ -171,7 +175,7 @@ class EdgeOverlayService : Service() {
                 vibrator?.vibrate(40)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.warning("EdgeOverlayService", "진동 실행 실패", e)
         }
     }
 
@@ -263,7 +267,7 @@ class EdgeOverlayService : Service() {
             try {
                 windowManager.addView(view, params)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("EdgeOverlayService", "엣지 핸들 추가 실패", e)
             }
         } else {
             handleView?.let { view ->
@@ -282,7 +286,7 @@ class EdgeOverlayService : Service() {
                 try {
                     windowManager.updateViewLayout(view, params)
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    AppLog.warning("EdgeOverlayService", "엣지 핸들 갱신 실패", e)
                 }
             }
         }
@@ -293,7 +297,7 @@ class EdgeOverlayService : Service() {
             try {
                 windowManager.removeView(it)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.debug("EdgeOverlayService", "엣지 핸들 제거 실패", e)
             }
             handleView = null
         }
@@ -358,7 +362,7 @@ class EdgeOverlayService : Service() {
         try {
             windowManager.addView(composeView, params)
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.warning("EdgeOverlayService", "엣지 라이팅 추가 실패", e)
         }
     }
 
@@ -367,7 +371,7 @@ class EdgeOverlayService : Service() {
             try {
                 windowManager.removeView(it)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.debug("EdgeOverlayService", "엣지 라이팅 제거 실패", e)
             }
             lightingComposeView = null
         }

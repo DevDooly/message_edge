@@ -4,7 +4,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
-import android.util.Log
 import com.devdooly.notificationedge.service.NotificationListener
 
 /**
@@ -47,9 +46,9 @@ object MediaControlHelper {
                 }
             }
         } catch (e: SecurityException) {
-            Log.w(TAG, "NotificationListener permission not granted for MediaSessionManager: ${e.message}")
+            AppLog.warning(TAG, "미디어 세션 접근 권한 없음", e)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to pause YouTube: ${e.message}")
+            AppLog.warning(TAG, "미디어 일시정지 실패", e)
         }
     }
 }

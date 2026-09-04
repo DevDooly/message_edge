@@ -513,6 +513,26 @@ graph TD
   - 최초 전체 실행에서 API 26·31·34·35가 모두 통과했다([검증 실행](https://github.com/DevDooly/message_edge/actions/runs/33875421131)).
   - 제조사별 동작은 `ONE_UI_RELEASE_CHECKLIST.md`, 키 교체는 `SIGNING_KEY_ROTATION_RUNBOOK.md`를 승인 기준으로 사용한다.
 
+### 58) 서명 계보 회전과 운영 로그 보강 (`v1.3.16`, Build 146)
+
+* **Android 서명 계보 전환**:
+  - 기존 인증서와 새 RSA 4096 인증서를 잇는 `SigningCertificateLineage`를 생성했다.
+  - API 28 이상은 새 인증서, API 26~27은 기존 설치 호환용 인증서를 사용하도록 `apksigner --rotation-min-sdk-version 28`을 적용한다.
+  - 키스토어·계보·비밀번호는 GitHub Secrets와 Git에서 제외된 로컬 복구 자료로 분리한다.
+  - 태그 배포는 API 26과 35 에뮬레이터에서 직전 릴리스 APK 위에 후보 APK를 `adb install -r`로 설치하고 UID 유지와 versionCode 증가를 확인한 뒤에만 게시한다.
+* **민감 로그 최소화**:
+  - `AppLog`를 통해 디버그 빌드에서만 예외 스택을 남긴다.
+  - 릴리스 빌드는 작업명과 예외 클래스만 기록하고 예외 메시지·알림 본문·파일 경로는 기록하지 않는다.
+* **설정 상태 동시성**:
+  - `NotificationListener`와 `EdgeOverlayService`의 최신 설정 스냅샷을 `MutableStateFlow.value`로 관리한다.
+  - 서비스의 역할은 변경하지 않아 핸들·라이팅은 오버레이 서비스, 패널·뒤로가기는 투명 액티비티가 계속 담당한다.
+* **제조사 RemoteViews 폴백 격리**:
+  - 숨겨진 `mActions` 리플렉션을 `RemoteViewsTextExtractor`에 격리했다.
+  - 추출 실패는 알림 수신을 중단하지 않으며 API·제조사·누적 실패 횟수만 디버그 로그로 기록한다.
+* **진단 모드 만료**:
+  - 진단 데이터 수집은 기본 비활성 옵트인이며 활성화 후 12시간이 지나면 자동 종료된다.
+  - UI에 개인정보 가능성과 자동 만료 시간을 명시한다.
+
 ---
 
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어

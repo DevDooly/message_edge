@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
+import com.devdooly.notificationedge.util.AppLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -27,7 +28,7 @@ class BootReceiver : BroadcastReceiver {
                             OverlayServiceStarter.start(context)
                         }
                     } catch (e: Exception) {
-                        e.printStackTrace()
+                        AppLog.warning("BootReceiver", "부팅 후 서비스 복구 실패", e)
                     } finally {
                         pendingResult.finish()
                     }

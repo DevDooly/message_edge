@@ -17,7 +17,7 @@ object ActivityUtils {
                 activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_OPEN, 0, 0)
                 activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("ActivityUtils", "액티비티 전환 애니메이션 해제 실패", e)
             }
         }
         @Suppress("DEPRECATION")

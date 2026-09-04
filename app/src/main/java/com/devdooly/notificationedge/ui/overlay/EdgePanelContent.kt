@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.data.repository.NotificationRepository
+import com.devdooly.notificationedge.util.AppLog
 import com.devdooly.notificationedge.ui.theme.GlassBackground
 import com.devdooly.notificationedge.ui.theme.GlassBorder
 import kotlinx.coroutines.delay
@@ -115,7 +116,7 @@ fun EdgePanelContent(
         try {
             rootFocusRequester.requestFocus()
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.debug("EdgePanelContent", "패널 초기 포커스 요청 실패", e)
         }
     }
 

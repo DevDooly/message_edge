@@ -129,7 +129,7 @@ object CustomFontManager {
                 fontCache[file.absolutePath] = file.lastModified() to family
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.warning("CustomFontManager", "사용자 폰트 로드 실패", e)
             null
         }
     }
@@ -154,7 +154,7 @@ object CustomFontManager {
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("CustomFontManager", "사용자 폰트 이름 조회 실패", e)
             }
         }
         if (result == null) {

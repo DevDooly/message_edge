@@ -25,7 +25,7 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 - 대규모 리팩터링 전에 보안·동작 회귀 테스트를 먼저 추가한다.
 - 기존 `DEVELOPMENT_REFERENCE.md`의 설명보다 이 문서가 분석한 현재 소스를 우선한다.
 
-### 1.1 구현 진행 현황 (`v1.3.15`, Build 145)
+### 1.1 구현 진행 현황 (`v1.3.16`, Build 146)
 
 2026-09-04 기준으로 우선순위가 높은 개선 항목은 다음과 같이 반영했다.
 
@@ -46,14 +46,17 @@ Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱
 | R8 단계 검증 | 완료 | 배포 `release`는 유지하면서 R8·리소스 축소 전용 `minifiedRelease`와 CI 서명 검증 추가 |
 | API 자동 매트릭스 | 완료 | API 26 직접 AVD와 API 31·34·35 Managed Device에서 컴포넌트 보안 계측 테스트 통과 |
 | 수동 배포 게이트 | 문서화 완료 | One UI 회귀 체크리스트와 서명키 교체 실행서를 별도 문서로 추가 |
+| 서명키 회전 | 진행 완료 | 새 RSA 4096 키와 Android 서명 계보를 생성하고 API 28 이상은 새 인증서, API 26~27은 호환용 기존 인증서를 사용하도록 CI 전환 |
+| 예외 로그 정책 | 완료 | 공통 `AppLog`를 도입해 릴리스 로그에서 예외 메시지와 스택 트레이스를 제거 |
+| 진단 모드 만료 | 완료 | 개인정보 경고를 강화하고 활성화 후 12시간이 지나면 자동 비활성화 |
+| 서비스 설정 상태 | 완료 | `NotificationListener`와 `EdgeOverlayService`의 설정 스냅샷을 `MutableStateFlow.value` 경계로 통일 |
 
 남은 작업은 호환성과 배포 정책 결정이 필요한 항목이다.
 
 - 공개 Git 기록에 남은 기존 서명키 제거와 원격 이력 재작성
-- 기존 설치본 업데이트 호환성을 고려한 새 서명키 전환 전략
 - `minifiedRelease`의 삼성 One UI 실기기 회귀 검증과 배포 `release` 승격
 
-기존 자체 배포 APK와의 업데이트 호환성을 보존하기 위해 이번 릴리스는 기존 인증서를 CI 비밀 저장소에서 사용한다. 따라서 서명키 노출 위험은 저장소 최신 상태에서 차단했지만, 공개 Git 기록에 이미 노출된 키 자체가 안전해진 것은 아니다.
+`v1.3.16`부터 Android APK 서명 계보를 사용한다. API 28 이상에서는 새 인증서로 회전하고 API 26~27에서는 기존 설치본의 덮어쓰기 호환성을 위해 기존 인증서를 사용한다. 따라서 주 사용 구간의 키 회전은 완료되지만, 공개 Git 기록에 이미 노출된 기존 키로 서명해야 하는 API 26~27의 위험은 완전히 제거할 수 없다.
 
 API 호환성 매트릭스는 최종 CI 구성에서 API 26·31·34·35 모두 통과했다. 검증 실행은 [Android Device Matrix #33875421131](https://github.com/DevDooly/message_edge/actions/runs/33875421131)에서 확인할 수 있다.
 
@@ -67,7 +70,7 @@ API 호환성 매트릭스는 최종 CI 구성에서 API 26·31·34·35 모두 �
 
 현행 소스의 사실은 다음과 같다.
 
-- 현재 릴리스 후보: `v1.3.15`, `versionCode = 145`
+- 현재 릴리스 후보: `v1.3.16`, `versionCode = 146`
 - 패널 호스트: `EdgePanelActivity`
 - 오버레이 서비스 책임: 핸들 및 엣지 라이팅
 - 기본 핸들 방향: `LEFT`
@@ -87,10 +90,10 @@ API 호환성 매트릭스는 최종 CI 구성에서 API 26·31·34·35 모두 �
 | UI | Jetpack Compose, Material 3 | Compose BOM 2024.10.00 |
 | 비동기 처리 | Kotlin Coroutines 1.9.0 | 서비스별 자체 `CoroutineScope` 사용 |
 | 설정 저장 | Preferences DataStore 1.1.1 | 일부 설정은 SharedPreferences에 동기 미러링 |
-| 테스트 | JUnit4, MockK, Turbine, Robolectric, AndroidX Test | JVM 테스트 56개, 계측 테스트 1개 |
+| 테스트 | JUnit4, MockK, Turbine, Robolectric, AndroidX Test | JVM 테스트 63개, 계측 테스트 1개 |
 | 배포 | GitHub Actions + GitHub Releases | `main`은 검증만, `v*` 태그는 검증 후 배포 |
 
-분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.15` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `assembleDebugAndroidTest`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`와 `apksigner verify`로 다시 검증한다.
+분석 후 공식 Android 명령줄 도구와 SDK 34를 설치해 로컬 빌드 환경을 복구했다. `v1.3.16` 구현 결과는 `testDebugUnitTest`, `compileDebugKotlin`, `assembleDebugAndroidTest`, `lintRelease`, `assembleRelease`, `assembleMinifiedRelease`, 서명 계보 검증과 API 26·35 덮어쓰기 설치로 다시 검증한다.
 
 ---
 
@@ -335,12 +338,11 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 목표는 키 노출 대응 중 기존 사용자의 업데이트 경로를 실수로 끊지 않는 것이다.
 
-- [ ] 저장소 공개 범위, 키가 포함된 최초 커밋, 배포 채널, 기존 설치본 수를 확인한다.
-- [ ] Google Play App Signing 사용 여부와 현재 키가 앱 서명키인지 업로드 키인지 확인한다.
-- [ ] Play App Signing 사용 시 노출된 업로드 키 재설정 절차를 선택한다.
-- [ ] 자체 서명 APK 배포라면 Android 서명 계보를 이용한 키 회전 가능성과 구형 기기의 재설치 요구를 검토한다.
-- [ ] 전환 계획이 확정될 때까지 현재 키를 공개 저장소에서 더 사용하지 않되, 기존 설치본용 마지막 전환 릴리스가 필요하면 오프라인 보관소에서만 제한적으로 사용한다.
-- [ ] 키 회전 전 현재 인증서 SHA-256과 정상 APK 해시를 별도 안전 저장소에 기록한다.
+- [x] 공개 저장소 Git 이력과 GitHub Releases 직접 APK 배포 경로를 확인한다.
+- [x] Play App Signing이 아닌 자체 서명 APK 배포임을 소스와 배포 파이프라인 기준으로 확인한다.
+- [x] Android 서명 계보를 사용해 API 28 이상은 새 키, API 26~27은 기존 키를 사용하도록 전환한다.
+- [x] 기존 키는 CI Secrets와 로컬 복구 자료에서 호환 서명에만 제한적으로 사용한다.
+- [x] 키 회전 전 기존 인증서 SHA-256과 v1.3.15 APK·체크섬을 별도 로컬 복구 폴더에 보관한다.
 
 완료 기준:
 
@@ -391,7 +393,7 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 작업:
 
 - [x] 알림 원본 덤프는 기본 비활성인 개발자 진단 모드에서만 생성한다.
-- [ ] 진단 모드는 명확한 개인정보 경고와 만료 시간을 가진 사용자 옵트인으로 만든다.
+- [x] 진단 모드는 명확한 개인정보 경고와 12시간 만료 시간을 가진 사용자 옵트인으로 만든다.
 - [x] 전화번호, 이메일, OTP, 토큰/인증/세션 관련 키와 긴 바이너리·배열을 마스킹하는 `NotificationDumpSanitizer`를 추가한다.
 - [x] 덤프 길이, 항목 수, 중첩 깊이를 제한한다.
 - [x] 클립보드에는 `ClipDescription.EXTRA_IS_SENSITIVE`를 설정하고 선택적으로 일정 시간 뒤 비운다.
@@ -424,9 +426,9 @@ Android 공식 문서는 앱 서명 개인키를 안전하게 보관하고 평�
 
 - [x] `onNotificationPosted()`는 최소 검증과 불변 스냅샷만 수행하고, 순서가 보장되는 전용 작업 큐에서 파싱한다.
 - [x] 앱 라벨·아이콘은 패키지 단위 LRU 캐시로 중복 조회를 줄인다.
-- [ ] RemoteViews 리플렉션은 최후 수단으로 격리하고 API/제조사 실패 지표를 남긴다.
-- [ ] 로그는 `printStackTrace()` 대신 태그·수준·민감정보 제거 정책이 있는 로거로 통일한다.
-- [ ] `currentSettings` 접근을 `StateFlow.value` 또는 명확한 동시성 경계로 바꾼다.
+- [x] RemoteViews 리플렉션을 `RemoteViewsTextExtractor`로 격리하고 API·제조사·누적 실패 지표를 디버그 로그에 남긴다.
+- [x] 로그는 `printStackTrace()` 대신 태그·수준·민감정보 제거 정책이 있는 `AppLog`로 통일한다.
+- [x] `currentSettings` 접근을 `MutableStateFlow.value` 기반의 명확한 동시성 경계로 바꾼다.
 - [x] 알림 취소 콜백을 `onDestroy()`에서도 해제한다.
 - [x] 메시지 중복 키에 발신자와 `isFromUser`를 포함하고 상수 `MAX_MESSAGES_PER_NOTIFICATION`을 일관되게 사용한다.
 - [x] YouTube 일시정지는 패널 열기 명령의 한 지점에서만 수행한다.

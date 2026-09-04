@@ -14,11 +14,14 @@ import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.NotificationActionItem
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.data.repository.SettingsRepository
+import com.devdooly.notificationedge.util.AppLog
+import com.devdooly.notificationedge.util.RemoteViewsTextExtractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -31,8 +34,9 @@ class NotificationListener : NotificationListenerService() {
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
     private lateinit var settingsRepo: SettingsRepository
-    @Volatile
-    private var currentSettings: AppSettings = AppSettings()
+    private val currentSettingsState = MutableStateFlow(AppSettings())
+    private val currentSettings: AppSettings
+        get() = currentSettingsState.value
 
     private sealed interface NotificationEvent {
         data class Posted(val notification: StatusBarNotification) : NotificationEvent
@@ -44,7 +48,7 @@ class NotificationListener : NotificationListenerService() {
         settingsRepo = SettingsRepository.getInstance(applicationContext)
         serviceScope.launch {
             settingsRepo.settingsFlow.collect {
-                currentSettings = it
+                currentSettingsState.value = it
             }
         }
         serviceScope.launch {
@@ -71,7 +75,7 @@ class NotificationListener : NotificationListenerService() {
             try {
                 cancelNotification(key)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("NotificationListener", "개별 알림 해제 실패", e)
             }
         }
         
@@ -79,7 +83,7 @@ class NotificationListener : NotificationListenerService() {
             try {
                 cancelAllNotifications()
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("NotificationListener", "전체 알림 해제 실패", e)
             }
         }
 
@@ -89,7 +93,7 @@ class NotificationListener : NotificationListenerService() {
                 notificationEvents.trySend(NotificationEvent.Posted(sbn))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.warning("NotificationListener", "활성 알림 초기 로드 실패", e)
         }
     }
 
@@ -125,7 +129,7 @@ class NotificationListener : NotificationListenerService() {
             try {
                 settingsRepo.addDiscoveredPackage(packageName)
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("NotificationListener", "발견 앱 저장 실패", e)
             }
         }
 
@@ -182,9 +186,9 @@ class NotificationListener : NotificationListenerService() {
         val effectiveShortcutLabel = if (!rankingShortcutLabel.isNullOrBlank()) rankingShortcutLabel else launcherShortcutLabel
 
         // RemoteViews (One UI 상태창에 실제 렌더링된 텍스트 계층 리플렉션 분석)
-        val cvTexts = extractTextsFromRemoteViews(notification.contentView)
-        val bigCvTexts = extractTextsFromRemoteViews(notification.bigContentView)
-        val headsUpCvTexts = extractTextsFromRemoteViews(notification.headsUpContentView)
+        val cvTexts = RemoteViewsTextExtractor.extract(notification.contentView)
+        val bigCvTexts = RemoteViewsTextExtractor.extract(notification.bigContentView)
+        val headsUpCvTexts = RemoteViewsTextExtractor.extract(notification.headsUpContentView)
         val allViewTexts = (cvTexts + bigCvTexts + headsUpCvTexts).distinct()
 
         val parsed = com.devdooly.notificationedge.util.MessengerNotificationParser.parse(
@@ -326,37 +330,8 @@ class NotificationListener : NotificationListenerService() {
                 Pair(null, "SDK < 25 (N_MR1)")
             }
         } catch (e: Exception) {
-            Pair(null, "Exception: ${e.javaClass.simpleName}: ${e.message}")
+            Pair(null, "Exception: ${e.javaClass.simpleName}")
         }
-    }
-
-    /**
-     * RemoteViews 내부 액션(ReflectionAction)을 분석하여 화면에 실제 렌더링된 텍스트 목록 추출
-     */
-    private fun extractTextsFromRemoteViews(rv: android.widget.RemoteViews?): List<String> {
-        if (rv == null) return emptyList()
-        val texts = mutableListOf<String>()
-        try {
-            val field = rv.javaClass.getDeclaredField("mActions")
-            field.isAccessible = true
-            val actions = field.get(rv) as? List<*> ?: return emptyList()
-            for (action in actions) {
-                if (action == null) continue
-                for (f in action.javaClass.declaredFields) {
-                    f.isAccessible = true
-                    val value = f.get(action)
-                    if (value is CharSequence && value.isNotBlank()) {
-                        val str = value.toString().trim()
-                        if (str.length >= 2 && !texts.contains(str)) {
-                            texts.add(str)
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            android.util.Log.d("NotificationListener", "RemoteViews extraction fallback: ${e.message}")
-        }
-        return texts
     }
 
     private fun dumpExtras(

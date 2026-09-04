@@ -14,9 +14,10 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeSide
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.transformLatest
 import java.io.IOException
 
 private val Context.dataStore by preferencesDataStore(
@@ -31,6 +32,8 @@ class SettingsRepository(private val context: Context) {
         private const val KEY_LAUNCH_DIRECT = "launch_direct_to_panel"
         private const val KEY_EXTERNAL_CONTROL = "external_control_enabled"
         private const val KEY_DIAGNOSTIC_MODE = "diagnostic_mode_enabled"
+        private const val KEY_DIAGNOSTIC_MODE_EXPIRES_AT = "diagnostic_mode_expires_at"
+        internal const val DIAGNOSTIC_SESSION_DURATION_MS = 12L * 60L * 60L * 1000L
 
         // INSTANCE는 Activity가 아닌 applicationContext만 보관한다.
         @SuppressLint("StaticFieldLeak")
@@ -42,6 +45,12 @@ class SettingsRepository(private val context: Context) {
                 INSTANCE ?: SettingsRepository(context.applicationContext).also { INSTANCE = it }
             }
         }
+
+        internal fun isDiagnosticSessionActive(
+            enabled: Boolean,
+            expiresAtEpochMs: Long,
+            nowEpochMs: Long
+        ): Boolean = enabled && expiresAtEpochMs > nowEpochMs
     }
 
     private object PreferencesKeys {
@@ -64,12 +73,14 @@ class SettingsRepository(private val context: Context) {
         val HAPTIC_ENABLED = booleanPreferencesKey("haptic_enabled")
         val PAUSE_MEDIA_ON_OPEN = booleanPreferencesKey("pause_media_on_open")
         val DIAGNOSTIC_MODE_ENABLED = booleanPreferencesKey("diagnostic_mode_enabled")
+        val DIAGNOSTIC_MODE_EXPIRES_AT = longPreferencesKey("diagnostic_mode_expires_at")
         val EXTERNAL_CONTROL_ENABLED = booleanPreferencesKey("external_control_enabled")
         val EXCLUDED_PACKAGES = stringSetPreferencesKey("excluded_packages")
         val DISCOVERED_APP_PACKAGES = stringSetPreferencesKey("discovered_app_packages")
         val BLOCKED_KEYWORDS = stringSetPreferencesKey("blocked_keywords")
     }
 
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val settingsFlow: Flow<AppSettings> = context.dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -78,9 +89,16 @@ class SettingsRepository(private val context: Context) {
                 throw exception
             }
         }
-        .map { prefs ->
+        .transformLatest { prefs ->
             val defaults = AppSettings()
-            AppSettings(
+            val nowEpochMs = System.currentTimeMillis()
+            val diagnosticExpiresAt = prefs[PreferencesKeys.DIAGNOSTIC_MODE_EXPIRES_AT] ?: 0L
+            val diagnosticEnabled = isDiagnosticSessionActive(
+                enabled = prefs[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED] ?: defaults.diagnosticModeEnabled,
+                expiresAtEpochMs = diagnosticExpiresAt,
+                nowEpochMs = nowEpochMs
+            )
+            val settings = AppSettings(
                 isServiceEnabled = prefs[PreferencesKeys.SERVICE_ENABLED] ?: defaults.isServiceEnabled,
                 edgeSide = if ((prefs[PreferencesKeys.EDGE_SIDE] ?: 0) == 0) EdgeSide.LEFT else EdgeSide.RIGHT,
                 handlePositionRatio = prefs[PreferencesKeys.HANDLE_POS_RATIO] ?: defaults.handlePositionRatio,
@@ -100,8 +118,7 @@ class SettingsRepository(private val context: Context) {
                 selectedFont = prefs[PreferencesKeys.SELECTED_FONT] ?: defaults.selectedFont,
                 hapticFeedbackEnabled = prefs[PreferencesKeys.HAPTIC_ENABLED] ?: defaults.hapticFeedbackEnabled,
                 pauseMediaOnOpen = prefs[PreferencesKeys.PAUSE_MEDIA_ON_OPEN] ?: defaults.pauseMediaOnOpen,
-                diagnosticModeEnabled = prefs[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED]
-                    ?: defaults.diagnosticModeEnabled,
+                diagnosticModeEnabled = diagnosticEnabled,
                 externalControlEnabled = prefs[PreferencesKeys.EXTERNAL_CONTROL_ENABLED]
                     ?: defaults.externalControlEnabled,
                 excludedPackages = prefs[PreferencesKeys.EXCLUDED_PACKAGES] ?: defaults.excludedPackages,
@@ -109,6 +126,11 @@ class SettingsRepository(private val context: Context) {
                     ?: defaults.discoveredAppPackages,
                 blockedKeywords = prefs[PreferencesKeys.BLOCKED_KEYWORDS] ?: defaults.blockedKeywords
             )
+            emit(settings)
+            if (diagnosticEnabled) {
+                delay((diagnosticExpiresAt - nowEpochMs).coerceAtLeast(1L))
+                emit(settings.copy(diagnosticModeEnabled = false))
+            }
         }
 
     suspend fun updateServiceEnabled(enabled: Boolean) {
@@ -191,16 +213,41 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun updateDiagnosticModeEnabled(enabled: Boolean) {
-        context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(KEY_DIAGNOSTIC_MODE, enabled)
-            .apply()
-        context.dataStore.edit { it[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED] = enabled }
+        val expiresAtEpochMs = if (enabled) {
+            System.currentTimeMillis() + DIAGNOSTIC_SESSION_DURATION_MS
+        } else {
+            0L
+        }
+        context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE).edit().apply {
+            putBoolean(KEY_DIAGNOSTIC_MODE, enabled)
+            if (enabled) {
+                putLong(KEY_DIAGNOSTIC_MODE_EXPIRES_AT, expiresAtEpochMs)
+            } else {
+                remove(KEY_DIAGNOSTIC_MODE_EXPIRES_AT)
+            }
+        }.apply()
+        context.dataStore.edit {
+            it[PreferencesKeys.DIAGNOSTIC_MODE_ENABLED] = enabled
+            if (enabled) {
+                it[PreferencesKeys.DIAGNOSTIC_MODE_EXPIRES_AT] = expiresAtEpochMs
+            } else {
+                it.remove(PreferencesKeys.DIAGNOSTIC_MODE_EXPIRES_AT)
+            }
+        }
     }
 
     fun isDiagnosticModeEnabledSync(): Boolean {
         val sp = context.getSharedPreferences(SYNC_PREFS_NAME, Context.MODE_PRIVATE)
-        return sp.getBoolean(KEY_DIAGNOSTIC_MODE, false)
+        val enabled = sp.getBoolean(KEY_DIAGNOSTIC_MODE, false)
+        val expiresAtEpochMs = sp.getLong(KEY_DIAGNOSTIC_MODE_EXPIRES_AT, 0L)
+        val active = isDiagnosticSessionActive(enabled, expiresAtEpochMs, System.currentTimeMillis())
+        if (enabled && !active) {
+            sp.edit()
+                .putBoolean(KEY_DIAGNOSTIC_MODE, false)
+                .remove(KEY_DIAGNOSTIC_MODE_EXPIRES_AT)
+                .apply()
+        }
+        return active
     }
 
     suspend fun updateExternalControlEnabled(enabled: Boolean) {

@@ -251,9 +251,9 @@ internal fun NotificationDebugDumpCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = if (enabled) {
-                    "진단 모드가 켜져 있습니다. 새로 수신한 알림은 개인정보가 마스킹된 진단 데이터로 보관됩니다."
+                    "진단 모드가 켜져 있습니다. 개인정보가 마스킹된 데이터만 보관하며 12시간 뒤 자동으로 꺼집니다."
                 } else {
-                    "기본적으로 꺼져 있습니다. 메신저 파서 문제를 분석할 때만 잠시 켜세요."
+                    "알림 구조에는 개인정보가 포함될 수 있습니다. 메신저 파서 문제를 분석할 때만 잠시 켜세요."
                 },
                 color = if (enabled) Color(0xFFFFCC80) else Color.Gray,
                 fontSize = 12.sp,

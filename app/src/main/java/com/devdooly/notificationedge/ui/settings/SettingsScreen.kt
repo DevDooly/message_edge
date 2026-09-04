@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.devdooly.notificationedge.BuildConfig
 import com.devdooly.notificationedge.ui.theme.DarkBackground
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
+import com.devdooly.notificationedge.util.AppLog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -115,7 +116,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                                 val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
                                 context.startActivity(intent)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                AppLog.warning("SettingsScreen", "배터리 최적화 설정 화면 열기 실패", e)
                             }
                         }
                     }

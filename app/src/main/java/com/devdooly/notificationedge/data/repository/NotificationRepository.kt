@@ -9,6 +9,7 @@ import android.os.Bundle
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.MessageItem
 import com.devdooly.notificationedge.data.model.NotificationActionItem
+import com.devdooly.notificationedge.util.AppLog
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -162,7 +163,7 @@ object NotificationRepository {
                 }
                 launched = true
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("NotificationRepo", "알림 PendingIntent 실행 실패", e)
                 launched = false
             }
         }
@@ -179,7 +180,7 @@ object NotificationRepository {
                     launched = true
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                AppLog.warning("NotificationRepo", "앱 실행 Intent 처리 실패", e)
             }
         }
     }
@@ -238,7 +239,7 @@ object NotificationRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLog.warning("NotificationRepo", "빠른 답장 전송 실패", e)
         }
     }
 

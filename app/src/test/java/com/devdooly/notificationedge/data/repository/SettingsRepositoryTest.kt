@@ -64,6 +64,15 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun `diagnostic session should expire after its deadline`() {
+        val now = 1_000L
+
+        assertTrue(SettingsRepository.isDiagnosticSessionActive(true, now + 1L, now))
+        assertFalse(SettingsRepository.isDiagnosticSessionActive(true, now, now))
+        assertFalse(SettingsRepository.isDiagnosticSessionActive(false, now + 1L, now))
+    }
+
+    @Test
     fun `discovered packages and excluded packages operations should update state correctly`() = runTest {
         repository.addDiscoveredPackage("com.kakao.talk")
         repository.addDiscoveredPackage("com.google.android.gm")
