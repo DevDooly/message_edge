@@ -1,5 +1,6 @@
 {
-  "concept_name": "Edge Whisper",
+  "concept_name": "Sliding Panel",
+  "concept_name_ko": "슬라이딩 패널",
   "app": "Notification Edge",
   "pantone_reference": {
     "name": "Cloud Dancer",
@@ -10,16 +11,23 @@
       238,
       233
     ],
-    "note": "Use Pantone Connect or a physical swatch for exact media-specific matching."
+    "usage": "알림 점과 본문 바",
+    "note": "디지털 화면용 근사값이며 인쇄물은 Pantone Connect 또는 실물 스와치로 확인합니다."
   },
   "palette": {
+    "midnight_950": "#060B1E",
+    "midnight_850": "#0A1733",
+    "panel": "#102744",
+    "notification_row": "#17385F",
     "cloud_dancer": "#F0EEE9",
-    "cloud_highlight": "#F8F6F2",
-    "cloud_shadow": "#E8E5DE",
-    "graphite_950": "#0F131A",
-    "graphite_800": "#252B36",
-    "aqueous_aqua": "#82D8D0",
-    "quiet_periwinkle": "#A9A6EA"
+    "edge_cyan": "#00D7D7",
+    "edge_blue": "#4387FF",
+    "edge_violet": "#7C5CFC"
+  },
+  "symbol": {
+    "notification_rows": 3,
+    "edge_rail": "세로 그라데이션",
+    "gesture": "양각 왼쪽 화살표와 음각 오른쪽 화살표"
   },
   "artboard": {
     "master_px": [

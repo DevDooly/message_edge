@@ -1,53 +1,54 @@
-# Notification Edge — Edge Whisper 앱 아이콘
+# Notification Edge — 슬라이딩 패널 앱 아이콘
 
-## 컨셉
+## 디자인 컨셉
 
-`화면 가장자리에서 알림 패널을 꺼내 바로 확인하고 답장한다`는 앱의 핵심 동작을
-다음 네 요소로 압축했습니다.
+화면 가장자리에서 알림 패널을 넣고 빼는 앱의 동작을 작은 아이콘 안에 압축했습니다.
 
-- 말풍선 실루엣: 메시지·빠른 답장
-- 3개의 알림 행과 상태 점: 최근 알림 목록
-- 오른쪽 라이트 레일: 엣지 라이팅
-- 중앙 제스처 핸들 및 왼쪽 화살표: 화면 가장자리에서 안쪽으로 당기는 동작
+- 세 개의 알림 행: 최근 메시지와 빠른 확인
+- 오른쪽 컬러 레일: 화면 엣지와 앱의 핵심 진입점
+- 왼쪽 양각 화살표: 엣지에서 패널을 꺼내는 동작
+- 오른쪽 음각 화살표: 패널을 다시 엣지로 접는 동작
+- 짙은 미드나이트 배경: 밝은 홈 화면에서도 안정적인 대비
+
+중앙 돌출부는 단순 손잡이 대신 양각·음각 화살표 한 쌍으로 구성했습니다. 한쪽은 컬러 레일 밖으로 나오고 다른 쪽은 레일 내부를 파내어, `열기 ↔ 닫기` 동작을 동시에 전달합니다.
 
 ## 컬러
 
-- PANTONE 11-4201 Cloud Dancer의 일반적인 디지털 근사값: `#F0EEE9`
-- Graphite: `#151923`
-- Aqueous Aqua: `#82D8D0`
-- Quiet Periwinkle: `#A9A6EA`
+| 역할 | 색상 |
+| --- | --- |
+| 배경 | `#060B1E` → `#0A1733` |
+| 알림 패널 | `#102744` |
+| 알림 행 | `#17385F` |
+| 알림 내용 | `#F0EEE9` |
+| 엣지 레일 | `#00D7D7` → `#4387FF` → `#7C5CFC` |
 
-Pantone 색상은 매체·소재·프로파일에 따라 달라질 수 있습니다.
-인쇄나 엄격한 브랜드 컬러 매칭에는 Pantone Connect 또는 실물 스와치를 기준으로 확인하세요.
+알림 내용에는 PANTONE 11-4201 Cloud Dancer의 디지털 근사값 `#F0EEE9`를 사용했습니다. 인쇄나 엄격한 브랜드 컬러 매칭에는 Pantone Connect 또는 실물 스와치를 기준으로 확인해야 합니다.
 
-## 파일 구성
+## 적용 파일
 
-- `master/notification_edge_edge_whisper_master.svg`
-  - 레이어가 분리된 편집용 원본
-- `master/notification_edge_edge_whisper_1024.png`
-  - 고해상도 마스터 PNG
-- `play_store/notification_edge_edge_whisper_512.png`
-  - Google Play 등록용 512×512 풀 스퀘어 PNG
-- `preview/notification_edge_edge_whisper_preview.png`
-  - 원형·스퀴클·라운드 마스크와 작은 크기 시인성 미리보기
-- `android/app/src/main/res/...`
-  - Adaptive Icon, Android 13+ Themed Icon, Legacy Icon 리소스 세트
+- `master/notification_edge_sliding_panel_master.svg`: 편집용 컬러 벡터
+- `master/notification_edge_sliding_panel_monochrome.svg`: 테마 아이콘용 단색 벡터
+- `master/notification_edge_sliding_panel_1024.png`: 1024×1024 마스터 PNG
+- `play_store/notification_edge_sliding_panel_512.png`: Google Play 등록용 512×512 PNG
+- `preview/notification_edge_sliding_panel_preview.png`: 스퀴클 적용 미리보기
+- `preview/notification_edge_sliding_panel_monochrome.png`: Android 13 이상 테마 아이콘 미리보기
+- `source/notification_edge_sliding_panel_concept.png`: 사용자가 선택한 원본 시안
+- `app/src/main/res/drawable*/ic_launcher_*`: Adaptive Icon 배경·전경·단색 레이어
+- `app/src/main/res/mipmap*/ic_launcher*`: Android 7.1 이하 호환 런처 아이콘
 
-## 현재 저장소에 적용
+## 재생성
 
-이 패키지는 현재 프로젝트의 Manifest에서 사용하는 리소스 이름
-`@mipmap/ic_launcher`, `@mipmap/ic_launcher_round`에 맞춰져 있습니다.
+아이콘 크기나 색을 변경한 뒤 저장소 루트에서 다음 명령을 실행하면 밀도별 PNG와 문서용 이미지를 다시 만들 수 있습니다.
 
-1. `android/app/src/main/res/` 아래 폴더들을 프로젝트의
-   `app/src/main/res/`에 복사합니다.
-2. 기존 동명 파일은 교체합니다.
-3. Android Studio에서 Clean/Rebuild 후 런처 미리보기를 확인합니다.
+```powershell
+.\scripts\generate-launcher-assets.ps1
+```
 
-Android 8.0 이상에서는 Adaptive Icon이 사용되고,
-Android 13 이상에서는 `monochrome` 레이어를 이용한 테마 아이콘도 지원합니다.
+벡터 XML과 SVG의 도형을 변경한 경우 재생성 스크립트의 동일 좌표도 함께 맞춰야 합니다.
 
-## 디자인 메모
+## 안드로이드 지원 범위
 
-- Play Store용 파일에는 바깥쪽 둥근 마스크나 외부 그림자를 굽지 않았습니다.
-- Adaptive foreground는 108dp 캔버스의 중앙 안전영역에 맞게 축소했습니다.
-- 심볼에는 글자를 넣지 않아 언어와 해상도에 관계없이 유지됩니다.
+- Android 8.0 이상: 기기 런처의 원형·스퀴클·물방울 마스크에 대응하는 Adaptive Icon
+- Android 13 이상: Material You 색상을 적용할 수 있는 Monochrome Icon
+- Android 7.1 이하: 밀도별 일반·원형 PNG 아이콘
+- 핵심 심볼은 108dp 아트보드의 66dp 안전영역 안에 배치해 런처 마스크 잘림을 방지했습니다.

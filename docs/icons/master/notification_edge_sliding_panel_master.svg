@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 108 108">
+  <defs>
+    <linearGradient id="background" x1="8" y1="8" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#060B1E"/>
+      <stop offset="1" stop-color="#0A1733"/>
+    </linearGradient>
+    <linearGradient id="rail" x1="83" y1="24" x2="83" y2="84" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00D7D7"/>
+      <stop offset="0.52" stop-color="#4387FF"/>
+      <stop offset="1" stop-color="#7C5CFC"/>
+    </linearGradient>
+  </defs>
+
+  <g id="배경">
+    <rect width="108" height="108" fill="url(#background)"/>
+  </g>
+
+  <g id="알림_패널">
+    <rect x="23" y="24" width="52" height="60" rx="7" fill="#102744"/>
+
+    <g id="알림_행" fill="#17385F">
+      <rect x="26" y="33" width="46" height="12" rx="6"/>
+      <rect x="26" y="48" width="46" height="12" rx="6"/>
+      <rect x="26" y="63" width="46" height="12" rx="6"/>
+    </g>
+
+    <g id="알림_정보" fill="#F0EEE9">
+      <circle cx="32" cy="39" r="4"/>
+      <rect x="38.25" y="36.25" width="30.75" height="5.5" rx="2.75"/>
+      <circle cx="32" cy="54" r="4"/>
+      <rect x="38.25" y="51.25" width="30.75" height="5.5" rx="2.75"/>
+      <circle cx="32" cy="69" r="4"/>
+      <rect x="38.25" y="66.25" width="30.75" height="5.5" rx="2.75"/>
+    </g>
+  </g>
+
+  <g id="양방향_엣지_레일">
+    <path fill="url(#rail)" fill-rule="evenodd"
+      d="M83.5 24A2.5 2.5 0 0 1 86 26.5V81.5A2.5 2.5 0 0 1 81 81.5V60L76 54L81 48V26.5A2.5 2.5 0 0 1 83.5 24ZM80.2 50.7L84.3 54L80.2 57.3Z"/>
+  </g>
+</svg>

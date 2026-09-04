@@ -1,15 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Edge Bar Line -->
+
+    <!-- 알림 패널 -->
     <path
-        android:fillColor="#00E5FF"
-        android:pathData="M88,24 L94,24 A4,4 0 0 1 98,28 L98,80 A4,4 0 0 1 94,84 L88,84 Z" />
-    <!-- Notification Bell -->
+        android:fillColor="#FF102744"
+        android:pathData="M30,24 H68 A7,7 0,0 1,75 31 V77 A7,7 0,0 1,68 84 H30 A7,7 0,0 1,23 77 V31 A7,7 0,0 1,30 24 Z" />
+
+    <!-- 알림 행 표면 -->
     <path
-        android:fillColor="#00E5FF"
-        android:pathData="M54,26c-8.84,0 -16,7.16 -16,16v18l-6,6v4h44v-4l-6,-6v-18c0,-8.84 -7.16,-16 -16,-16zM46,74c0,4.42 3.58,8 8,8s8,-3.58 8,-8h-16z" />
+        android:fillColor="#FF17385F"
+        android:pathData="M32,33 H66 A6,6 0,0 1,72 39 A6,6 0,0 1,66 45 H32 A6,6 0,0 1,26 39 A6,6 0,0 1,32 33 Z" />
+    <path
+        android:fillColor="#FF17385F"
+        android:pathData="M32,48 H66 A6,6 0,0 1,72 54 A6,6 0,0 1,66 60 H32 A6,6 0,0 1,26 54 A6,6 0,0 1,32 48 Z" />
+    <path
+        android:fillColor="#FF17385F"
+        android:pathData="M32,63 H66 A6,6 0,0 1,72 69 A6,6 0,0 1,66 75 H32 A6,6 0,0 1,26 69 A6,6 0,0 1,32 63 Z" />
+
+    <!-- Cloud Dancer 기반 알림 표시 -->
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M32,35 A4,4 0,1 1,32 43 A4,4 0,1 1,32 35" />
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M41,36.25 H66.25 A2.75,2.75 0,0 1,69 39 A2.75,2.75 0,0 1,66.25 41.75 H41 A2.75,2.75 0,0 1,38.25 39 A2.75,2.75 0,0 1,41 36.25 Z" />
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M32,50 A4,4 0,1 1,32 58 A4,4 0,1 1,32 50" />
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M41,51.25 H66.25 A2.75,2.75 0,0 1,69 54 A2.75,2.75 0,0 1,66.25 56.75 H41 A2.75,2.75 0,0 1,38.25 54 A2.75,2.75 0,0 1,41 51.25 Z" />
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M32,65 A4,4 0,1 1,32 73 A4,4 0,1 1,32 65" />
+    <path
+        android:fillColor="#FFF0EEE9"
+        android:pathData="M41,66.25 H66.25 A2.75,2.75 0,0 1,69 69 A2.75,2.75 0,0 1,66.25 71.75 H41 A2.75,2.75 0,0 1,38.25 69 A2.75,2.75 0,0 1,41 66.25 Z" />
+
+    <!-- 열기·닫기 양방향 화살표가 결합된 엣지 레일 -->
+    <path
+        android:fillType="evenOdd"
+        android:pathData="M83.5,24 A2.5,2.5 0,0 1,86 26.5 V81.5 A2.5,2.5 0,0 1,81 81.5 V60 L76,54 L81,48 V26.5 A2.5,2.5 0,0 1,83.5 24 Z M80.2,50.7 L84.3,54 L80.2,57.3 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="83"
+                android:startY="24"
+                android:endX="83"
+                android:endY="84"
+                android:startColor="#FF00D7D7"
+                android:centerColor="#FF4387FF"
+                android:endColor="#FF7C5CFC" />
+        </aapt:attr>
+    </path>
 </vector>

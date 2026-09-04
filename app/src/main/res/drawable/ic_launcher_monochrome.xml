@@ -2,69 +2,38 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="1024"
-    android:viewportHeight="1024">
+    android:viewportWidth="108"
+    android:viewportHeight="108">
 
-    <group
-        android:pivotX="512"
-        android:pivotY="512"
-        android:scaleX="0.84"
-        android:scaleY="0.84">
+    <!-- 테마 아이콘에서 패널과 알림 행을 구분하는 단색 실루엣 -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineJoin="round"
+        android:pathData="M30,24 H68 A7,7 0,0 1,75 31 V77 A7,7 0,0 1,68 84 H30 A7,7 0,0 1,23 77 V31 A7,7 0,0 1,30 24 Z" />
 
-        <path
-            android:pathData="M286,262 H638 C714,262 766,314 766,390 V602 C766,678 714,730 638,730 H468 L342,824 C326,836 305,824 309,803 L324,730 H286 C210,730 158,678 158,602 V390 C158,314 210,262 286,262 Z"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="58"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,35 A4,4 0,1 1,32 43 A4,4 0,1 1,32 35" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M41,36.25 H66.25 A2.75,2.75 0,0 1,69 39 A2.75,2.75 0,0 1,66.25 41.75 H41 A2.75,2.75 0,0 1,38.25 39 A2.75,2.75 0,0 1,41 36.25 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,50 A4,4 0,1 1,32 58 A4,4 0,1 1,32 50" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M41,51.25 H66.25 A2.75,2.75 0,0 1,69 54 A2.75,2.75 0,0 1,66.25 56.75 H41 A2.75,2.75 0,0 1,38.25 54 A2.75,2.75 0,0 1,41 51.25 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,65 A4,4 0,1 1,32 73 A4,4 0,1 1,32 65" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M41,66.25 H66.25 A2.75,2.75 0,0 1,69 69 A2.75,2.75 0,0 1,66.25 71.75 H41 A2.75,2.75 0,0 1,38.25 69 A2.75,2.75 0,0 1,41 66.25 Z" />
 
-        <path
-            android:pathData="M306,387 A25,25 0,1 1,306,437 A25,25 0,1 1,306,387"
-            android:fillColor="#FFFFFFFF" />
-
-        <path
-            android:pathData="M360,412 H610"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="48"
-            android:strokeLineCap="round" />
-
-        <path
-            android:pathData="M278,525 H614"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="48"
-            android:strokeLineCap="round" />
-
-        <path
-            android:pathData="M278,619 H504"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="48"
-            android:strokeLineCap="round" />
-
-        <path
-            android:pathData="M812,244 C860,314 868,396 868,512 C868,628 860,710 812,780"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="38"
-            android:strokeLineCap="round" />
-
-        <path
-            android:pathData="M835,416 C861.51,416 883,437.49 883,464 V560 C883,586.51 861.51,608 835,608 C808.49,608 787,586.51 787,560 V464 C787,437.49 808.49,416 835,416 Z"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="24"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round" />
-
-        <path
-            android:pathData="M850,478 L814,512 L850,546"
-            android:fillColor="#00000000"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeWidth="24"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round" />
-    </group>
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M83.5,24 A2.5,2.5 0,0 1,86 26.5 V81.5 A2.5,2.5 0,0 1,81 81.5 V60 L76,54 L81,48 V26.5 A2.5,2.5 0,0 1,83.5 24 Z M80.2,50.7 L84.3,54 L80.2,57.3 Z" />
 </vector>
