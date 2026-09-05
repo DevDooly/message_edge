@@ -158,6 +158,9 @@ app/src/main/java/com/devdooly/notificationedge/
 
 ## 문서
 
+- [Google Play 최초 출시 계획](docs/GOOGLE_PLAY_LAUNCH_PLAN.md)
+- [Play 개인정보·권한·Data safety 준비서](docs/GOOGLE_PLAY_PRIVACY_AND_DATA_SAFETY.md)
+- [Play 서명·공개 소스·수익화 전략](docs/GOOGLE_PLAY_SIGNING_AND_MONETIZATION.md)
 - [프로젝트 구조·소스 분석과 보완 계획](docs/PROJECT_SOURCE_ANALYSIS_AND_HARDENING_PLAN.md)
 - [개발 참조와 아키텍처 가이드](docs/DEVELOPMENT_REFERENCE.md)
 - [One UI 릴리스 점검표](docs/ONE_UI_RELEASE_CHECKLIST.md)
