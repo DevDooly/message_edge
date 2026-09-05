@@ -578,6 +578,26 @@ graph TD
 
 ---
 
+### 61) 최초 권한 설정 후 앱 복귀 흐름 개선 (`v1.3.19`, Build 149)
+
+* **원인**:
+  - `SettingsActivity.onStop()`에서 화면이 가려질 때마다 `finish()`를 호출해 시스템 권한 화면으로 이동할 때도 설정 화면이 종료되었다.
+  - 권한 허용·취소 후 돌아올 화면이 사라져 런처에서 앱을 다시 켜야 했다.
+* **개선**:
+  - 설정 화면의 `onStop()` 강제 종료를 제거하고 Android의 정상적인 중지·복귀 수명주기를 유지한다.
+  - 다른 앱 위에 표시·알림 접근·배터리 최적화 화면에서 뒤로 돌아오면 기존 설정 화면을 이어서 사용한다. 파일 선택기 등 외부 화면에서의 복귀도 같은 방식으로 유지한다.
+  - 기존 `ON_RESUME` 권한 상태 갱신과 사용자 설정에 따른 오버레이 서비스 시작 경로를 유지한다. 권한을 거부해도 설정 화면은 종료되지 않는다.
+  - 설정 화면의 명시적 뒤로가기 종료는 유지한다. `MainActivity`의 경량 트램펄린, 투명 패널과 오버레이 서비스의 수명주기는 변경하지 않는다.
+* **검증 범위**:
+  - API 26·34에서 권한 화면 이동·복귀, 거부, 서비스 시작 설정, 화면 재생성, 명시적 뒤로가기를 실제 Activity 기반 회귀 테스트 14개로 검증했다. 수정 전 12개 실패에서 수정 후 모두 통과했다.
+  - `testDebugUnitTest compileDebugKotlin lintRelease assembleRelease`를 통과했다. 전체 단위 테스트 85개, 실패·오류·건너뜀 0개다.
+  - 기존 서명 계보를 적용한 릴리스 APK가 API 26 이상 서명 검증을 통과했고, 승인된 새 인증서 SHA-256 `3de001d769ca37e913d80d233d3a02da6eef90838daa8bb33191c5e7e5ac766c`를 확인했다.
+  - 연결된 Android 실기기가 없어 삼성 One UI 권한 화면의 실기기 조작 확인은 별도로 필요하다. [수동 체크리스트](ONE_UI_RELEASE_CHECKLIST.md)를 따른다.
+
+참고: [Android 공식 Activity 수명주기](https://developer.android.com/guide/components/activities/activity-lifecycle).
+
+---
+
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
 
 ### 1) 버전 판올림 체크리스트
@@ -621,6 +641,7 @@ git push origin v버전
 | **`OpenPanelReceiverTest`** | 외부 제어 기본 거부, 명령 화이트리스트, 오버레이 권한 미보유 경로 검증 |
 | **`NotificationDumpSanitizerTest`** | 인증정보·이메일·전화번호·인증번호 및 중첩 Bundle 값 마스킹 검증 |
 | **`SettingsViewModelTest`** | 설정 이벤트 저장소 위임과 테스트 알림 생성 검증 |
+| **`SettingsActivityTest`** | 시스템 권한 화면 이동·복귀, 권한 거부, 화면 재생성, 명시적 뒤로가기 검증 |
 | **`EdgePanelUiStateTest`** | 답장 초기화, 닫기 중복 방지, 드래그 임계값 상태 검증 |
 | **`NotificationEdgeInstrumentedTest`** | API 26·31·34·35에서 컴포넌트 외부 공개 정책과 시스템 바인딩 권한 검증 |
 

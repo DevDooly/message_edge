@@ -17,7 +17,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Slivue 설정 화면 전용 액티비티
+ * Slivue 설정 화면 전용 액티비티.
+ * 시스템 권한 화면이나 파일 선택기로 이동할 때는 종료하지 않고 복귀할 화면을 유지한다.
+ * 일시적으로 가려지는 것과 사용자의 명시적인 뒤로가기 종료를 구분한다.
  */
 class SettingsActivity : ComponentActivity() {
 
@@ -50,15 +52,6 @@ class SettingsActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         checkAndStartService()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        // 설정창에서 홈으로 나가거나 다른 앱으로 전환 시 백그라운드 잔상 방지를 위해 즉시 종료
-        if (!isChangingConfigurations) {
-            finish()
-            com.devdooly.notificationedge.util.ActivityUtils.overridePendingTransitionNoAnim(this)
-        }
     }
 
     private fun checkAndStartService() {
