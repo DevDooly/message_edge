@@ -76,6 +76,6 @@ class SettingsViewModelTest {
         val notification = NotificationRepository.notifications.value.single()
         assertEquals(application.packageName, notification.packageName)
         assertEquals(999, notification.id)
-        assertTrue(notification.text.contains("Notification Edge"))
+        assertTrue(notification.text.contains("Slivue"))
     }
 }

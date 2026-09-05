@@ -1,4 +1,4 @@
-# Notification Edge 프로젝트 구조·소스 분석 및 개선 계획
+# Slivue 프로젝트 구조·소스 분석 및 개선 계획
 
 > 기준일: 2026-09-04
 > 분석 기준 커밋: `8b8573a` (`v1.3.13`, Build 143)
@@ -9,7 +9,7 @@
 
 ## 1. 핵심 요약
 
-Notification Edge는 다음 세 축으로 동작하는 단일 모듈 Android 앱이다.
+Slivue(슬리뷰)는 다음 세 축으로 동작하는 단일 모듈 Android 앱이다.
 
 1. `NotificationListenerService`가 시스템 알림을 수신하고 앱별 파서로 정제한다.
 2. `EdgeOverlayService`가 화면 가장자리 핸들과 엣지 라이팅을 `WindowManager` 오버레이로 유지한다.
@@ -74,7 +74,8 @@ API 호환성 매트릭스는 최종 CI 구성에서 API 26·31·34·35 모두 �
 
 현행 소스의 사실은 다음과 같다.
 
-- 현재 릴리스 후보: `v1.3.17`, `versionCode = 147`
+- 현재 릴리스 후보: `v1.3.18`, `versionCode = 148`
+- 앱·Gradle 프로젝트 이름: `Slivue`(슬리뷰). 기존 설치·업데이트 경로 보존을 위해 패키지명 `com.devdooly.notificationedge`, 로컬 폴더와 GitHub 저장소 `message_edge`는 유지한다.
 - 패널 호스트: `EdgePanelActivity`
 - 오버레이 서비스 책임: 핸들 및 엣지 라이팅
 - 기본 핸들 방향: `LEFT`

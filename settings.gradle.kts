@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "NotificationEdge"
+rootProject.name = "Slivue"
 include(":app")

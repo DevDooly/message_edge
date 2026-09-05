@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.overlay.EdgePanelLauncher
 import com.devdooly.notificationedge.ui.settings.SettingsActivity
 
@@ -20,7 +21,7 @@ class OpenPanelActivity : Activity() {
         if (Settings.canDrawOverlays(this)) {
             EdgePanelLauncher.toggle(this)
         } else {
-            Toast.makeText(this, "Notification Edge 권한 설정이 필요합니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.panel_permission_required), Toast.LENGTH_SHORT).show()
             val settingsIntent = Intent(this, SettingsActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }

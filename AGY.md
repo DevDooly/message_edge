@@ -1,7 +1,9 @@
-# ⚡ Notification Edge 단일 컨텍스트 기준 문서 (AGY.md)
+# ⚡ Slivue 단일 컨텍스트 기준 문서 (AGY.md)
 
 > **Antigravity AI 개발 에이전트를 위한 단일 진실 공급원(Single Source of Truth)**  
-> 본 문서는 Notification Edge 프로젝트에서 토큰 소모를 최소화하고 개발 정확도를 극대화하기 위해 아키텍처, 기술 제약, 디렉터리 역할, 코딩 컨벤션, 검증 파이프라인을 집약한 기준 문서입니다.
+> 본 문서는 Slivue 프로젝트에서 토큰 소모를 최소화하고 개발 정확도를 극대화하기 위해 아키텍처, 기술 제약, 디렉터리 역할, 코딩 컨벤션, 검증 파이프라인을 집약한 기준 문서입니다.
+
+공식 표시는 Slivue(슬리뷰)로 통일합니다. 이전 설치와 연동을 위해 Android 패키지·데이터키·컴포넌트 식별자와 GitHub 저장소 `DevDooly/message_edge`는 유지합니다. 구현 현황은 `AGENTS.md`와 `docs/DEVELOPMENT_REFERENCE.md`를 우선하며, 아래 과거 오버레이 설계 기록과 혼동하지 않습니다.
 
 ---
 

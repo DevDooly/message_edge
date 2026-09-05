@@ -1,11 +1,11 @@
-# Notification Edge 앱 아이콘
+# Slivue 앱 아이콘
 
 ## 공식 적용 아이콘: 슬라이딩 패널 (`v1.3.17` 이상)
 
-Notification Edge의 공식 런처 아이콘은 사용자가 선택한 2번 시안을 기반으로 다듬은 **슬라이딩 패널**입니다.
+Slivue의 공식 런처 아이콘은 사용자가 선택한 2번 시안을 기반으로 다듬은 **슬라이딩 패널**입니다. `v1.3.18` 브랜드 전환 이후에도 아이콘 디자인과 원본 자산 파일명은 유지합니다.
 
 <p align="center">
-  <img src="icons/preview/notification_edge_sliding_panel_preview.png" width="420" alt="Notification Edge 슬라이딩 패널 아이콘" />
+  <img src="icons/preview/notification_edge_sliding_panel_preview.png" width="420" alt="Slivue 슬라이딩 패널 아이콘" />
 </p>
 
 ### 핵심 표현

@@ -1,10 +1,12 @@
 <div align="center">
 
-<img src="docs/images/notification_edge_readme_hero.png" alt="화면 오른쪽 가장자리에서 알림 패널이 열리는 Notification Edge 대표 이미지" width="960" />
+<img src="docs/images/notification_edge_readme_hero.png" alt="화면 오른쪽 가장자리에서 알림 패널이 열리는 Slivue 대표 이미지" width="960" />
 
-# Notification Edge
+# Slivue · 슬리뷰
 
-**앱을 전환하지 않고, 화면 가장자리에서 최근 알림을 확인하고 바로 답장하세요.**
+**화면은 그대로, 알림은 바로.**
+
+앱을 전환하지 않고, 화면 가장자리에서 최근 알림을 확인하고 바로 답장하세요.
 
 [![최신 릴리스](https://img.shields.io/github/v/release/DevDooly/message_edge?style=flat-square&color=00B8D4&label=%EC%B5%9C%EC%8B%A0%20%EB%A6%B4%EB%A6%AC%EC%8A%A4)](https://github.com/DevDooly/message_edge/releases/latest)
 [![빌드](https://img.shields.io/github/actions/workflow/status/DevDooly/message_edge/release.yml?branch=main&style=flat-square&label=%EB%B9%8C%EB%93%9C)](https://github.com/DevDooly/message_edge/actions/workflows/release.yml)
@@ -20,7 +22,9 @@
 
 ## 어떤 앱인가요?
 
-Notification Edge는 안드로이드 알림을 화면 가장자리 패널로 모아 보여주는 오픈소스 앱입니다. 게임, 영상 시청, 웹 탐색 중에도 현재 화면을 벗어나지 않고 최근 알림을 확인할 수 있으며, 알림 앱이 `RemoteInput` 답장을 지원하면 패널에서 바로 답장할 수 있습니다.
+Slivue(슬리뷰)는 안드로이드 알림을 화면 가장자리 패널로 모아 보여주는 오픈소스 앱입니다. 게임, 영상 시청, 웹 탐색 중에도 현재 화면을 벗어나지 않고 최근 알림을 확인할 수 있으며, 알림 앱이 `RemoteInput` 답장을 지원하면 패널에서 바로 답장할 수 있습니다.
+
+`v1.3.18`부터 앱·프로젝트 이름을 **Slivue**로 변경했습니다. 다른 개발자의 동명 앱과 혼동되지 않도록 이전 작업명을 정리한 것으로, 해당 앱의 공식 후속작이나 제휴 제품이 아닙니다. 기존 사용자는 삭제 없이 업데이트할 수 있습니다. 설치·설정 호환성을 위해 Android 패키지 식별자와 GitHub 저장소 주소는 유지합니다.
 
 삼성 Galaxy의 **Good Lock · One Hand Operation +**와 연결하면 화면 핸들을 숨긴 채 원하는 제스처로 패널을 열 수 있습니다. 일반 안드로이드 기기에서는 앱이 제공하는 좌·우 엣지 핸들을 사용할 수 있습니다.
 
@@ -41,16 +45,16 @@ Notification Edge는 안드로이드 알림을 화면 가장자리 패널로 모
 
 ### 1. APK 내려받기
 
-[최신 릴리스 페이지](https://github.com/DevDooly/message_edge/releases/latest)에서 버전명이 붙은 `NotificationEdge-vX.Y.Z.apk` 파일을 내려받아 설치합니다.
+[최신 릴리스 페이지](https://github.com/DevDooly/message_edge/releases/latest)에서 버전명이 붙은 `Slivue-vX.Y.Z.apk` 파일을 내려받아 설치합니다. `v1.3.17` 이전 릴리스의 `NotificationEdge-*.apk` 파일은 당시 이름을 보존합니다.
 
 보안을 위해 이 저장소의 GitHub Releases가 아닌 출처에서 받은 APK는 설치하지 않는 것을 권장합니다. 릴리스에 함께 첨부된 `.sha256` 파일과 내려받은 APK의 해시를 비교하려면 다음 명령을 사용할 수 있습니다.
 
 ```powershell
-Get-FileHash .\NotificationEdge-vX.Y.Z.apk -Algorithm SHA256
+Get-FileHash .\Slivue-vX.Y.Z.apk -Algorithm SHA256
 ```
 
 ```bash
-sha256sum ./NotificationEdge-vX.Y.Z.apk
+sha256sum ./Slivue-vX.Y.Z.apk
 ```
 
 ### 2. 필수 권한 허용
@@ -79,8 +83,8 @@ Samsung Galaxy에서는 핸들을 숨기고 One Hand Operation + 제스처만 �
 
 1. Galaxy Store에서 `Good Lock`과 `One Hand Operation +`를 설치합니다.
 2. One Hand Operation +에서 사용할 핸들과 제스처를 선택합니다.
-3. 동작을 `애플리케이션 실행`으로 지정하고 `Notification Edge`를 선택합니다.
-4. Notification Edge 설정에서 `앱 실행 시 알림 엣지 바로 열기`를 켭니다.
+3. 동작을 `애플리케이션 실행`으로 지정하고 `Slivue`를 선택합니다.
+4. Slivue 설정에서 `앱 실행 시 알림 엣지 바로 열기`를 켭니다.
 5. 앱의 `핸들 바 화면 표시`를 끕니다.
 
 세부 화면과 권장 제스처 조합은 [Galaxy Good Lock 연동 가이드](docs/Samsung_Edge_Integration_Guide.md)에서 확인할 수 있습니다.

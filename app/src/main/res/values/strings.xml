@@ -1,7 +1,12 @@
 <resources>
-    <string name="app_name">Notification Edge</string>
-    <string name="notification_listener_service_name">Notification Edge 알림 감지 서비스</string>
-    <string name="open_panel_activity_label">알림 엣지 열기 (Open Edge Panel)</string>
-    <string name="overlay_service_title">Notification Edge 실행 중</string>
+    <string name="app_name">Slivue</string>
+    <string name="app_tagline">화면은 그대로, 알림은 바로.</string>
+    <string name="notification_listener_service_name">Slivue 알림 감지 서비스</string>
+    <string name="open_panel_activity_label">Slivue 알림 패널 열기</string>
+    <string name="overlay_service_title">Slivue 실행 중</string>
+    <string name="overlay_service_channel_name">Slivue 백그라운드 서비스</string>
+    <string name="panel_permission_required">Slivue 권한 설정이 필요합니다.</string>
+    <string name="test_notification_text">안녕하세요! Slivue 테스트 알림입니다.</string>
+    <string name="good_lock_integration_description">One Hand Operation +의 제스처에 Slivue를 등록하면 화면에 핸들을 띄우지 않고도 제스처로 알림 패널을 열 수 있습니다.</string>
     <string name="overlay_service_desc">화면 가장자리에서 엣지 패널을 사용할 수 있습니다.</string>
 </resources>

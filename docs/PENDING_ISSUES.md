@@ -1,4 +1,4 @@
-# 📋 Notification Edge 해결 과제 및 미해결 이슈 목록 (Issue Backlog)
+# 📋 Slivue 해결 과제 및 미해결 이슈 목록
 
 이 문서는 추후 집중 개선 및 기능 고도화 시 해결해야 할 미해결 이슈, 동작 상의 특이사항 및 기술적 연구 과제를 정리하는 문서입니다.
 
@@ -8,7 +8,7 @@
 
 ### 1. 이슈 개요 및 현상
 * **증상**: 
-  - 유튜브(YouTube) 영상이 **전체화면 재생 중**일 때, 홈 화면의 앱 아이콘을 터치하거나 Good Lock(One Hand Operation+) 제스처로 Notification Edge를 실행하면 **유튜브가 홈 버튼을 누른 것처럼 PiP(팝업 미니 플레이어) 화면으로 축소**되는 현상.
+  - 유튜브(YouTube) 영상이 **전체화면 재생 중**일 때, 홈 화면의 앱 아이콘을 터치하거나 Good Lock(One Hand Operation+) 제스처로 Slivue를 실행하면 **유튜브가 홈 버튼을 누른 것처럼 PiP(팝업 미니 플레이어) 화면으로 축소**되는 현상.
   - 유튜브 영상이 일시정지(재생 안 됨) 상태일 때는 정상 작동하나, **재생 중일 때만** 발생함.
 * **영향을 받는 앱**: YouTube, YouTube Music, Netflix, Twitch 등 안드로이드 PiP 자동 진입(`setAutoEnterEnabled(true)`)이 활성화된 미디어 플레이어 앱.
 

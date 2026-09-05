@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
- * Notification Edge 설정 화면 전용 액티비티
+ * Slivue 설정 화면 전용 액티비티
  */
 class SettingsActivity : ComponentActivity() {
 

@@ -4,6 +4,7 @@ import android.app.Application
 import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.model.EdgeSide
@@ -140,7 +141,7 @@ class SettingsViewModel internal constructor(
                 packageName = application.packageName,
                 appName = "메시지",
                 title = "홍길동",
-                text = "안녕하세요! Notification Edge 테스트 알림입니다.",
+                text = application.getString(R.string.test_notification_text),
                 timestamp = System.currentTimeMillis()
             )
         )

@@ -1,13 +1,13 @@
 [
   {
     "path": "docs/icons/README_ICON_PACK.md",
-    "bytes": 2849,
-    "sha256": "5c82b34c58c8bf2ff866c52362e95422c07a867647974b35cdc32556e778c1d1"
+    "bytes": 3003,
+    "sha256": "2ab245815f08317b3dcb5b25cb78b7e7340a8bf35fdc14990fc0e50b26d8d6e1"
   },
   {
     "path": "docs/icons/design_tokens.json",
-    "bytes": 1106,
-    "sha256": "40a52aaa2af088c09521b17e1f81cbdbfd8220043bc56c2f4b856f6fde3a4f0f"
+    "bytes": 1095,
+    "sha256": "3954dab0294469311715c96c21a93f2fd22576cc23fdfa71f934abc611cb8966"
   },
   {
     "path": "docs/icons/source/notification_edge_sliding_panel_concept.png",

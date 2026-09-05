@@ -1,6 +1,8 @@
-# 🤖 Notification Edge 개발 지침 및 프로젝트 규칙 (AGENTS.md)
+# 🤖 Slivue 개발 지침 및 프로젝트 규칙 (AGENTS.md)
 
-이 문서는 Antigravity 및 모든 AI 에이전트가 본 프로젝트(Notification Edge)에서 작업할 때 **항상 자동으로 로드되어 준수해야 하는 최상위 개발 지침**입니다.
+이 문서는 Antigravity 및 모든 AI 에이전트가 본 프로젝트(Slivue)에서 작업할 때 **항상 자동으로 로드되어 준수해야 하는 최상위 개발 지침**입니다.
+
+앱·프로젝트의 공식 이름은 **Slivue(슬리뷰)**입니다. 기존 설치와 외부 연동을 유지하기 위해 `com.devdooly.notificationedge`, 저장소 주소 `DevDooly/message_edge`, 데이터 저장키·테마·외부 인텐트 식별자는 이름 변경 대상에서 제외합니다. 과거 릴리스 기록과 당시 APK 파일명도 보존합니다.
 
 ---
 

@@ -17,10 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devdooly.notificationedge.BuildConfig
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.DarkBackground
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
 import com.devdooly.notificationedge.util.AppLog
@@ -55,7 +57,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Notification Edge", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold)
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             shape = RoundedCornerShape(6.dp),

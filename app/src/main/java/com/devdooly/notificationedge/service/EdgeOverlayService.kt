@@ -92,7 +92,7 @@ class EdgeOverlayService : Service() {
 
     private fun startForegroundNotification() {
         val channelId = "notification_edge_service_channel"
-        val channelName = "Notification Edge Service"
+        val channelName = getString(R.string.overlay_service_channel_name)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(

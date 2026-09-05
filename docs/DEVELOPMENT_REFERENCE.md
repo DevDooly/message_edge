@@ -1,6 +1,6 @@
-# 📘 Notification Edge 개발 참조 및 아키텍처 가이드 (Development Reference)
+# 📘 Slivue 개발 참조 및 아키텍처 가이드
 
-이 문서는 **Notification Edge** 프로젝트의 구조, 주요 컴포넌트 아키텍처, 지금까지 해결한 트러블슈팅 내역, 빌드 및 배포 절차, 향후 기능 개발 시 반드시 지켜야 할 주의사항을 정리한 종합 가이드입니다.
+이 문서는 **Slivue(슬리뷰)** 프로젝트의 구조, 주요 컴포넌트 아키텍처, 지금까지 해결한 트러블슈팅 내역, 빌드 및 배포 절차, 향후 기능 개발 시 반드시 지켜야 할 주의사항을 정리한 종합 가이드입니다. `v1.3.17` 이전 기록은 당시 구현과 이름을 보존합니다.
 
 ---
 
@@ -554,6 +554,30 @@ graph TD
 
 ---
 
+### 60) Slivue 브랜드 전환과 업데이트 자산 호환 (`v1.3.18`, Build 148)
+
+* **공식 이름**:
+  - 앱·Gradle 프로젝트 이름을 `Slivue`, 한국어 표기를 `슬리뷰`로 통일한다.
+  - 런처, 설정 상단·앱 정보, 서비스 이름·알림, Good Lock 실행 안내, 테스트 알림에 새 이름을 적용한다.
+  - 소개 문구는 `화면은 그대로, 알림은 바로.`이며 기존 슬라이딩 패널 아이콘은 유지한다.
+* **기존 설치 및 외부 연동 보존**:
+  - `applicationId`·`namespace`는 `com.devdooly.notificationedge`를 유지한다.
+  - DataStore·SharedPreferences 저장키, 알림 채널 ID, 외부 인텐트, 컴포넌트·테마 식별자와 서명 계보는 유지해 삭제·재설치 없이 업데이트하도록 한다.
+  - 로컬 작업 폴더와 GitHub 저장소 `DevDooly/message_edge`는 그대로 두고, 표시용 프로젝트 이름만 변경한다. Git 기록의 과거 이름과 링크도 수정하지 않는다.
+* **배포 및 인앱 업데이트**:
+  - 새 공개 파일은 `Slivue-vX.Y.Z.apk`와 `Slivue.apk`, 각각의 `.sha256`이다.
+  - 업데이트는 버전명 포함 Slivue APK를 우선하며 구버전 `NotificationEdge-*.apk`도 계속 인식한다. 선택한 APK와 이름이 대응하는 체크섬만 사용한다.
+  - APK가 없는 릴리스에서는 존재하지 않는 구명칭 URL을 추측하지 않고 오류를 반환한다.
+  - CI 업데이트 검증은 직전 릴리스의 `Slivue.apk` 또는 구명칭 `NotificationEdge.apk` 위에 새 후보를 설치한다.
+  - 새 이름·구버전 이름·일반 별칭·알 수 없는 미래 파일명·잘못된 체크섬 짝·APK 누락을 회귀 테스트로 검증한다.
+* **로컬 검증 결과 (2026-09-05)**:
+  - `testDebugUnitTest compileDebugKotlin lintRelease assembleRelease`를 통과했다. 단위 테스트 71개, 실패·오류·건너뜀 0개이며 Lint 오류 0개·경고 63개다.
+  - 생성 APK의 앱 라벨 `Slivue`, 버전 `1.3.18`/`148`, 패키지 `com.devdooly.notificationedge`를 직접 확인했다.
+  - 기존 서명 계보 적용 후 API 26 이상 `apksigner verify`와 새 인증서 SHA-256 `3de001d769ca37e913d80d233d3a02da6eef90838daa8bb33191c5e7e5ac766c`를 확인했다.
+  - 아이콘 자산 매니페스트의 크기·SHA-256 불일치는 0개다. API 26·35 덮어쓰기 설치와 공개 게시 여부는 태그 CI 결과를 별도로 확인해야 한다.
+
+---
+
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
 
 ### 1) 버전 판올림 체크리스트
@@ -590,7 +614,7 @@ git push origin v버전
 | 테스트 클래스 | 테스트 대상 및 내용 |
 | :--- | :--- |
 | **`NotificationTextCleanerTest`** | 1:1 대화 발신자 접두어(`홍길동: `), 전화번호 접두어, 대괄호(`[Web발신]`), 단체방 긴 제목 포맷팅 정제 룰 검증 |
-| **`AppUpdateManagerTest`** | 시맨틱 버전 비교 로직(`isNewerVersion`) 무결성 검증 |
+| **`AppUpdateManagerTest`** | 시맨틱 버전 비교, HTTPS 호스트, 새·구버전 APK와 체크섬 짝 선택 검증 |
 | **`EdgeNotificationTest`** | 알림 엔티티 기본값, 메시지 모델, 빠른 답장 액션 플래그 검증 |
 | **`AppSettingsTest`** | 앱 설정 기본값(패널 크기, 투명도, 엣지 라이팅 등) 검증 |
 | **`SettingsRepositoryTest`** | Robolectric 기반 DataStore 및 SharedPreferences 동기화 동작 검증 |

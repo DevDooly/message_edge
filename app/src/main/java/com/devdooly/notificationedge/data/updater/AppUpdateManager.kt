@@ -28,6 +28,10 @@ data class ReleaseInfo(
     val publishedAt: String
 )
 
+internal data class ReleaseAsset(val name: String, val downloadUrl: String)
+
+internal data class ReleaseDownloads(val apkUrl: String, val checksumUrl: String?)
+
 object AppUpdateManager {
 
     private const val GITHUB_REPO = "DevDooly/message_edge"
@@ -52,31 +56,23 @@ object AppUpdateManager {
             val body = json.optString("body", "새로운 변경 사항이 포함되어 있습니다.")
             val publishedAt = json.optString("published_at", "")
 
-            var downloadUrl = ""
-            var checksumUrl = ""
+            val releaseAssets = mutableListOf<ReleaseAsset>()
             val assets = json.optJSONArray("assets")
             if (assets != null) {
                 for (index in 0 until assets.length()) {
                     val asset = assets.getJSONObject(index)
-                    val assetName = asset.optString("name", "")
-                    val assetUrl = asset.optString("browser_download_url", "")
-                    when {
-                        downloadUrl.isBlank() && assetName.endsWith(".apk", ignoreCase = true) -> {
-                            downloadUrl = assetUrl
-                        }
-                        checksumUrl.isBlank() && assetName.endsWith(".sha256", ignoreCase = true) -> {
-                            checksumUrl = assetUrl
-                        }
-                    }
+                    releaseAssets += ReleaseAsset(
+                        name = asset.optString("name", ""),
+                        downloadUrl = asset.optString("browser_download_url", "")
+                    )
                 }
             }
 
-            if (downloadUrl.isBlank()) {
-                downloadUrl = "https://github.com/$GITHUB_REPO/releases/download/$tagName/NotificationEdge-$tagName.apk"
-            }
+            val downloads = selectReleaseDownloads(tagName, releaseAssets)
+            val downloadUrl = downloads.apkUrl
             require(isAllowedDownloadUrl(downloadUrl)) { "허용되지 않은 APK 다운로드 주소입니다." }
 
-            val checksum = if (checksumUrl.isNotBlank()) fetchSha256(checksumUrl) else null
+            val checksum = downloads.checksumUrl?.let(::fetchSha256)
             Result.success(
                 ReleaseInfo(
                     tagName = tagName,
@@ -93,6 +89,23 @@ object AppUpdateManager {
         } finally {
             connection?.disconnect()
         }
+    }
+
+    /** 새 브랜드 자산을 우선하되 이전 릴리스 자산과 해당 파일의 체크섬도 지원한다. */
+    internal fun selectReleaseDownloads(tagName: String, assets: List<ReleaseAsset>): ReleaseDownloads {
+        val available = assets.filter { it.downloadUrl.isNotBlank() }
+        val preferredNames = listOf(
+            "Slivue-$tagName.apk", "Slivue.apk",
+            "NotificationEdge-$tagName.apk", "NotificationEdge.apk"
+        )
+        val apk = preferredNames.firstNotNullOfOrNull { preferred ->
+            available.firstOrNull { it.name.equals(preferred, ignoreCase = true) }
+        } ?: available.firstOrNull { it.name.endsWith(".apk", ignoreCase = true) }
+            ?: error("릴리스에 설치 가능한 APK 파일이 없습니다.")
+        val checksum = available.firstOrNull {
+            it.name.equals("${apk.name}.sha256", ignoreCase = true)
+        }
+        return ReleaseDownloads(apk.downloadUrl, checksum?.downloadUrl)
     }
 
     /** 현재 버전보다 최신 SemVer인 경우에만 true를 반환한다. */
@@ -130,8 +143,8 @@ object AppUpdateManager {
         onProgress: (Float) -> Unit
     ): Result<File> = withContext(Dispatchers.IO) {
         var connection: HttpURLConnection? = null
-        val targetFile = File(context.cacheDir, "NotificationEdge_update.apk")
-        val partialFile = File(context.cacheDir, "NotificationEdge_update.apk.part")
+        val targetFile = File(context.cacheDir, "Slivue_update.apk")
+        val partialFile = File(context.cacheDir, "Slivue_update.apk.part")
         try {
             val normalizedChecksum = expectedSha256?.trim()?.lowercase()
             require(normalizedChecksum != null && sha256Pattern.matches(normalizedChecksum)) {
@@ -273,7 +286,7 @@ object AppUpdateManager {
                 instanceFollowRedirects = false
                 requestMethod = "GET"
                 setRequestProperty("Accept", "application/vnd.github.v3+json, application/octet-stream")
-                setRequestProperty("User-Agent", "NotificationEdge-Android")
+                setRequestProperty("User-Agent", "Slivue-Android")
                 connectTimeout = connectTimeoutMs
                 readTimeout = readTimeoutMs
             }

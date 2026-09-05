@@ -15,11 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devdooly.notificationedge.BuildConfig
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.data.repository.NotificationRepository
 import com.devdooly.notificationedge.ui.theme.*
@@ -102,7 +104,7 @@ internal fun GoodLockIntegrationCard(
             }
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "One Hand Operation +의 제스처에 '알림 엣지(Notification Edge)'를 등록하면 화면에 핸들을 안 띄우고도 순정처럼 제스처로 알림 패널을 열 수 있습니다.",
+                text = stringResource(R.string.good_lock_integration_description),
                 color = Color.LightGray,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
@@ -181,10 +183,16 @@ internal fun AppInfoCard() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Notification Edge",
+                text = stringResource(R.string.app_name),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.app_tagline),
+                color = Color.LightGray,
+                fontSize = 12.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
