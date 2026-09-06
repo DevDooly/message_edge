@@ -14,9 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.devdooly.notificationedge.util.userMessage
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.*
 import com.devdooly.notificationedge.util.CustomFontManager
 @Composable
@@ -37,9 +40,13 @@ internal fun FontSettingsCard(
             result.onSuccess { fontInfo ->
                 customFonts = CustomFontManager.getCustomFonts(context)
                 onFontSelected(fontInfo.id)
-                Toast.makeText(context, "폰트가 추가되었습니다: ${fontInfo.displayName}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.font_added, fontInfo.displayName), Toast.LENGTH_SHORT).show()
             }.onFailure { error ->
-                Toast.makeText(context, "폰트 등록 실패: ${error.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.font_import_failed, error.userMessage(context, R.string.custom_font_error_verify)),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }
@@ -48,7 +55,7 @@ internal fun FontSettingsCard(
         val fileName = selectedFontId.removePrefix("custom:")
         customFonts.find { it.fileName == fileName }?.displayName ?: fileName
     } else {
-        AppFont.fromId(selectedFontId).displayName
+        stringResource(AppFont.fromId(selectedFontId).displayNameRes)
     }
 
     Card(
@@ -65,14 +72,14 @@ internal fun FontSettingsCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "글꼴 및 폰트 설정 (Font)",
+                        text = stringResource(R.string.font_settings),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "현재: $currentDisplayName",
+                        text = stringResource(R.string.font_current, currentDisplayName),
                         color = EdgeCyan,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -81,7 +88,7 @@ internal fun FontSettingsCard(
                 IconButton(onClick = { isExpanded = !isExpanded }) {
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = if (isExpanded) "접기" else "더보기",
+                        contentDescription = stringResource(if (isExpanded) R.string.font_collapse else R.string.font_expand),
                         tint = Color.LightGray
                     )
                 }
@@ -107,7 +114,7 @@ internal fun FontSettingsCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "한글/영문 혼용 시 수직 기준선(Baseline)과 패딩을 보정하여 고르게 표시합니다.",
+                        text = stringResource(R.string.font_alignment_description),
                         color = Color.Gray,
                         fontSize = 11.sp,
                         lineHeight = 15.sp
@@ -138,7 +145,7 @@ internal fun FontSettingsCard(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null, tint = EdgeCyan)
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "내 기기에서 폰트 파일(.ttf, .otf) 불러오기",
+                        text = stringResource(R.string.font_import),
                         color = EdgeCyan,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
@@ -149,7 +156,7 @@ internal fun FontSettingsCard(
                 if (customFonts.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "내가 추가한 커스텀 폰트 (${customFonts.size})",
+                        text = stringResource(R.string.font_custom_fonts, customFonts.size),
                         color = Color.LightGray,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
@@ -194,7 +201,7 @@ internal fun FontSettingsCard(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Notification 알림 123 (Aa 가나다)",
+                                            text = stringResource(R.string.font_custom_preview),
                                             color = if (isSelected) CloudDancer else Color.LightGray,
                                             fontSize = 12.sp,
                                             fontFamily = customFamily
@@ -209,12 +216,12 @@ internal fun FontSettingsCard(
                                                 if (selectedFontId == customFont.id) {
                                                     onFontSelected("default")
                                                 }
-                                                Toast.makeText(context, "폰트가 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, context.getString(R.string.font_deleted), Toast.LENGTH_SHORT).show()
                                             }
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.DeleteOutline,
-                                                contentDescription = "삭제",
+                                                contentDescription = stringResource(R.string.font_delete),
                                                 tint = Color.Gray,
                                                 modifier = Modifier.size(20.dp)
                                             )
@@ -237,7 +244,7 @@ internal fun FontSettingsCard(
                 // 기본 제공 폰트 프리셋 목록
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "기본 제공 프리셋 폰트",
+                    text = stringResource(R.string.font_presets),
                     color = Color.LightGray,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
@@ -267,21 +274,21 @@ internal fun FontSettingsCard(
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = fontOption.displayName,
+                                        text = stringResource(fontOption.displayNameRes),
                                         color = if (isSelected) EdgeCyan else Color.White,
                                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                         fontSize = 14.sp
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = fontOption.description,
+                                        text = stringResource(fontOption.descriptionRes),
                                         color = Color.Gray,
                                         fontSize = 11.sp
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     // 폰트 실시간 적용 미리보기 샘플
                                     Text(
-                                        text = "Notification 알림 123 (Aa 한글 폰트)",
+                                        text = stringResource(R.string.font_preset_preview),
                                         color = if (isSelected) CloudDancer else Color.LightGray,
                                         fontSize = 12.sp,
                                         fontFamily = fontOption.toFontFamily()

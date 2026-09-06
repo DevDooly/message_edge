@@ -8,6 +8,9 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import com.devdooly.notificationedge.R
+import com.devdooly.notificationedge.util.LocalizedException
+import com.devdooly.notificationedge.util.requireLocalized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -53,7 +56,7 @@ object AppUpdateManager {
             val json = JSONObject(responseBody)
             val tagName = json.optString("tag_name", "")
             val title = json.optString("name", tagName)
-            val body = json.optString("body", "새로운 변경 사항이 포함되어 있습니다.")
+            val body = json.optString("body", "")
             val publishedAt = json.optString("published_at", "")
 
             val releaseAssets = mutableListOf<ReleaseAsset>()
@@ -70,7 +73,7 @@ object AppUpdateManager {
 
             val downloads = selectReleaseDownloads(tagName, releaseAssets)
             val downloadUrl = downloads.apkUrl
-            require(isAllowedDownloadUrl(downloadUrl)) { "허용되지 않은 APK 다운로드 주소입니다." }
+            requireLocalized(isAllowedDownloadUrl(downloadUrl), R.string.update_error_url)
 
             val checksum = downloads.checksumUrl?.let(::fetchSha256)
             Result.success(
@@ -101,7 +104,7 @@ object AppUpdateManager {
         val apk = preferredNames.firstNotNullOfOrNull { preferred ->
             available.firstOrNull { it.name.equals(preferred, ignoreCase = true) }
         } ?: available.firstOrNull { it.name.endsWith(".apk", ignoreCase = true) }
-            ?: error("릴리스에 설치 가능한 APK 파일이 없습니다.")
+            ?: throw LocalizedException(R.string.update_error_missing_apk)
         val checksum = available.firstOrNull {
             it.name.equals("${apk.name}.sha256", ignoreCase = true)
         }
@@ -147,18 +150,17 @@ object AppUpdateManager {
         val partialFile = File(context.cacheDir, "Slivue_update.apk.part")
         try {
             val normalizedChecksum = expectedSha256?.trim()?.lowercase()
-            require(normalizedChecksum != null && sha256Pattern.matches(normalizedChecksum)) {
-                "릴리스 SHA-256 체크섬이 없어 안전하게 다운로드할 수 없습니다."
-            }
-            require(isAllowedDownloadUrl(downloadUrl)) { "허용되지 않은 APK 다운로드 주소입니다." }
+            requireLocalized(
+                normalizedChecksum != null && sha256Pattern.matches(normalizedChecksum),
+                R.string.update_error_missing_checksum
+            )
+            requireLocalized(isAllowedDownloadUrl(downloadUrl), R.string.update_error_url)
 
             connection = openFollowingRedirects(downloadUrl, 15_000, 30_000)
             requireSuccessfulResponse(connection)
 
             val contentLength = connection.contentLengthLong
-            require(contentLength <= 0 || contentLength <= MAX_APK_BYTES) {
-                "APK 파일 크기가 허용 한도(200MB)를 초과합니다."
-            }
+            requireLocalized(contentLength <= 0 || contentLength <= MAX_APK_BYTES, R.string.update_error_size)
 
             partialFile.delete()
             val digest = MessageDigest.getInstance("SHA-256")
@@ -170,9 +172,7 @@ object AppUpdateManager {
                         val count = input.read(buffer)
                         if (count < 0) break
                         totalDownloaded += count
-                        require(totalDownloaded <= MAX_APK_BYTES) {
-                            "APK 파일 크기가 허용 한도(200MB)를 초과합니다."
-                        }
+                        requireLocalized(totalDownloaded <= MAX_APK_BYTES, R.string.update_error_size)
                         digest.update(buffer, 0, count)
                         output.write(buffer, 0, count)
                         if (contentLength > 0) {
@@ -186,10 +186,10 @@ object AppUpdateManager {
             }
 
             val actualSha256 = digest.digest().joinToString("") { "%02x".format(it) }
-            require(actualSha256 == normalizedChecksum) { "APK SHA-256 체크섬이 일치하지 않습니다." }
+            requireLocalized(actualSha256 == normalizedChecksum, R.string.update_error_checksum_mismatch)
 
             targetFile.delete()
-            require(partialFile.renameTo(targetFile)) { "검증된 APK 파일을 저장하지 못했습니다." }
+            requireLocalized(partialFile.renameTo(targetFile), R.string.update_error_save)
             validateDownloadedApk(context, targetFile).getOrThrow()
 
             withContext(Dispatchers.Main) { onProgress(1f) }
@@ -204,24 +204,26 @@ object AppUpdateManager {
     }
 
     internal fun validateDownloadedApk(context: Context, apkFile: File): Result<Unit> = runCatching {
-        require(apkFile.exists() && apkFile.length() in 1..MAX_APK_BYTES) { "APK 파일이 없거나 크기가 잘못되었습니다." }
+        requireLocalized(apkFile.exists() && apkFile.length() in 1..MAX_APK_BYTES, R.string.update_error_invalid_file)
 
         val packageManager = context.packageManager
         val archiveInfo = getPackageInfo(packageManager, apkFile.absolutePath)
-            ?: error("APK 패키지 정보를 읽을 수 없습니다.")
+            ?: throw LocalizedException(R.string.update_error_archive_info)
         val installedInfo = getPackageInfo(packageManager, context.packageName)
-            ?: error("현재 앱의 패키지 정보를 읽을 수 없습니다.")
+            ?: throw LocalizedException(R.string.update_error_installed_info)
 
-        require(archiveInfo.packageName == context.packageName) { "APK 패키지명이 현재 앱과 다릅니다." }
-        require(packageVersionCode(archiveInfo) >= packageVersionCode(installedInfo)) {
-            "현재 설치 버전보다 낮은 APK입니다."
-        }
+        requireLocalized(archiveInfo.packageName == context.packageName, R.string.update_error_package)
+        requireLocalized(
+            packageVersionCode(archiveInfo) >= packageVersionCode(installedInfo),
+            R.string.update_error_downgrade
+        )
 
         val archiveSigners = signerDigests(archiveInfo)
         val installedSigners = signerDigests(installedInfo)
-        require(archiveSigners.isNotEmpty() && archiveSigners.any(installedSigners::contains)) {
-            "APK 서명 인증서가 현재 앱과 일치하지 않습니다."
-        }
+        requireLocalized(
+            archiveSigners.isNotEmpty() && archiveSigners.any(installedSigners::contains),
+            R.string.update_error_signature
+        )
     }
 
     fun installApk(context: Context, apkFile: File): Result<Unit> = runCatching {
@@ -250,7 +252,7 @@ object AppUpdateManager {
     }
 
     private fun fetchSha256(checksumUrl: String): String? {
-        require(isAllowedDownloadUrl(checksumUrl)) { "허용되지 않은 체크섬 주소입니다." }
+        requireLocalized(isAllowedDownloadUrl(checksumUrl), R.string.update_error_checksum_url)
         var connection: HttpURLConnection? = null
         return try {
             connection = openFollowingRedirects(checksumUrl, 10_000, 10_000)
@@ -263,7 +265,7 @@ object AppUpdateManager {
                     val count = input.read(buffer)
                     if (count < 0) break
                     totalBytes += count
-                    require(totalBytes <= MAX_CHECKSUM_BYTES) { "체크섬 파일이 너무 큽니다." }
+                    requireLocalized(totalBytes <= MAX_CHECKSUM_BYTES, R.string.update_error_checksum_size)
                     output.write(buffer, 0, count)
                 }
                 output.toByteArray()
@@ -281,7 +283,7 @@ object AppUpdateManager {
     ): HttpURLConnection {
         var currentUrl = URL(rawUrl)
         repeat(MAX_REDIRECTS + 1) { redirectCount ->
-            require(isAllowedDownloadUrl(currentUrl.toString())) { "허용되지 않은 다운로드 호스트입니다." }
+            requireLocalized(isAllowedDownloadUrl(currentUrl.toString()), R.string.update_error_host)
             val connection = (currentUrl.openConnection() as HttpURLConnection).apply {
                 instanceFollowRedirects = false
                 requestMethod = "GET"
@@ -293,21 +295,19 @@ object AppUpdateManager {
             val status = connection.responseCode
             if (status in listOf(301, 302, 303, 307, 308)) {
                 val location = connection.getHeaderField("Location")
-                    ?: error("리다이렉트 주소가 없습니다.")
+                    ?: throw LocalizedException(R.string.update_error_redirect_missing)
                 connection.disconnect()
-                require(redirectCount < MAX_REDIRECTS) { "리다이렉트 횟수를 초과했습니다." }
+                requireLocalized(redirectCount < MAX_REDIRECTS, R.string.update_error_redirect_limit)
                 currentUrl = URL(currentUrl, location)
             } else {
                 return connection
             }
         }
-        error("리다이렉트 횟수를 초과했습니다.")
+        throw LocalizedException(R.string.update_error_redirect_limit)
     }
 
     private fun requireSuccessfulResponse(connection: HttpURLConnection) {
-        require(connection.responseCode in 200..299) {
-            "GitHub 응답 오류: ${connection.responseCode}"
-        }
+        requireLocalized(connection.responseCode in 200..299, R.string.update_error_response, connection.responseCode)
     }
 
     @Suppress("DEPRECATION")

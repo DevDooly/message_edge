@@ -15,7 +15,8 @@ data class MessageItem(
     val sender: String,
     val text: String,
     val timestamp: Long,
-    val isFromUser: Boolean = false
+    val isFromUser: Boolean = false,
+    val senderLabel: NotificationLabel? = null
 )
 
 data class EdgeNotification(
@@ -35,5 +36,7 @@ data class EdgeNotification(
     val isGroupHeader: Boolean = false,
     val isDismissed: Boolean = false,
     val isGroupChat: Boolean = false,
-    val debugExtrasDump: String? = null
+    val debugExtrasDump: String? = null,
+    val titleLabel: NotificationLabel? = null,
+    val subTextLabel: NotificationLabel? = null
 )

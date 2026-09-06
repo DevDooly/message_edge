@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parser_unknown_sender">Someone</string>
+    <string name="parser_group_chat">Group chat</string>
+    <plurals name="parser_sender_summary">
+        <item quantity="one">%1$s and %2$d other</item>
+        <item quantity="other">%1$s and %2$d others</item>
+    </plurals>
+</resources>

@@ -294,7 +294,9 @@ class NotificationListener : NotificationListenerService() {
             actions = actionsList,
             isClearable = sbn.isClearable,
             isGroupChat = parsed.isGroupChat,
-            debugExtrasDump = extrasDump
+            debugExtrasDump = extrasDump,
+            titleLabel = parsed.roomTitleLabel,
+            subTextLabel = parsed.groupRoomNameLabel
         )
 
         NotificationRepository.addOrUpdateNotification(edgeNotification)

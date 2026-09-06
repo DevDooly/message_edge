@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.model.EdgeSide
 import com.devdooly.notificationedge.ui.theme.*
@@ -39,7 +41,7 @@ internal fun EdgeHandleSettingsCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "엣지 핸들 및 패널 레이아웃",
+                text = stringResource(R.string.appearance_handle_layout),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
@@ -48,7 +50,7 @@ internal fun EdgeHandleSettingsCard(
 
             // 패널 가로 너비 (5dp 단위 조절)
             Text(
-                "알림 패널 가로 너비 (${settings.panelWidthDp} dp)",
+                stringResource(R.string.appearance_panel_width, settings.panelWidthDp),
                 color = Color.LightGray,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
@@ -73,8 +75,8 @@ internal fun EdgeHandleSettingsCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("채팅방 이동 시 알림 자동 삭제", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    Text("메시지를 터치해 해당 앱/채팅방으로 이동하면 알림 목록에서 자동으로 삭제합니다", color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.appearance_auto_dismiss), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.appearance_auto_dismiss_description), color = Color.Gray, fontSize = 11.sp)
                 }
                 Switch(
                     checked = settings.autoDismissOnOpen,
@@ -92,8 +94,8 @@ internal fun EdgeHandleSettingsCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("핸들 바 화면 표시", color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    Text("끄면 핸들이 투명해지며 스와이프 터치만 작동합니다 (기본 엣지와 간섭 방지)", color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.appearance_handle_visible), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.appearance_handle_visible_description), color = Color.Gray, fontSize = 11.sp)
                 }
                 Switch(
                     checked = settings.isHandleVisible,
@@ -105,7 +107,7 @@ internal fun EdgeHandleSettingsCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // 좌 / 우 선택
-            Text("핸들 위치 (사이드)", color = Color.LightGray, fontSize = 13.sp)
+            Text(stringResource(R.string.appearance_handle_side), color = Color.LightGray, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
@@ -117,7 +119,7 @@ internal fun EdgeHandleSettingsCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "왼쪽 (Left - 추천)",
+                        stringResource(R.string.appearance_side_left),
                         color = if (settings.edgeSide == EdgeSide.LEFT) Color.Black else Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
@@ -132,7 +134,7 @@ internal fun EdgeHandleSettingsCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        "오른쪽 (Right)",
+                        stringResource(R.string.appearance_side_right),
                         color = if (settings.edgeSide == EdgeSide.RIGHT) Color.Black else Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp
@@ -144,7 +146,7 @@ internal fun EdgeHandleSettingsCard(
 
             // 상하 위치 (Y 비율)
             Text(
-                "상하 위치 조절 (${(settings.handlePositionRatio * 100).toInt()}%)",
+                stringResource(R.string.appearance_vertical_position, (settings.handlePositionRatio * 100).toInt()),
                 color = Color.LightGray,
                 fontSize = 13.sp
             )
@@ -162,7 +164,7 @@ internal fun EdgeHandleSettingsCard(
 
             // 핸들 크기 (높이, 5dp 단위 조절)
             Text(
-                "핸들 높이 길이 (${settings.handleHeightDp} dp)",
+                stringResource(R.string.appearance_handle_height, settings.handleHeightDp),
                 color = Color.LightGray,
                 fontSize = 13.sp
             )
@@ -181,7 +183,7 @@ internal fun EdgeHandleSettingsCard(
 
             // 핸들 너비 (두께 조절)
             Text(
-                "핸들 가로 너비 / 두께 (${settings.handleWidthDp} dp)",
+                stringResource(R.string.appearance_handle_width, settings.handleWidthDp),
                 color = Color.LightGray,
                 fontSize = 13.sp
             )
@@ -201,7 +203,7 @@ internal fun EdgeHandleSettingsCard(
 
                 // 투명도
                 Text(
-                    "핸들 투명도 (${(settings.handleAlpha * 100).toInt()}%)",
+                    stringResource(R.string.appearance_handle_opacity, (settings.handleAlpha * 100).toInt()),
                     color = Color.LightGray,
                     fontSize = 13.sp
                 )
@@ -218,7 +220,7 @@ internal fun EdgeHandleSettingsCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 색상 팔레트
-                Text("핸들 색상", color = Color.LightGray, fontSize = 13.sp)
+                Text(stringResource(R.string.appearance_handle_color), color = Color.LightGray, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 ColorPaletteRow(
                     selectedColor = settings.handleColor,
@@ -247,15 +249,15 @@ internal fun EdgeLightingSettingsCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "엣지 라이팅 (Edge Lighting)",
+                        text = stringResource(R.string.appearance_lighting),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Text(
-                        text = "알림 수신 시 화면 테두리 빛남 효과",
+                        text = stringResource(R.string.appearance_lighting_description),
                         color = Color.Gray,
                         fontSize = 12.sp
                     )
@@ -269,7 +271,7 @@ internal fun EdgeLightingSettingsCard(
 
             if (settings.isEdgeLightingEnabled) {
                 Spacer(modifier = Modifier.height(14.dp))
-                Text("라이팅 색상", color = Color.LightGray, fontSize = 13.sp)
+                Text(stringResource(R.string.appearance_lighting_color), color = Color.LightGray, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 ColorPaletteRow(
                     selectedColor = settings.edgeLightingColor,
@@ -280,12 +282,15 @@ internal fun EdgeLightingSettingsCard(
 
                 // 모서리 둥글기 (곡률) 조절 (0dp 직각 ~ 50dp 둥근 모서리)
                 Text(
-                    text = "화면 모서리 곡률 / 둥글기 (${settings.edgeLightingCornerRadiusDp} dp)",
+                    text = stringResource(R.string.appearance_corner_radius, settings.edgeLightingCornerRadiusDp),
                     color = Color.LightGray,
                     fontSize = 13.sp
                 )
                 Text(
-                    text = if (settings.edgeLightingCornerRadiusDp == 0) "0 dp: 직각 디스플레이 (Galaxy Ultra 등)" else "스마트폰 모서리 곡률에 맞춰 조절하세요",
+                    text = stringResource(
+                        if (settings.edgeLightingCornerRadiusDp == 0) R.string.appearance_square_corners
+                        else R.string.appearance_adjust_corners
+                    ),
                     color = Color.Gray,
                     fontSize = 11.sp
                 )
@@ -309,7 +314,7 @@ internal fun EdgeLightingSettingsCard(
                 ) {
                     Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = EdgeCyan)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("엣지 라이팅 & 알림 동작 테스트", color = EdgeCyan, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.appearance_test_lighting), color = EdgeCyan, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -353,7 +358,7 @@ private fun ColorPaletteRow(
                 if (isSelected) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "선택됨",
+                        contentDescription = stringResource(R.string.appearance_selected),
                         tint = if (colorHex == 0xFFFFFFFF) Color.Black else Color.White,
                         modifier = Modifier.size(18.dp)
                     )

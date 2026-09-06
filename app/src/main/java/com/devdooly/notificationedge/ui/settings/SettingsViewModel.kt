@@ -139,8 +139,8 @@ class SettingsViewModel internal constructor(
                 key = "test_notification_${System.currentTimeMillis()}",
                 id = 999,
                 packageName = application.packageName,
-                appName = "메시지",
-                title = "홍길동",
+                appName = application.getString(R.string.test_notification_app),
+                title = application.getString(R.string.test_notification_sender),
                 text = application.getString(R.string.test_notification_text),
                 timestamp = System.currentTimeMillis()
             )

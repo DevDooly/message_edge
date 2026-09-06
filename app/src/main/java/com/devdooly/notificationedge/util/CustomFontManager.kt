@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import com.devdooly.notificationedge.R
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
@@ -63,9 +64,8 @@ object CustomFontManager {
 
             // 파일명 정제
             val safeFileName = fileName.replace("[^a-zA-Z0-9._-]".toRegex(), "_")
-            val targetFile = requireNotNull(resolveSafeFontFile(context, safeFileName)) {
-                "안전하지 않은 폰트 파일명입니다."
-            }
+            val targetFile = resolveSafeFontFile(context, safeFileName)
+                ?: throw LocalizedException(R.string.custom_font_error_name)
 
             try {
                 context.contentResolver.openInputStream(uri)?.use { input ->
@@ -77,12 +77,12 @@ object CustomFontManager {
                             if (count < 0) break
                             totalBytes += count
                             if (totalBytes > MAX_FONT_FILE_BYTES) {
-                                throw IllegalArgumentException("폰트 파일은 20MB 이하여야 합니다.")
+                                throw LocalizedException(R.string.custom_font_error_size)
                             }
                             output.write(buffer, 0, count)
                         }
                     }
-                } ?: throw IllegalStateException("폰트 파일을 읽을 수 없습니다.")
+                } ?: throw LocalizedException(R.string.custom_font_error_read)
             } catch (error: Exception) {
                 targetFile.delete()
                 throw error
@@ -93,11 +93,11 @@ object CustomFontManager {
                 val typeface = Typeface.createFromFile(targetFile)
                 if (typeface == null) {
                     targetFile.delete()
-                    throw IllegalArgumentException("유효하지 않은 폰트 파일 형식입니다.")
+                    throw LocalizedException(R.string.custom_font_error_invalid)
                 }
             } catch (e: Exception) {
                 targetFile.delete()
-                throw IllegalArgumentException("폰트 파일 검증 실패: ${e.message}")
+                throw LocalizedException(R.string.custom_font_error_verify)
             }
 
             val nameWithoutExt = targetFile.nameWithoutExtension

@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devdooly.notificationedge.ui.theme.*
+import com.devdooly.notificationedge.R
+import com.devdooly.notificationedge.util.userMessage
 import kotlinx.coroutines.launch
 @Composable
 internal fun AppUpdateCard(currentVersionName: String) {
@@ -28,7 +31,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
     val installDownloadedApk: (java.io.File) -> Unit = { apkFile ->
         com.devdooly.notificationedge.data.updater.AppUpdateManager.installApk(context, apkFile)
             .onFailure { error ->
-                updateStatus = UpdateUIState.Error(error.message ?: "APK 검증 또는 설치 실패")
+                updateStatus = UpdateUIState.Error(error.userMessage(context, R.string.update_error_install))
             }
     }
 
@@ -46,7 +49,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.SystemUpdate,
                         contentDescription = null,
@@ -55,7 +58,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "앱 업데이트",
+                        text = stringResource(R.string.update_title),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -63,7 +66,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                 }
 
                 Text(
-                    text = "현재 v$currentVersionName",
+                    text = stringResource(R.string.update_current_version, currentVersionName),
                     color = Color.Gray,
                     fontSize = 12.sp
                 )
@@ -74,7 +77,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
             when (val state = updateStatus) {
                 is UpdateUIState.Idle -> {
                     Text(
-                        text = "GitHub Release의 최신 APK 및 릴리즈 노트를 확인하고 터치 한 번으로 바로 업데이트할 수 있습니다.",
+                        text = stringResource(R.string.update_description),
                         color = Color.LightGray,
                         fontSize = 12.sp,
                         lineHeight = 17.sp
@@ -93,7 +96,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                         updateStatus = UpdateUIState.UpToDate(info.tagName)
                                     }
                                 }.onFailure { error ->
-                                    updateStatus = UpdateUIState.Error(error.message ?: "업데이트 확인 실패")
+                                    updateStatus = UpdateUIState.Error(error.userMessage(context, R.string.update_error_check))
                                 }
                             }
                         },
@@ -103,7 +106,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                     ) {
                         Icon(imageVector = Icons.Default.Refresh, contentDescription = null, tint = EdgeCyan, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("최신 업데이트 확인", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.update_check), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
@@ -121,7 +124,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text("GitHub Releases 최신 버전 확인 중...", color = Color.LightGray, fontSize = 13.sp)
+                        Text(stringResource(R.string.update_checking), color = Color.LightGray, fontSize = 13.sp)
                     }
                 }
 
@@ -137,7 +140,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                         Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = EdgeGreen, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "현재 최신 버전(${state.latestVersion})을 사용하고 있습니다!",
+                            text = stringResource(R.string.update_up_to_date, state.latestVersion),
                             color = Color(0xFFB9F6CA),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -166,13 +169,13 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                             updateStatus = UpdateUIState.Downloaded(apkFile)
                                             installDownloadedApk(apkFile)
                                         }.onFailure { error ->
-                                            updateStatus = UpdateUIState.Error(error.message ?: "다운로드 실패")
+                                            updateStatus = UpdateUIState.Error(error.userMessage(context, R.string.update_error_download))
                                         }
                                     }
                                 }
                             }
                         ) {
-                            Text("최신 APK 직접 재설치", color = Color.Gray, fontSize = 11.sp)
+                            Text(stringResource(R.string.update_reinstall), color = Color.Gray, fontSize = 11.sp)
                         }
 
                         TextButton(
@@ -184,12 +187,12 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                         releaseInfo = info
                                         updateStatus = if (info.hasUpdate) UpdateUIState.UpdateAvailable(info) else UpdateUIState.UpToDate(info.tagName)
                                     }.onFailure {
-                                        updateStatus = UpdateUIState.Error(it.message ?: "확인 실패")
+                                        updateStatus = UpdateUIState.Error(it.userMessage(context, R.string.update_error_check))
                                     }
                                 }
                             }
                         ) {
-                            Text("다시 확인", color = EdgeCyan, fontSize = 12.sp)
+                            Text(stringResource(R.string.update_check_again), color = EdgeCyan, fontSize = 12.sp)
                         }
                     }
                 }
@@ -208,7 +211,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                     color = EdgeCyan
                                 ) {
                                     Text(
-                                        text = "NEW ${info.tagName}",
+                                        text = stringResource(R.string.update_new_version, info.tagName),
                                         color = Color.Black,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold,
@@ -254,7 +257,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                     updateStatus = UpdateUIState.Downloaded(apkFile)
                                     installDownloadedApk(apkFile)
                                 }.onFailure { error ->
-                                    updateStatus = UpdateUIState.Error("다운로드 실패: ${error.message}")
+                                    updateStatus = UpdateUIState.Error(error.userMessage(context, R.string.update_error_download))
                                 }
                             }
                         },
@@ -264,7 +267,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                     ) {
                         Icon(imageVector = Icons.Default.Download, contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("지금 다운로드 및 바로 업데이트", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        Text(stringResource(R.string.update_download), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                     }
                 }
 
@@ -274,8 +277,8 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("GitHub에서 최신 APK 다운로드 중...", color = Color.LightGray, fontSize = 12.sp)
-                            Text("${(downloadProgress * 100).toInt()}%", color = EdgeCyan, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text(stringResource(R.string.update_downloading), color = Color.LightGray, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                            Text(stringResource(R.string.update_progress, (downloadProgress * 100).toInt()), color = EdgeCyan, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
@@ -295,7 +298,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = EdgeGreen, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("다운로드 완료! 설치 창을 열었습니다.", color = Color.White, fontSize = 12.sp)
+                            Text(stringResource(R.string.update_downloaded), color = Color.White, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Button(
@@ -306,7 +309,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("설치 화면 다시 열기", color = Color.Black, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.update_reopen_installer), color = Color.Black, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -314,7 +317,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                 is UpdateUIState.Error -> {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "오류: ${state.message}",
+                            text = stringResource(R.string.update_error, state.message),
                             color = Color(0xFFFF5252),
                             fontSize = 12.sp
                         )
@@ -327,7 +330,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("다시 시도", color = Color.White)
+                            Text(stringResource(R.string.update_retry), color = Color.White)
                         }
                     }
                 }

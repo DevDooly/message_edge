@@ -13,9 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.*
 @Composable
 internal fun PermissionStatusCard(
@@ -49,7 +51,7 @@ internal fun PermissionStatusCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(1f).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = if (allGranted) Icons.Default.VerifiedUser else Icons.Default.Security,
                         contentDescription = null,
@@ -58,14 +60,14 @@ internal fun PermissionStatusCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = "필수 권한 설정",
+                                text = stringResource(R.string.settings_permissions_title),
+                                modifier = Modifier.fillMaxWidth(),
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 shape = RoundedCornerShape(6.dp),
                                 color = if (allGranted) EdgeGreen.copy(alpha = 0.18f) else (if (allRequiredGranted) EdgeCyan.copy(alpha = 0.18f) else Color(0x33FF5252).copy(alpha = 0.2f)),
@@ -75,11 +77,11 @@ internal fun PermissionStatusCard(
                                 )
                             ) {
                                 Text(
-                                    text = if (allGranted) "모두 허용됨" else (if (allRequiredGranted) "필수 허용됨" else "권한 필요"),
+                                    text = stringResource(if (allGranted) R.string.settings_permissions_all_granted else if (allRequiredGranted) R.string.settings_permissions_required_granted else R.string.settings_permissions_needed),
                                     color = if (allGranted) EdgeGreen else (if (allRequiredGranted) EdgeCyan else Color(0xFFFF5252)),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 2.dp)
                                 )
                             }
                         }
@@ -88,7 +90,7 @@ internal fun PermissionStatusCard(
 
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (isExpanded) "접기" else "펼치기",
+                    contentDescription = stringResource(if (isExpanded) R.string.settings_collapse else R.string.settings_expand),
                     tint = Color.Gray,
                     modifier = Modifier.size(22.dp)
                 )
@@ -99,24 +101,24 @@ internal fun PermissionStatusCard(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     PermissionItem(
-                        title = "다른 앱 위에 표시 권한",
-                        desc = "엣지 핸들 및 알림 패널 오버레이 표시",
+                        title = stringResource(R.string.settings_overlay_permission_title),
+                        desc = stringResource(R.string.settings_overlay_permission_description),
                         isGranted = hasOverlay,
                         onClick = onGrantOverlay
                     )
                     HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
 
                     PermissionItem(
-                        title = "알림 접근 권한",
-                        desc = "수신되는 앱 알림 감지 및 패널에 표시",
+                        title = stringResource(R.string.settings_notification_permission_title),
+                        desc = stringResource(R.string.settings_notification_permission_description),
                         isGranted = hasNotification,
                         onClick = onGrantNotification
                     )
                     HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
 
                     PermissionItem(
-                        title = "배터리 최적화 예외 (선택)",
-                        desc = "백그라운드에서 상시 안정적 실행 유지",
+                        title = stringResource(R.string.settings_battery_permission_title),
+                        desc = stringResource(R.string.settings_battery_permission_description),
                         isGranted = hasBatteryOpt,
                         onClick = onGrantBattery
                     )
@@ -141,7 +143,7 @@ private fun PermissionItem(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
             Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Text(desc, color = Color.Gray, fontSize = 11.sp)
         }
@@ -149,12 +151,12 @@ private fun PermissionItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "허용됨",
+                    contentDescription = null,
                     tint = EdgeGreen,
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("허용됨", color = EdgeGreen, fontSize = 12.sp)
+                Text(stringResource(R.string.settings_permission_granted), color = EdgeGreen, fontSize = 12.sp)
             }
         } else {
             Button(
@@ -162,9 +164,9 @@ private fun PermissionItem(
                 colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.height(32.dp)
+                modifier = Modifier.heightIn(min = 32.dp)
             ) {
-                Text("권한 허용", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.settings_permission_grant), color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

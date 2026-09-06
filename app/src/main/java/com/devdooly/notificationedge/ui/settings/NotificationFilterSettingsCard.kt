@@ -19,12 +19,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.*
 
 /**
@@ -90,20 +92,20 @@ internal fun NotificationFilterSettingsCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "알림 필터링 & 제외 관리",
+                        text = stringResource(R.string.settings_filter_title),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
                     Text(
-                        text = if (isExpanded) "알림 수신된 앱별 제외 및 특정 키워드 차단" else "수신 앱 ${discoveredAppList.size}개 · 차단 키워드 ${blockedKeywords.size}개",
+                        text = if (isExpanded) stringResource(R.string.settings_filter_description) else stringResource(R.string.settings_filter_summary, discoveredAppList.size, blockedKeywords.size),
                         color = if (isExpanded) Color.Gray else EdgeCyan,
                         fontSize = 12.sp
                     )
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (isExpanded) "접기" else "펼치기",
+                    contentDescription = stringResource(if (isExpanded) R.string.settings_collapse else R.string.settings_expand),
                     tint = Color.Gray,
                     modifier = Modifier.size(22.dp)
                 )
@@ -122,18 +124,19 @@ internal fun NotificationFilterSettingsCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "수신 기록된 앱 (${discoveredAppList.size}개)",
+                            text = stringResource(R.string.settings_received_apps, discoveredAppList.size),
                             color = EdgeCyan,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp
+                            fontSize = 13.sp,
+                            modifier = Modifier.weight(1f).padding(end = 8.dp)
                         )
                         if (discoveredAppList.isNotEmpty()) {
                             TextButton(
                                 onClick = onClearDiscoveredPackages,
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                                modifier = Modifier.height(28.dp)
+                                modifier = Modifier.heightIn(min = 28.dp)
                             ) {
-                                Text("기록 비우기", color = Color.Gray, fontSize = 11.sp)
+                                Text(stringResource(R.string.settings_clear_history), color = Color.Gray, fontSize = 11.sp)
                             }
                         }
                     }
@@ -147,7 +150,7 @@ internal fun NotificationFilterSettingsCard(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
-                                text = "아직 수신된 알림이 없습니다. 새로운 알림이 도착하면 여기에 해당 앱이 자동으로 등록되어 간편하게 알림을 끄거나 켤 수 있습니다.",
+                                text = stringResource(R.string.settings_received_apps_empty),
                                 color = Color.Gray,
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp,
@@ -220,7 +223,7 @@ internal fun NotificationFilterSettingsCard(
 
                                         Row(verticalAlignment = Alignment.CenterVertically) {
                                             Text(
-                                                text = if (isExcluded) "알림 제외됨" else "알림 수신",
+                                                text = stringResource(if (isExcluded) R.string.settings_app_excluded else R.string.settings_app_receiving),
                                                 color = if (isExcluded) Color(0xFFFF6B6B) else EdgeCyan,
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Medium
@@ -254,14 +257,14 @@ internal fun NotificationFilterSettingsCard(
                     // 2. 특정 키워드 차단 관리 섹션
                     // ==========================================
                     Text(
-                        text = "차단 키워드 (${blockedKeywords.size}개)",
+                        text = stringResource(R.string.settings_blocked_keywords, blockedKeywords.size),
                         color = EdgeCyan,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "제목, 본문, 메시지에 포함 시 알림을 표시하지 않습니다.",
+                        text = stringResource(R.string.settings_blocked_keywords_description),
                         color = Color.Gray,
                         fontSize = 11.sp
                     )
@@ -276,7 +279,7 @@ internal fun NotificationFilterSettingsCard(
                         OutlinedTextField(
                             value = newKeywordText,
                             onValueChange = { newKeywordText = it },
-                            placeholder = { Text("차단할 키워드 (예: 광고, 특가, 스팸)", color = Color.Gray, fontSize = 12.sp) },
+                            placeholder = { Text(stringResource(R.string.settings_keyword_placeholder), color = Color.Gray, fontSize = 12.sp) },
                             modifier = Modifier.weight(1f),
                             textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
                             singleLine = true,
@@ -312,7 +315,7 @@ internal fun NotificationFilterSettingsCard(
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp)
                         ) {
-                            Text("추가", color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text(stringResource(R.string.settings_add), color = Color.Black, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
                     }
 
@@ -321,7 +324,7 @@ internal fun NotificationFilterSettingsCard(
                     // 등록된 키워드 태그(Chip) 목록
                     if (blockedKeywords.isEmpty()) {
                         Text(
-                            text = "등록된 차단 키워드가 없습니다.",
+                            text = stringResource(R.string.settings_blocked_keywords_empty),
                             color = Color.DarkGray,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(vertical = 4.dp)
@@ -355,7 +358,7 @@ internal fun NotificationFilterSettingsCard(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Close,
-                                                contentDescription = "삭제",
+                                                contentDescription = stringResource(R.string.settings_remove_keyword, keyword),
                                                 tint = EdgeCyan,
                                                 modifier = Modifier.size(12.dp)
                                             )

@@ -281,7 +281,8 @@ fun EdgePanelContent(
                     .align(Alignment.BottomCenter)
                     .imePadding()
                     .navigationBarsPadding(),
-                targetName = activeNotification.title.ifBlank { activeNotification.appName },
+                targetName = notificationLabelText(activeNotification.titleLabel, activeNotification.title)
+                    .ifBlank { activeNotification.appName },
                 replyText = panelState.replyText,
                 focusRequester = replyFocusRequester,
                 onTextChange = panelState::updateReplyText,

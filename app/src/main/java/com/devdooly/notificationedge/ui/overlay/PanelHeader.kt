@@ -11,9 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
 
 @Composable
@@ -32,7 +34,7 @@ internal fun PanelHeader(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "알림 엣지",
+                text = stringResource(R.string.panel_title),
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 fontSize = 17.sp
@@ -45,7 +47,7 @@ internal fun PanelHeader(
                     border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan)
                 ) {
                     Text(
-                        text = "$notificationCount",
+                        text = stringResource(R.string.panel_count, notificationCount),
                         color = EdgeCyan,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
@@ -63,7 +65,7 @@ internal fun PanelHeader(
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "설정",
+                    contentDescription = stringResource(R.string.panel_settings),
                     tint = Color.LightGray,
                     modifier = Modifier.size(18.dp)
                 )
@@ -77,7 +79,7 @@ internal fun PanelHeader(
                 ) {
                     Icon(
                         imageVector = Icons.Default.ClearAll,
-                        contentDescription = "모두 지우기",
+                        contentDescription = stringResource(R.string.panel_clear_all),
                         tint = Color.LightGray,
                         modifier = Modifier.size(20.dp)
                     )
@@ -92,7 +94,7 @@ internal fun PanelHeader(
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "닫기",
+                    contentDescription = stringResource(R.string.panel_close),
                     tint = Color.LightGray,
                     modifier = Modifier.size(20.dp)
                 )

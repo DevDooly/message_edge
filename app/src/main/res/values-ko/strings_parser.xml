@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="parser_unknown_sender">상대방</string>
+    <string name="parser_group_chat">그룹 채팅방</string>
+    <plurals name="parser_sender_summary">
+        <item quantity="other">%1$s 외 %2$d명</item>
+    </plurals>
+</resources>

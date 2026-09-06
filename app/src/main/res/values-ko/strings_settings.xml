@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_edge_handle_title">화면 가장자리 엣지 핸들</string>
+    <string name="settings_edge_handle_enabled">화면 가장자리 스와이프로 패널 열기 활성화</string>
+    <string name="settings_edge_handle_disabled">핸들 비활성화됨 (엣지 라이팅은 독립 작동)</string>
+    <string name="settings_good_lock_title">삼성 Good Lock (제스처) 연동</string>
+    <string name="settings_direct_launch_title">앱 실행 시 알림 엣지 바로 열기</string>
+    <string name="settings_direct_launch_description">Good Lock 제스처나 앱 실행 시 설정창 대신 알림 패널만 즉시 엽니다</string>
+    <string name="settings_external_control_title">Tasker 외부 브로드캐스트 허용</string>
+    <string name="settings_external_control_description">다른 앱의 패널 열기·닫기 명령을 허용합니다. 필요할 때만 켜세요.</string>
+    <string name="settings_test_open_panel">알림 엣지 즉시 열기 테스트</string>
+    <string name="settings_version_details">버전 %1$s (Build %2$d) | Target SDK %3$d</string>
+    <string name="settings_package_details">패키지: %1$s</string>
+    <string name="settings_debug_title">알림 진단 데이터 인스펙터</string>
+    <string name="settings_debug_enabled_description">진단 모드가 켜져 있습니다. 개인정보가 마스킹된 데이터만 보관하며 12시간 뒤 자동으로 꺼집니다.</string>
+    <string name="settings_debug_disabled_description">알림 구조에는 개인정보가 포함될 수 있습니다. 메신저 파서 문제를 분석할 때만 잠시 켜세요.</string>
+    <string name="settings_debug_clipboard_all">전체 알림 진단 데이터</string>
+    <string name="settings_debug_clipboard_single">알림 진단 데이터</string>
+    <plurals name="settings_debug_copied_count">
+        <item quantity="other">최근 %1$d개 알림 진단 데이터가 복사되었습니다.</item>
+    </plurals>
+    <string name="settings_debug_copied_title">\'%1$s\' 알림 진단 데이터가 복사되었습니다.</string>
+    <string name="settings_debug_empty">(아직 수신된 알림이 없습니다. 카카오톡 메시지를 받으신 후 확인해주세요)</string>
+    <string name="settings_copy_all">전체 복사</string>
+    <string name="settings_copy">복사</string>
+    <string name="settings_permissions_title">필수 권한 설정</string>
+    <string name="settings_permissions_all_granted">모두 허용됨</string>
+    <string name="settings_permissions_required_granted">필수 허용됨</string>
+    <string name="settings_permissions_needed">권한 필요</string>
+    <string name="settings_collapse">접기</string>
+    <string name="settings_expand">펼치기</string>
+    <string name="settings_overlay_permission_title">다른 앱 위에 표시 권한</string>
+    <string name="settings_overlay_permission_description">엣지 핸들 및 알림 패널 오버레이 표시</string>
+    <string name="settings_notification_permission_title">알림 접근 권한</string>
+    <string name="settings_notification_permission_description">수신되는 앱 알림 감지 및 패널에 표시</string>
+    <string name="settings_battery_permission_title">배터리 최적화 예외 (선택)</string>
+    <string name="settings_battery_permission_description">백그라운드에서 상시 안정적 실행 유지</string>
+    <string name="settings_permission_granted">허용됨</string>
+    <string name="settings_permission_grant">권한 허용</string>
+    <string name="settings_filter_title">알림 필터링 &amp; 제외 관리</string>
+    <string name="settings_filter_description">알림 수신된 앱별 제외 및 특정 키워드 차단</string>
+    <string name="settings_filter_summary">수신 앱 %1$d개 · 차단 키워드 %2$d개</string>
+    <string name="settings_received_apps">수신 기록된 앱 (%1$d개)</string>
+    <string name="settings_clear_history">기록 비우기</string>
+    <string name="settings_received_apps_empty">아직 수신된 알림이 없습니다. 새로운 알림이 도착하면 여기에 해당 앱이 자동으로 등록되어 간편하게 알림을 끄거나 켤 수 있습니다.</string>
+    <string name="settings_app_excluded">알림 제외됨</string>
+    <string name="settings_app_receiving">알림 수신</string>
+    <string name="settings_blocked_keywords">차단 키워드 (%1$d개)</string>
+    <string name="settings_blocked_keywords_description">제목, 본문, 메시지에 포함 시 알림을 표시하지 않습니다.</string>
+    <string name="settings_keyword_placeholder">차단할 키워드 (예: 광고, 특가, 스팸)</string>
+    <string name="settings_add">추가</string>
+    <string name="settings_blocked_keywords_empty">등록된 차단 키워드가 없습니다.</string>
+    <string name="settings_remove_keyword">차단 키워드 삭제: %1$s</string>
+</resources>

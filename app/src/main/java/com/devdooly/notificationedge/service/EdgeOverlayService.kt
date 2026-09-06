@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color as AndroidColor
 import android.graphics.PixelFormat
 import android.graphics.drawable.GradientDrawable
@@ -90,6 +91,12 @@ class EdgeOverlayService : Service() {
         return START_STICKY
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // 실행 중 언어 변경에도 알림과 기존 채널의 표시 이름을 갱신한다.
+        startForegroundNotification()
+    }
+
     private fun startForegroundNotification() {
         val channelId = "notification_edge_service_channel"
         val channelName = getString(R.string.overlay_service_channel_name)
@@ -100,7 +107,7 @@ class EdgeOverlayService : Service() {
                 channelName,
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "알림 엣지 서비스 백그라운드 실행"
+                description = getString(R.string.overlay_service_channel_description)
                 setShowBadge(false)
             }
             val manager = getSystemService(NotificationManager::class.java)

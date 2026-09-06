@@ -48,15 +48,17 @@ internal fun MasterSwitchCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
                 Text(
-                    text = "화면 가장자리 엣지 핸들",
+                    text = stringResource(R.string.settings_edge_handle_title),
+                    modifier = Modifier.fillMaxWidth(),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 17.sp
                 )
                 Text(
-                    text = if (enabled) "화면 가장자리 스와이프로 패널 열기 활성화" else "핸들 비활성화됨 (엣지 라이팅은 독립 작동)",
+                    text = stringResource(if (enabled) R.string.settings_edge_handle_enabled else R.string.settings_edge_handle_disabled),
+                    modifier = Modifier.fillMaxWidth(),
                     color = if (enabled) EdgeCyan else Color.Gray,
                     fontSize = 13.sp
                 )
@@ -96,7 +98,7 @@ internal fun GoodLockIntegrationCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "삼성 Good Lock (제스처) 연동",
+                    text = stringResource(R.string.settings_good_lock_title),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
@@ -122,8 +124,8 @@ internal fun GoodLockIntegrationCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("앱 실행 시 알림 엣지 바로 열기", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("Good Lock 제스처나 앱 실행 시 설정창 대신 알림 패널만 즉시 엽니다", color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.settings_direct_launch_title), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.settings_direct_launch_description), color = Color.Gray, fontSize = 11.sp)
                 }
                 Switch(
                     checked = launchDirectToPanel,
@@ -143,8 +145,8 @@ internal fun GoodLockIntegrationCard(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Tasker 외부 브로드캐스트 허용", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text("다른 앱의 패널 열기·닫기 명령을 허용합니다. 필요할 때만 켜세요.", color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.settings_external_control_title), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.settings_external_control_description), color = Color.Gray, fontSize = 11.sp)
                 }
                 Switch(
                     checked = externalControlEnabled,
@@ -162,7 +164,7 @@ internal fun GoodLockIntegrationCard(
             ) {
                 Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null, tint = Color.Black)
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("알림 엣지 즉시 열기 테스트", color = Color.Black, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.settings_test_open_panel), color = Color.Black, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -196,14 +198,14 @@ internal fun AppInfoCard() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "버전 ${BuildConfig.VERSION_NAME} (Build ${BuildConfig.VERSION_CODE}) | Target SDK ${context.applicationInfo.targetSdkVersion}",
+                text = stringResource(R.string.settings_version_details, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, context.applicationInfo.targetSdkVersion),
                 color = EdgeCyan,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "패키지: com.devdooly.notificationedge",
+                text = stringResource(R.string.settings_package_details, "com.devdooly.notificationedge"),
                 color = Color.Gray,
                 fontSize = 11.sp
             )
@@ -233,7 +235,7 @@ internal fun NotificationDebugDumpCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(1f).padding(end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
@@ -242,7 +244,7 @@ internal fun NotificationDebugDumpCard(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "알림 진단 데이터 인스펙터",
+                        text = stringResource(R.string.settings_debug_title),
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
@@ -258,11 +260,7 @@ internal fun NotificationDebugDumpCard(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = if (enabled) {
-                    "진단 모드가 켜져 있습니다. 개인정보가 마스킹된 데이터만 보관하며 12시간 뒤 자동으로 꺼집니다."
-                } else {
-                    "알림 구조에는 개인정보가 포함될 수 있습니다. 메신저 파서 문제를 분석할 때만 잠시 켜세요."
-                },
+                text = stringResource(if (enabled) R.string.settings_debug_enabled_description else R.string.settings_debug_disabled_description),
                 color = if (enabled) Color(0xFFFFCC80) else Color.Gray,
                 fontSize = 12.sp,
                 lineHeight = 16.sp
@@ -278,17 +276,17 @@ internal fun NotificationDebugDumpCard(
                             }
                             com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
                                 context,
-                                "All Notification Dumps",
+                                context.getString(R.string.settings_debug_clipboard_all),
                                 allDumps
                             )
-                            android.widget.Toast.makeText(context, "최근 ${dumpableList.size}개 알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_LONG).show()
+                            android.widget.Toast.makeText(context, context.resources.getQuantityString(R.plurals.settings_debug_copied_count, dumpableList.size, dumpableList.size), android.widget.Toast.LENGTH_LONG).show()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = EdgeCyan),
                         shape = RoundedCornerShape(8.dp),
                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
-                        modifier = Modifier.height(30.dp)
+                        modifier = Modifier.heightIn(min = 30.dp)
                     ) {
-                        Text("전체 복사", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.settings_copy_all), color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -296,7 +294,7 @@ internal fun NotificationDebugDumpCard(
             if (enabled && dumpableList.isEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "(아직 수신된 알림이 없습니다. 카카오톡 메시지를 받으신 후 확인해주세요)",
+                    text = stringResource(R.string.settings_debug_empty),
                     color = Color.DarkGray,
                     fontSize = 11.sp
                 )
@@ -322,23 +320,25 @@ internal fun NotificationDebugDumpCard(
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f).padding(end = 8.dp)
                                 )
                                 Button(
                                     onClick = {
                                         com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
                                             context,
-                                            "Notification Debug Dump",
+                                            context.getString(R.string.settings_debug_clipboard_single),
                                             notif.debugExtrasDump.orEmpty()
                                         )
-                                        android.widget.Toast.makeText(context, "'${notif.title}' 알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                                        android.widget.Toast.makeText(context, context.getString(R.string.settings_debug_copied_title, notif.title), android.widget.Toast.LENGTH_SHORT).show()
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
                                     shape = RoundedCornerShape(6.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                                    modifier = Modifier.height(26.dp)
+                                    modifier = Modifier.heightIn(min = 26.dp)
                                 ) {
-                                    Text("복사", color = EdgeCyan, fontSize = 11.sp)
+                                    Text(stringResource(R.string.settings_copy), color = EdgeCyan, fontSize = 11.sp)
                                 }
                             }
                             Spacer(modifier = Modifier.height(4.dp))

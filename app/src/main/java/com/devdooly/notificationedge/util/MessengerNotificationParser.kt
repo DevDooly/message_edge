@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import com.devdooly.notificationedge.data.model.MessageItem
+import com.devdooly.notificationedge.data.model.NotificationLabel
 
 /**
  * 카카오톡, 라인, 텔레그램, 기본 메시지 등 메신저별 알림 데이터 구조 파서
@@ -15,7 +16,10 @@ data class ParsedNotificationData(
     val isGroupChat: Boolean,      // 단체방 여부
     val currentSender: String,     // 현재 메시지를 보낸 사람
     val cleanText: String,         // 정제된 메시지 본문
-    val messages: List<MessageItem>// 대화 목록
+    val messages: List<MessageItem>,// 대화 목록
+    val roomTitleLabel: NotificationLabel? = null,
+    val groupRoomNameLabel: NotificationLabel? = null,
+    val currentSenderLabel: NotificationLabel? = null
 )
 
 object MessengerNotificationParser {
@@ -163,6 +167,8 @@ object MessengerNotificationParser {
         var groupName: String? = null
         var senderName: String = rawTitle
         var messageBody: String = rawText
+        var groupLabel: NotificationLabel? = null
+        var senderLabel: NotificationLabel? = null
 
         // 0) ShortcutLabel (안드로이드 One UI / LauncherApps에 등록된 실제 채팅방 이름, 예: "11단톡")
         if (!shortcutLabel.isNullOrBlank() && !isInvalidChannelName(shortcutLabel) && shortcutLabel != rawTitle) {
@@ -173,6 +179,9 @@ object MessengerNotificationParser {
         else if (!conversationTitle.isNullOrBlank()) {
             groupName = conversationTitle
             senderName = if (rawTitle.isNotBlank() && rawTitle != conversationTitle) rawTitle else "상대방"
+            if (rawTitle.isBlank() || rawTitle == conversationTitle) {
+                senderLabel = NotificationLabel.UnknownSender
+            }
         }
         // B) subText가 존재하는 경우 -> 카카오톡은 명명된 단체방일 때 subText에 방 이름을 넣음
         else if (!subText.isNullOrBlank() && subText != rawTitle) {
@@ -264,7 +273,9 @@ object MessengerNotificationParser {
         }
 
         // MessagingStyle 메시지 리스트 추출 (본인 메시지 isFromUser = true 태깅)
-        val messagesList = extractMessagingStyleMessages(extras, groupName ?: rawTitle, senderName, postTime, selfDisplayName)
+        val messagesList = extractMessagingStyleMessages(
+            extras, groupName ?: rawTitle, senderName, postTime, selfDisplayName, senderLabel
+        )
 
         // 본인(나)을 제외한 상대방 고유 발신자 목록 추출 (참여자 목록)
         val otherSenders = messagesList.filter { !it.isFromUser && it.sender != "나" && (selfDisplayName.isBlank() || !it.sender.equals(selfDisplayName, ignoreCase = true)) }
@@ -287,10 +298,14 @@ object MessengerNotificationParser {
         // 명시적 단체방 이름이 없을 때 참여자 목록으로 방 이름 자동 합성
         if (groupName == null && isGroup) {
             groupName = if (otherSenders.isNotEmpty()) {
-                buildGroupRoomTitleFromSenders(otherSenders, rawTitle)
+                buildGroupRoomTitleFromSenders(otherSenders, rawTitle).let { (title, label) ->
+                    groupLabel = label
+                    title
+                }
             } else if (rawTitle.isNotBlank()) {
                 rawTitle
             } else {
+                groupLabel = NotificationLabel.GroupChat
                 "그룹 채팅방"
             }
         }
@@ -307,6 +322,12 @@ object MessengerNotificationParser {
         } else {
             finalRoomTitle
         }
+        val cleanSenderLabel = when {
+            latestMsg != null && latestMsg.sender.isNotBlank() -> latestMsg.senderLabel
+            senderName.isNotBlank() -> senderLabel
+            isGroup -> NotificationLabel.UnknownSender
+            else -> groupLabel
+        }
 
         // 메시지 본문 정제
         val cleanedText = NotificationTextCleaner.cleanMessageText(
@@ -321,7 +342,8 @@ object MessengerNotificationParser {
                     sender = cleanSender,
                     text = cleanedText,
                     timestamp = postTime,
-                    isFromUser = false
+                    isFromUser = false,
+                    senderLabel = cleanSenderLabel
                 )
             )
         }
@@ -332,7 +354,10 @@ object MessengerNotificationParser {
             isGroupChat = isGroup,
             currentSender = cleanSender,
             cleanText = cleanedText,
-            messages = messagesList
+            messages = messagesList,
+            roomTitleLabel = groupLabel,
+            groupRoomNameLabel = groupLabel,
+            currentSenderLabel = cleanSenderLabel
         )
     }
 
@@ -394,13 +419,17 @@ object MessengerNotificationParser {
         }
 
         var groupName: String? = null
+        var groupLabel: NotificationLabel? = null
         if (isGroup) {
             groupName = when {
                 !shortcutLabel.isNullOrBlank() && !isInvalidChannelName(shortcutLabel) && shortcutLabel != rawTitle -> shortcutLabel
                 !conversationTitle.isNullOrBlank() -> conversationTitle
                 !subText.isNullOrBlank() && subText != rawTitle -> subText
                 !isInvalidChannelName(channelName) && channelName != rawTitle -> channelName
-                otherSenders.isNotEmpty() -> buildGroupRoomTitleFromSenders(otherSenders, rawTitle)
+                otherSenders.isNotEmpty() -> buildGroupRoomTitleFromSenders(otherSenders, rawTitle).let { (title, label) ->
+                    groupLabel = label
+                    title
+                }
                 else -> null
             }
         }
@@ -408,6 +437,7 @@ object MessengerNotificationParser {
         val finalRoomTitle: String = (groupName ?: parsedRoomTitle).ifBlank { rawTitle }
         val latestMsg = messagesList.lastOrNull { !it.isFromUser } ?: messagesList.lastOrNull()
         val cleanSender: String = latestMsg?.sender?.ifBlank { finalRoomTitle } ?: finalRoomTitle
+        val cleanSenderLabel = if (latestMsg?.sender?.isNotBlank() == true) latestMsg.senderLabel else groupLabel
 
         val cleanedText = NotificationTextCleaner.cleanMessageText(
             text = latestMsg?.text ?: rawText,
@@ -421,7 +451,8 @@ object MessengerNotificationParser {
                     sender = cleanSender,
                     text = cleanedText,
                     timestamp = postTime,
-                    isFromUser = false
+                    isFromUser = false,
+                    senderLabel = cleanSenderLabel
                 )
             )
         }
@@ -432,20 +463,28 @@ object MessengerNotificationParser {
             isGroupChat = isGroup,
             currentSender = cleanSender,
             cleanText = cleanedText,
-            messages = messagesList
+            messages = messagesList,
+            roomTitleLabel = groupLabel,
+            groupRoomNameLabel = groupLabel,
+            currentSenderLabel = cleanSenderLabel
         )
     }
 
     /**
      * 참여자 목록(Senders)을 기반으로 안드로이드 One UI / 카카오톡 시스템 알림 표준 방 제목 생성
      */
-    private fun buildGroupRoomTitleFromSenders(senders: List<String>, fallbackTitle: String): String {
+    private fun buildGroupRoomTitleFromSenders(
+        senders: List<String>,
+        fallbackTitle: String
+    ): Pair<String, NotificationLabel?> {
         return when {
-            senders.isEmpty() -> fallbackTitle.ifBlank { "그룹 채팅방" }
-            senders.size == 1 -> senders[0]
-            senders.size == 2 -> "${senders[0]}, ${senders[1]}"
-            senders.size == 3 -> "${senders[0]}, ${senders[1]}, ${senders[2]}"
-            else -> "${senders[0]}, ${senders[1]}, ${senders[2]} 외 ${senders.size - 3}명"
+            senders.isEmpty() -> fallbackTitle.ifBlank { "그룹 채팅방" } to
+                if (fallbackTitle.isBlank()) NotificationLabel.GroupChat else null
+            senders.size == 1 -> senders[0] to null
+            senders.size == 2 -> "${senders[0]}, ${senders[1]}" to null
+            senders.size == 3 -> "${senders[0]}, ${senders[1]}, ${senders[2]}" to null
+            else -> "${senders[0]}, ${senders[1]}, ${senders[2]} 외 ${senders.size - 3}명" to
+                NotificationLabel.SenderSummary(senders.take(3), senders.size - 3)
         }
     }
 
@@ -454,7 +493,8 @@ object MessengerNotificationParser {
         roomTitle: String,
         defaultSender: String,
         postTime: Long,
-        selfDisplayName: String
+        selfDisplayName: String,
+        defaultSenderLabel: NotificationLabel? = null
     ): MutableList<MessageItem> {
         val list = mutableListOf<MessageItem>()
         @Suppress("DEPRECATION")
@@ -504,7 +544,8 @@ object MessengerNotificationParser {
                                 sender = finalSender,
                                 text = cleanedMsgText,
                                 timestamp = msgTime,
-                                isFromUser = isFromUser
+                                isFromUser = isFromUser,
+                                senderLabel = if (!isFromUser && msgSender.isNullOrBlank()) defaultSenderLabel else null
                             )
                         )
                     }

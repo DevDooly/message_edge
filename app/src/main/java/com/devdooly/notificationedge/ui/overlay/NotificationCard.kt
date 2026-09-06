@@ -1,5 +1,8 @@
 package com.devdooly.notificationedge.ui.overlay
 
+import android.content.Context
+import android.icu.text.RelativeDateTimeFormatter
+import android.text.format.DateFormat
 import android.text.format.DateUtils
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
@@ -21,15 +24,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.data.model.EdgeNotification
 import com.devdooly.notificationedge.ui.theme.DarkCardBackground
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
 import com.devdooly.notificationedge.ui.theme.GlassBorder
+import java.util.Locale
 
 @Composable
 internal fun NotificationCard(
@@ -39,18 +47,16 @@ internal fun NotificationCard(
     onDismiss: () -> Unit,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
+    val is24Hour = DateFormat.is24HourFormat(context)
     val replyAction = remember(notification.actions) {
         notification.actions.firstOrNull { it.isReply }
     }
     var isExpandedMessages by remember { mutableStateOf(false) }
 
-    val timeString = remember(notification.timestamp) {
-        DateUtils.getRelativeTimeSpanString(
-            notification.timestamp,
-            System.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE
-        ).toString()
+    val timeString = remember(notification.timestamp, locale) {
+        formatPanelRelativeTime(context, notification.timestamp)
     }
 
     Card(
@@ -116,7 +122,7 @@ internal fun NotificationCard(
                     if (!sub.isNullOrBlank() && sub != notification.title && sub != notification.appName) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "› $sub",
+                            text = "› ${notificationLabelText(notification.subTextLabel, sub)}",
                             color = Color(0xFFAAAAAA),
                             fontSize = 11.sp,
                             maxLines = 1,
@@ -139,7 +145,7 @@ internal fun NotificationCard(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "삭제",
+                        contentDescription = stringResource(R.string.panel_dismiss),
                         tint = Color.Gray,
                         modifier = Modifier.size(14.dp)
                     )
@@ -160,7 +166,7 @@ internal fun NotificationCard(
                             border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.6f))
                         ) {
                             Text(
-                                text = "단체방",
+                                text = stringResource(R.string.panel_group_chat),
                                 color = EdgeCyan,
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
@@ -170,7 +176,7 @@ internal fun NotificationCard(
                         Spacer(modifier = Modifier.width(5.dp))
                     }
                     Text(
-                        text = notification.title,
+                        text = notificationLabelText(notification.titleLabel, notification.title),
                         color = Color.White,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -211,13 +217,26 @@ internal fun NotificationCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = if (isExpandedMessages) "▲ 최근 대화만 접기" else "▼ 이전 대화 ${notification.messages.size - 3}개 더보기",
+                                text = if (isExpandedMessages) {
+                                    stringResource(R.string.panel_collapse_messages)
+                                } else {
+                                    pluralStringResource(
+                                        R.plurals.panel_older_messages,
+                                        notification.messages.size - 3,
+                                        notification.messages.size - 3
+                                    )
+                                },
                                 color = EdgeCyan,
                                 fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
                             )
                             Text(
-                                text = "총 ${notification.messages.size}개",
+                                text = pluralStringResource(
+                                    R.plurals.panel_message_total,
+                                    notification.messages.size,
+                                    notification.messages.size
+                                ),
                                 color = Color.Gray,
                                 fontSize = 10.sp
                             )
@@ -252,8 +271,12 @@ internal fun NotificationCard(
                             horizontalArrangement = if (isMine) Arrangement.End else Arrangement.Start,
                             verticalAlignment = Alignment.Bottom
                         ) {
-                            val msgTime = remember(msg.timestamp, notification.timestamp) {
-                                formatMessageTime(if (msg.timestamp > 0) msg.timestamp else notification.timestamp)
+                            val msgTime = remember(msg.timestamp, notification.timestamp, locale, is24Hour) {
+                                formatMessageTime(
+                                    if (msg.timestamp > 0) msg.timestamp else notification.timestamp,
+                                    locale,
+                                    is24Hour
+                                )
                             }
 
                             if (!isMine) {
@@ -263,7 +286,7 @@ internal fun NotificationCard(
                                 ) {
                                     if (shouldShowSenderLabel) {
                                         Text(
-                                            text = "${msg.sender}: ",
+                                            text = "${notificationLabelText(msg.senderLabel, msg.sender)}: ",
                                             color = EdgeCyan,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.SemiBold
@@ -305,7 +328,7 @@ internal fun NotificationCard(
                                 ) {
                                     Row(modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)) {
                                         Text(
-                                            text = "나: ",
+                                            text = stringResource(R.string.panel_me_prefix),
                                             color = EdgeCyan,
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold
@@ -334,8 +357,8 @@ internal fun NotificationCard(
                             notification.title
                         )
                     }
-                    val notifTime = remember(notification.timestamp) {
-                        formatMessageTime(notification.timestamp)
+                    val notifTime = remember(notification.timestamp, locale, is24Hour) {
+                        formatMessageTime(notification.timestamp, locale, is24Hour)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -365,7 +388,6 @@ internal fun NotificationCard(
             }
 
             // 하단 액션 버튼 영역 (빠른 답장 + 디버그 데이터 복사)
-            val context = androidx.compose.ui.platform.LocalContext.current
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -384,13 +406,13 @@ internal fun NotificationCard(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.Reply,
-                            contentDescription = "답장",
+                            contentDescription = stringResource(R.string.panel_reply),
                             tint = if (isReplyActive) Color.Black else EdgeCyan,
                             modifier = Modifier.size(13.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = if (isReplyActive) "답장 작성 중..." else "답장",
+                            text = stringResource(if (isReplyActive) R.string.panel_reply_active else R.string.panel_reply),
                             color = if (isReplyActive) Color.Black else EdgeCyan,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
@@ -409,23 +431,23 @@ internal fun NotificationCard(
                             .clickable {
                                 com.devdooly.notificationedge.util.SecureClipboard.copySensitive(
                                     context,
-                                    "Notification Debug Dump",
+                                    context.getString(R.string.panel_diagnostics_clipboard_label),
                                     notification.debugExtrasDump.orEmpty()
                                 )
-                                android.widget.Toast.makeText(context, "알림 진단 데이터가 복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(context, R.string.panel_diagnostics_copied, android.widget.Toast.LENGTH_SHORT).show()
                             }
                             .padding(horizontal = 7.dp, vertical = 3.5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
                             imageVector = Icons.Default.Info,
-                            contentDescription = "데이터 복사",
+                            contentDescription = stringResource(R.string.panel_copy_data),
                             tint = Color.Gray,
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "데이터 복사",
+                            text = stringResource(R.string.panel_copy_data),
                             color = Color.LightGray,
                             fontSize = 10.sp
                         )
@@ -455,7 +477,7 @@ internal fun EmptyNotificationView(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "수신된 알림이 없습니다",
+                text = stringResource(R.string.panel_empty_notifications),
                 color = Color.Gray,
                 fontSize = 14.sp
             )
@@ -472,28 +494,52 @@ internal fun EmptyNotificationView(
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("설정 열기", color = Color.White, fontSize = 12.sp)
+                Text(stringResource(R.string.panel_open_settings), color = Color.White, fontSize = 12.sp)
             }
         }
     }
 }
 
 /**
- * 메시지 수신 시각을 깔끔한 한국어 12시간제('오후 3:24' 또는 'M/d a h:mm')로 포맷팅
+ * 리소스 언어 및 기기의 12/24시간 설정에 맞춰 수신 시각을 표시한다.
  */
-private fun formatMessageTime(timestamp: Long): String {
+internal fun formatMessageTime(
+    timestamp: Long,
+    locale: Locale,
+    is24Hour: Boolean,
+    now: Long = System.currentTimeMillis()
+): String {
     if (timestamp <= 0) return ""
-    val now = System.currentTimeMillis()
-
     val calNow = java.util.Calendar.getInstance().apply { timeInMillis = now }
     val calMsg = java.util.Calendar.getInstance().apply { timeInMillis = timestamp }
 
     val isToday = calNow.get(java.util.Calendar.YEAR) == calMsg.get(java.util.Calendar.YEAR) &&
             calNow.get(java.util.Calendar.DAY_OF_YEAR) == calMsg.get(java.util.Calendar.DAY_OF_YEAR)
 
-    return if (isToday) {
-        java.text.SimpleDateFormat("a h:mm", java.util.Locale.KOREAN).format(java.util.Date(timestamp))
-    } else {
-        java.text.SimpleDateFormat("M/d a h:mm", java.util.Locale.KOREAN).format(java.util.Date(timestamp))
+    val skeleton = (if (isToday) "" else "Md") + if (is24Hour) "Hm" else "hm"
+    val pattern = DateFormat.getBestDateTimePattern(locale, skeleton)
+    return java.text.SimpleDateFormat(pattern, locale).format(java.util.Date(timestamp))
+}
+
+/** 앱 언어가 기기 기본 언어와 달라도 상대 시각에 같은 언어를 사용한다. */
+internal fun formatPanelRelativeTime(
+    context: Context,
+    timestamp: Long,
+    now: Long = System.currentTimeMillis()
+): String {
+    if (timestamp <= 0) return ""
+    val elapsed = kotlin.math.abs(now - timestamp)
+    if (elapsed < DateUtils.MINUTE_IN_MILLIS) return context.getString(R.string.panel_just_now)
+    val locale = context.resources.configuration.locales[0]
+    if (elapsed >= DateUtils.WEEK_IN_MILLIS) {
+        return java.text.DateFormat.getDateInstance(java.text.DateFormat.SHORT, locale)
+            .format(java.util.Date(timestamp))
     }
+    val (duration, unit) = when {
+        elapsed < DateUtils.HOUR_IN_MILLIS -> DateUtils.MINUTE_IN_MILLIS to RelativeDateTimeFormatter.RelativeUnit.MINUTES
+        elapsed < DateUtils.DAY_IN_MILLIS -> DateUtils.HOUR_IN_MILLIS to RelativeDateTimeFormatter.RelativeUnit.HOURS
+        else -> DateUtils.DAY_IN_MILLIS to RelativeDateTimeFormatter.RelativeUnit.DAYS
+    }
+    val direction = if (timestamp > now) RelativeDateTimeFormatter.Direction.NEXT else RelativeDateTimeFormatter.Direction.LAST
+    return RelativeDateTimeFormatter.getInstance(locale).format((elapsed / duration).toDouble(), direction, unit)
 }

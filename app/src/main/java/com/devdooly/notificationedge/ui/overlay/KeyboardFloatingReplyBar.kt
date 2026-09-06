@@ -20,12 +20,14 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.devdooly.notificationedge.R
 import com.devdooly.notificationedge.ui.theme.EdgeCyan
 
 @Composable
@@ -56,7 +58,7 @@ internal fun KeyboardFloatingReplyBar(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Reply,
                         contentDescription = null,
@@ -65,7 +67,7 @@ internal fun KeyboardFloatingReplyBar(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "답장: $targetName",
+                        text = stringResource(R.string.panel_reply_to, targetName),
                         color = EdgeCyan,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
@@ -79,7 +81,7 @@ internal fun KeyboardFloatingReplyBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "닫기",
+                        contentDescription = stringResource(R.string.panel_close),
                         tint = Color.Gray,
                         modifier = Modifier.size(16.dp)
                     )
@@ -102,7 +104,7 @@ internal fun KeyboardFloatingReplyBar(
                 ) {
                     if (replyText.isEmpty()) {
                         Text(
-                            text = "메시지를 입력하세요...",
+                            text = stringResource(R.string.panel_message_hint),
                             color = Color.Gray,
                             fontSize = 14.sp
                         )
@@ -142,13 +144,13 @@ internal fun KeyboardFloatingReplyBar(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "전송",
+                        contentDescription = stringResource(R.string.panel_send),
                         tint = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "전송",
+                        text = stringResource(R.string.panel_send),
                         color = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold

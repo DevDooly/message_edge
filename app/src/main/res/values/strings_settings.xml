@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_edge_handle_title">Screen edge handle</string>
+    <string name="settings_edge_handle_enabled">Swipe from the screen edge to open the panel</string>
+    <string name="settings_edge_handle_disabled">Handle disabled (edge lighting works independently)</string>
+    <string name="settings_good_lock_title">Samsung Good Lock gestures</string>
+    <string name="settings_direct_launch_title">Open the notification panel on launch</string>
+    <string name="settings_direct_launch_description">Open the panel instead of settings when launching the app or using a Good Lock gesture</string>
+    <string name="settings_external_control_title">Allow external commands from Tasker</string>
+    <string name="settings_external_control_description">Allow other apps to open or close the panel. Enable only when needed.</string>
+    <string name="settings_test_open_panel">Test: open notification panel</string>
+    <string name="settings_version_details">Version %1$s (Build %2$d) | Target SDK %3$d</string>
+    <string name="settings_package_details">Package: %1$s</string>
+    <string name="settings_debug_title">Notification diagnostic inspector</string>
+    <string name="settings_debug_enabled_description">Diagnostic mode is on. Stored data has personal information masked. This mode turns off automatically after 12 hours.</string>
+    <string name="settings_debug_disabled_description">Notification data may contain personal information. Enable briefly only to investigate message parsing issues.</string>
+    <string name="settings_debug_clipboard_all">All notification diagnostics</string>
+    <string name="settings_debug_clipboard_single">Notification diagnostics</string>
+    <plurals name="settings_debug_copied_count">
+        <item quantity="one">Diagnostics for %1$d recent notification copied.</item>
+        <item quantity="other">Diagnostics for %1$d recent notifications copied.</item>
+    </plurals>
+    <string name="settings_debug_copied_title">Diagnostics for “%1$s” copied.</string>
+    <string name="settings_debug_empty">No notifications received yet. Check again after receiving a KakaoTalk message.</string>
+    <string name="settings_copy_all">Copy all</string>
+    <string name="settings_copy">Copy</string>
+    <string name="settings_permissions_title">Required permissions</string>
+    <string name="settings_permissions_all_granted">All granted</string>
+    <string name="settings_permissions_required_granted">Required permissions granted</string>
+    <string name="settings_permissions_needed">Permissions needed</string>
+    <string name="settings_collapse">Collapse</string>
+    <string name="settings_expand">Expand</string>
+    <string name="settings_overlay_permission_title">Display over other apps</string>
+    <string name="settings_overlay_permission_description">Show the edge handle and notification panel over other apps</string>
+    <string name="settings_notification_permission_title">Notification access</string>
+    <string name="settings_notification_permission_description">Read incoming app notifications and show them in the panel</string>
+    <string name="settings_battery_permission_title">Unrestricted battery use (optional)</string>
+    <string name="settings_battery_permission_description">Keep the app running reliably in the background</string>
+    <string name="settings_permission_granted">Granted</string>
+    <string name="settings_permission_grant">Grant</string>
+    <string name="settings_filter_title">Notification filters &amp; exclusions</string>
+    <string name="settings_filter_description">Exclude apps or block notifications containing specific keywords</string>
+    <string name="settings_filter_summary">Apps: %1$d · Blocked keywords: %2$d</string>
+    <string name="settings_received_apps">Received apps (%1$d)</string>
+    <string name="settings_clear_history">Clear history</string>
+    <string name="settings_received_apps_empty">No notifications received yet. Apps appear here automatically when a notification arrives, so you can turn their notifications on or off.</string>
+    <string name="settings_app_excluded">Excluded</string>
+    <string name="settings_app_receiving">Receiving</string>
+    <string name="settings_blocked_keywords">Blocked keywords (%1$d)</string>
+    <string name="settings_blocked_keywords_description">Hide notifications containing these words in the title, body, or messages.</string>
+    <string name="settings_keyword_placeholder">Keyword (e.g. sale, spam)</string>
+    <string name="settings_add">Add</string>
+    <string name="settings_blocked_keywords_empty">No blocked keywords added.</string>
+    <string name="settings_remove_keyword">Remove keyword: %1$s</string>
+</resources>
