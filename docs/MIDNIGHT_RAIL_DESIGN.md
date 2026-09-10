@@ -25,7 +25,8 @@
 - 각 메뉴는 접기/펼치기만 제공하며 저장된 설정값을 초기화하지 않는다. 메뉴의 펼침 상태는 저장 가능한 Compose 상태로 관리한다.
 - 미리보기는 실제 핸들 설정을 반영한다. 기존 핸들 색이나 위치를 시안의 오른쪽 그라데이션으로 강제 변경하지 않는다.
 - 패널과 답장 바는 기존 상태·이벤트를 그대로 사용한다. 답장 미지원 알림에 답장 기능을 추가하지 않는다.
-- 좁은 패널에서는 헤더 버튼을 다음 줄로 이동해 제목과 터치 영역의 충돌을 막는다.
+- v1.3.22부터 헤더는 `Slivue · 알림 개수 · 모두 지우기 · 설정 · 닫기`를 항상 한 줄로 배치한다. 패널 폭에 따라 버튼 가로 폭은 36/40/48dp, 세로 높이는 48dp로 조절한다. 좁은 버튼의 터치 영역이 이웃 버튼으로 확장되지 않도록 헤더 내부에만 크기 규칙을 적용한다.
+- 제목과 개수는 줄바꿈하지 않는다. 큰 글꼴·아주 큰 알림 수로 공간이 부족할 때는 말줄임으로 조작 버튼을 보존하며 접근성 텍스트는 원문을 유지한다. 알림이 없으면 개수와 모두 지우기 버튼을 숨긴다.
 
 ## 검증 범위
 
@@ -33,7 +34,7 @@
 
 Android 16 가상 기기 확인은 순정 Android 화면 확인이며, 삼성 One UI·Good Lock·실제 메신저의 장시간 동작까지 검증한 것은 아니다. 기존 [One UI 체크리스트](ONE_UI_RELEASE_CHECKLIST.md)는 별도 수행한다. 본 변경은 Google Play용 SDK·정책 대응 작업이 아니다.
 
-## 확인 결과
+## v1.3.21 확인 결과
 
 - 최종 `testDebugUnitTest compileDebugKotlin lintRelease assembleRelease assembleMinifiedRelease assembleDebugAndroidTest` 성공. 단위/Compose 회귀 검사 162개, 실패 0개. Lint 오류 0개, 기존 경고 63개.
 - 일반·축소 APK의 기존 서명 계보 및 인증서 확인 완료.
@@ -43,3 +44,11 @@ Android 16 가상 기기 확인은 순정 Android 화면 확인이며, 삼성 On
 | 설정 화면 | 알림 패널 |
 | --- | --- |
 | ![미드나이트 설정](images/slivue-midnight-settings.png) | ![미드나이트 패널](images/slivue-midnight-panel.png) |
+
+## v1.3.22 헤더 보완 확인 결과
+
+두 줄 헤더를 한 줄로 수정했다. 전체 자동 검사 164개와 일반·축소 빌드, 서명 검증을 통과했다. 가상 기기에 기존 v1.3.21 위 업데이트 설치 후 한국어·영어, 기본/최소 폭, 큰 글꼴, 모두 지우기·설정·닫기·뒤로가기를 확인했다. 자세한 조건은 [개발 참고 문서의 64번 항목](DEVELOPMENT_REFERENCE.md)을 참고한다.
+
+| 기본 폭 260dp | 최소 폭 220dp | 최소 폭·글꼴 150% |
+| --- | --- | --- |
+| ![한 줄 헤더](images/slivue-header-single-row.png) | ![최소 폭 헤더](images/slivue-header-min-width.png) | ![큰 글꼴 헤더](images/slivue-header-large-font.png) |
