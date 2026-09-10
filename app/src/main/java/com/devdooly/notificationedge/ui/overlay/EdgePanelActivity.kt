@@ -1,17 +1,12 @@
 package com.devdooly.notificationedge.ui.overlay
 
 import android.content.Intent
-import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
@@ -23,27 +18,14 @@ import kotlinx.coroutines.launch
 
 /**
  * 안드로이드 시스템 네비게이션 뒤로가기(하단 네비바 버튼, 양쪽 화면 제스처)를
- * 100.0% 완벽하게 지원하고 상단 상태바(배터리 바)/하단 네비바의 배경을 완전 투명하게 유지하는 호스트 액티비티
+ * 처리하며, 시스템 바를 제외한 안전 영역에서 아래 화면을 투명하게 보여 주는 호스트 액티비티.
+ * 상태바와 내비게이션 바의 배경·아이콘 명암은 아래 화면의 표시를 유지한다.
  */
 class EdgePanelActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        val isSystemDark = (resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES
-
-        // 완전 투명 Zero-Scrim Edge-to-Edge 활성화 및 실행 시점 원래 색상 유지
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { isSystemDark },
-            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { isSystemDark }
-        )
         super.onCreate(savedInstanceState)
-
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.statusBarColor = Color.TRANSPARENT
-        window.navigationBarColor = Color.TRANSPARENT
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isStatusBarContrastEnforced = false
-            window.isNavigationBarContrastEnforced = false
-        }
+        configureTransparentPanelWindow(window)
 
         // OS 레벨의 뒤로가기 콜백 등록 (100% 보장)
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

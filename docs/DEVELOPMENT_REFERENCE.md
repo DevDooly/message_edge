@@ -650,6 +650,23 @@ graph TD
 
 ---
 
+### 65) 투명 패널의 시스템 바 명암 보존 (`v1.3.23`, Build 153)
+
+- 삼성 S23 Ultra의 시스템 밝은 모드에서 어두운 Slivue 설정 위에 패널을 열면 상태바 아이콘이 검게 변하는 문제를 수정했다. 시스템 테마만 사용하는 `SystemBarStyle.auto`를 패널에서 제거했다.
+- `PanelWindowPolicy`가 투명 액티비티 창을 시스템 바 안쪽의 전체 안전 영역에 배치한다. `windowIsFloating=true`는 시스템 바 영역을 아래 앱에 남기는 창 정책이며, 작은 중앙 대화상자로 바꾸는 것이 아니다. Decor를 먼저 생성한 뒤 `MATCH_PARENT`와 패딩 0을 적용해 플랫폼 초기화가 창을 다시 축소하지 않게 한다.
+- 상태바·내비게이션 바 배경을 그리는 플래그와 반투명 플래그를 해제한다. API 30 이상은 `systemBars | displayCutout`을 창의 맞춤 인셋으로 지정하고, IME는 포함하지 않아 기존 크기 조절·Compose 답장 배치를 유지한다. API 26~29는 플랫폼 안전 영역 배치를 사용한다.
+- 시스템 바 아래까지 패널을 배치하지 않으므로 아래 앱의 바 배경·아이콘 명암을 유지한다. 이를 통해 검은 아이콘 또는 흰 아이콘의 일괄 강제를 피한다. 근거: [Android 창 인셋 API](https://developer.android.com/reference/android/view/WindowManager.LayoutParams), [AOSP의 시스템 바 표시 영역 결정](https://android.googlesource.com/platform/frameworks/base/+/master/services/core/java/com/android/server/wm/DisplayPolicy.java).
+- 패널은 계속 `EdgePanelActivity`에서 호스팅하며, NoDisplay 런처·핸들 서비스·뒤로가기·알림 파서·전송 코드는 변경하지 않았다. 제목과 버튼의 한 줄 헤더도 유지한다.
+- `PanelWindowPolicyTest`는 API 26/29/30/34의 테마·창 크기·플래그·기존 보안/포커스/키보드 설정·인셋 마스크를 검사한다. `PanelWindowInstrumentedTest`는 실제 창의 안전 영역·한 줄 제목과 합성 답장의 키보드 표시·문자 입력·뒤로가기 숨김을 검증한다. 전송 대상은 없으며 실제 메시지는 보내지 않는다.
+- 최초 계측 검사에서 병합된 접근성 노드를 제목으로 읽은 문제와 구형 OS의 호환 IME 인셋 감지 한계를 발견했다. 제목은 병합 전 노드, 키보드는 실제 시스템 입력 창으로 검사하도록 보완했다. 앱의 키보드는 API 26에서도 표시됐으며 검사 코드의 실패와 제품 동작을 구분했다.
+- 최종 `testDebugUnitTest compileDebugKotlin lintRelease assembleRelease assembleMinifiedRelease assembleDebugAndroidTest` 성공: 단위·회귀 검사 174개, 실패·오류 0개, Lint 오류 0개·기존 경고 63개. 일반·축소 APK 서명 계보 검증 완료. 로컬 API 26·36 가상 기기의 릴리스 APK 대상 계측 테스트 각각 5개 통과.
+- Galaxy S23 Ultra(Android 16 / One UI 8.5)에 v1.3.22에서 업데이트 설치해 밝은/어두운 배경의 상태바, 한 줄 헤더, 설정·닫기·시스템 뒤로가기·바깥 터치·왼쪽 핸들을 확인했다. API 36 가상 기기는 시스템 밝은/어두운 모드도 확인 후 밝은 모드로 복원했다. 실기기 개인 데이터와 화면 캡처는 저장소에 포함하지 않았다.
+- 태그 배포는 기존 CI의 API 26·35 제자리 업데이트 검증을 추가 통과해야 한다. 분할 화면·가로 회전·몰입 모드·장시간 동작 및 모든 One UI 조합을 검증한 것은 아니다.
+
+상세 결과: [삼성 실기기 시험](GALAXY_S23_TEST_REPORT.md), [릴리스 안내](releases/v1.3.23.md).
+
+---
+
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
 
 ### 1) 버전 판올림 체크리스트
