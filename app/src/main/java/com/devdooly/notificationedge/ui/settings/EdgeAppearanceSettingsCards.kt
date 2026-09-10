@@ -37,7 +37,7 @@ internal fun EdgeHandleSettingsCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -51,7 +51,7 @@ internal fun EdgeHandleSettingsCard(
             // 패널 가로 너비 (5dp 단위 조절)
             Text(
                 stringResource(R.string.appearance_panel_width, settings.panelWidthDp),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -76,7 +76,7 @@ internal fun EdgeHandleSettingsCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.appearance_auto_dismiss), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    Text(stringResource(R.string.appearance_auto_dismiss_description), color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.appearance_auto_dismiss_description), color = TextMuted, fontSize = 11.sp)
                 }
                 Switch(
                     checked = settings.autoDismissOnOpen,
@@ -95,7 +95,7 @@ internal fun EdgeHandleSettingsCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.appearance_handle_visible), color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                    Text(stringResource(R.string.appearance_handle_visible_description), color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.appearance_handle_visible_description), color = TextMuted, fontSize = 11.sp)
                 }
                 Switch(
                     checked = settings.isHandleVisible,
@@ -107,7 +107,7 @@ internal fun EdgeHandleSettingsCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // 좌 / 우 선택
-            Text(stringResource(R.string.appearance_handle_side), color = Color.LightGray, fontSize = 13.sp)
+            Text(stringResource(R.string.appearance_handle_side), color = TextSecondary, fontSize = 13.sp)
             Spacer(modifier = Modifier.height(6.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
@@ -147,7 +147,7 @@ internal fun EdgeHandleSettingsCard(
             // 상하 위치 (Y 비율)
             Text(
                 stringResource(R.string.appearance_vertical_position, (settings.handlePositionRatio * 100).toInt()),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 13.sp
             )
             Slider(
@@ -165,7 +165,7 @@ internal fun EdgeHandleSettingsCard(
             // 핸들 크기 (높이, 5dp 단위 조절)
             Text(
                 stringResource(R.string.appearance_handle_height, settings.handleHeightDp),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 13.sp
             )
             Slider(
@@ -184,7 +184,7 @@ internal fun EdgeHandleSettingsCard(
             // 핸들 너비 (두께 조절)
             Text(
                 stringResource(R.string.appearance_handle_width, settings.handleWidthDp),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 13.sp
             )
             Slider(
@@ -204,7 +204,7 @@ internal fun EdgeHandleSettingsCard(
                 // 투명도
                 Text(
                     stringResource(R.string.appearance_handle_opacity, (settings.handleAlpha * 100).toInt()),
-                    color = Color.LightGray,
+                    color = TextSecondary,
                     fontSize = 13.sp
                 )
                 Slider(
@@ -220,7 +220,7 @@ internal fun EdgeHandleSettingsCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // 색상 팔레트
-                Text(stringResource(R.string.appearance_handle_color), color = Color.LightGray, fontSize = 13.sp)
+                Text(stringResource(R.string.appearance_handle_color), color = TextSecondary, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 ColorPaletteRow(
                     selectedColor = settings.handleColor,
@@ -241,7 +241,7 @@ internal fun EdgeLightingSettingsCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -258,7 +258,7 @@ internal fun EdgeLightingSettingsCard(
                     )
                     Text(
                         text = stringResource(R.string.appearance_lighting_description),
-                        color = Color.Gray,
+                        color = TextMuted,
                         fontSize = 12.sp
                     )
                 }
@@ -271,7 +271,7 @@ internal fun EdgeLightingSettingsCard(
 
             if (settings.isEdgeLightingEnabled) {
                 Spacer(modifier = Modifier.height(14.dp))
-                Text(stringResource(R.string.appearance_lighting_color), color = Color.LightGray, fontSize = 13.sp)
+                Text(stringResource(R.string.appearance_lighting_color), color = TextSecondary, fontSize = 13.sp)
                 Spacer(modifier = Modifier.height(8.dp))
                 ColorPaletteRow(
                     selectedColor = settings.edgeLightingColor,
@@ -283,7 +283,7 @@ internal fun EdgeLightingSettingsCard(
                 // 모서리 둥글기 (곡률) 조절 (0dp 직각 ~ 50dp 둥근 모서리)
                 Text(
                     text = stringResource(R.string.appearance_corner_radius, settings.edgeLightingCornerRadiusDp),
-                    color = Color.LightGray,
+                    color = TextSecondary,
                     fontSize = 13.sp
                 )
                 Text(
@@ -291,7 +291,7 @@ internal fun EdgeLightingSettingsCard(
                         if (settings.edgeLightingCornerRadiusDp == 0) R.string.appearance_square_corners
                         else R.string.appearance_adjust_corners
                     ),
-                    color = Color.Gray,
+                    color = TextMuted,
                     fontSize = 11.sp
                 )
                 Slider(

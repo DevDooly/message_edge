@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,27 +58,11 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
         topBar = {
             TopAppBar(
                 title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.app_name), fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Surface(
-                            shape = RoundedCornerShape(6.dp),
-                            color = EdgeCyan.copy(alpha = 0.2f),
-                            border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan)
-                        ) {
-                            Text(
-                                text = "v${BuildConfig.VERSION_NAME}",
-                                color = EdgeCyan,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
-                    }
+                    SlivueSettingsBrand()
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = DarkBackground,
-                    titleContentColor = Color.White
+                    titleContentColor = com.devdooly.notificationedge.ui.theme.TextPrimary
                 )
             )
         },
@@ -87,7 +73,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item(key = "master-switch") {
                 MasterSwitchCard(
@@ -125,86 +111,94 @@ fun SettingsScreen(viewModel: SettingsViewModel = viewModel()) {
                 )
             }
 
-            item(key = "good-lock") {
-                GoodLockIntegrationCard(
-                    launchDirectToPanel = settings.launchDirectToPanel,
-                    onToggleLaunchDirect = viewModel::updateLaunchDirectToPanel,
-                    externalControlEnabled = settings.externalControlEnabled,
-                    onToggleExternalControl = viewModel::updateExternalControlEnabled,
-                    onTestOpenPanel = {
-                        val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        context.startActivity(intent)
-                    }
-                )
+            item(key = "handle-preview") {
+                HandlePreviewCard(settings) {
+                    context.startActivity(Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java))
+                }
             }
 
             item(key = "edge-handle") {
-                EdgeHandleSettingsCard(
-                    settings = settings,
-                    onSideChange = viewModel::updateEdgeSide,
-                    onPositionChange = viewModel::updateHandlePositionRatio,
-                    onWidthChange = viewModel::updateHandleWidthDp,
-                    onHeightChange = viewModel::updateHandleHeightDp,
-                    onPanelWidthChange = viewModel::updatePanelWidthDp,
-                    onAutoDismissToggle = viewModel::updateAutoDismissOnOpen,
-                    onColorChange = viewModel::updateHandleColor,
-                    onAlphaChange = viewModel::updateHandleAlpha,
-                    onVisibleToggle = viewModel::updateHandleVisible
-                )
+                SettingsSection(stringResource(R.string.design_handle_style), Icons.Default.Tune) {
+                    EdgeHandleSettingsCard(
+                        settings = settings,
+                        onSideChange = viewModel::updateEdgeSide,
+                        onPositionChange = viewModel::updateHandlePositionRatio,
+                        onWidthChange = viewModel::updateHandleWidthDp,
+                        onHeightChange = viewModel::updateHandleHeightDp,
+                        onPanelWidthChange = viewModel::updatePanelWidthDp,
+                        onAutoDismissToggle = viewModel::updateAutoDismissOnOpen,
+                        onColorChange = viewModel::updateHandleColor,
+                        onAlphaChange = viewModel::updateHandleAlpha,
+                        onVisibleToggle = viewModel::updateHandleVisible
+                    )
+                }
             }
 
             item(key = "edge-lighting") {
-                EdgeLightingSettingsCard(
-                    settings = settings,
-                    onLightingToggle = viewModel::updateEdgeLightingEnabled,
-                    onColorChange = viewModel::updateEdgeLightingColor,
-                    onCornerRadiusChange = viewModel::updateEdgeLightingCornerRadiusDp,
-                    onTestTrigger = viewModel::emitTestNotification
-                )
+                SettingsSection(stringResource(R.string.design_lighting), Icons.Default.Lightbulb) {
+                    EdgeLightingSettingsCard(
+                        settings = settings,
+                        onLightingToggle = viewModel::updateEdgeLightingEnabled,
+                        onColorChange = viewModel::updateEdgeLightingColor,
+                        onCornerRadiusChange = viewModel::updateEdgeLightingCornerRadiusDp,
+                        onTestTrigger = viewModel::emitTestNotification
+                    )
+                }
             }
 
             item(key = "font") {
-                FontSettingsCard(
-                    selectedFontId = settings.selectedFont,
-                    onFontSelected = viewModel::updateSelectedFont
-                )
-            }
-
-            item(key = "behavior") {
-                BehaviorSettingsCard(
-                    settings = settings,
-                    onPauseMediaOnOpenChange = viewModel::updatePauseMediaOnOpen,
-                    onHapticFeedbackChange = viewModel::updateHapticEnabled
-                )
+                SettingsSection(stringResource(R.string.design_font), Icons.Default.TextFields) {
+                    FontSettingsCard(
+                        selectedFontId = settings.selectedFont,
+                        onFontSelected = viewModel::updateSelectedFont
+                    )
+                }
             }
 
             item(key = "notification-filter") {
-                NotificationFilterSettingsCard(
-                    discoveredPackages = settings.discoveredAppPackages,
-                    excludedPackages = settings.excludedPackages,
-                    blockedKeywords = settings.blockedKeywords,
-                    onToggleExcludedPackage = viewModel::setPackageExcluded,
-                    onClearDiscoveredPackages = viewModel::clearDiscoveredPackages,
-                    onAddBlockedKeyword = viewModel::addBlockedKeyword,
-                    onRemoveBlockedKeyword = viewModel::removeBlockedKeyword
-                )
+                SettingsSection(stringResource(R.string.design_filters), Icons.Default.FilterList) {
+                    NotificationFilterSettingsCard(
+                        discoveredPackages = settings.discoveredAppPackages,
+                        excludedPackages = settings.excludedPackages,
+                        blockedKeywords = settings.blockedKeywords,
+                        onToggleExcludedPackage = viewModel::setPackageExcluded,
+                        onClearDiscoveredPackages = viewModel::clearDiscoveredPackages,
+                        onAddBlockedKeyword = viewModel::addBlockedKeyword,
+                        onRemoveBlockedKeyword = viewModel::removeBlockedKeyword
+                    )
+                }
             }
 
-            item(key = "diagnostics") {
-                NotificationDebugDumpCard(
-                    enabled = settings.diagnosticModeEnabled,
-                    onEnabledChange = viewModel::updateDiagnosticModeEnabled
-                )
+            item(key = "app-settings") {
+                SettingsSection(stringResource(R.string.design_app_settings), Icons.Default.Settings) {
+                    GoodLockIntegrationCard(
+                        launchDirectToPanel = settings.launchDirectToPanel,
+                        onToggleLaunchDirect = viewModel::updateLaunchDirectToPanel,
+                        externalControlEnabled = settings.externalControlEnabled,
+                        onToggleExternalControl = viewModel::updateExternalControlEnabled,
+                        onTestOpenPanel = {
+                            val intent = Intent(context, com.devdooly.notificationedge.ui.OpenPanelActivity::class.java).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
+                    BehaviorSettingsCard(
+                        settings = settings,
+                        onPauseMediaOnOpenChange = viewModel::updatePauseMediaOnOpen,
+                        onHapticFeedbackChange = viewModel::updateHapticEnabled
+                    )
+                    NotificationDebugDumpCard(
+                        enabled = settings.diagnosticModeEnabled,
+                        onEnabledChange = viewModel::updateDiagnosticModeEnabled
+                    )
+                    AppInfoCard()
+                }
             }
 
+            // 다운로드 중 메뉴를 접더라도 업데이트 작업의 Composition을 제거하지 않는다.
             item(key = "app-update") {
                 AppUpdateCard(currentVersionName = BuildConfig.VERSION_NAME)
-            }
-
-            item(key = "app-info") {
-                AppInfoCard()
             }
         }
     }

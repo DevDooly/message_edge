@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AqueousAqua,
+    primary = ActionBlue,
     secondary = QuietPeriwinkle,
     tertiary = NeonEmerald,
     background = Graphite950,
@@ -21,7 +21,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = Graphite950,
     onBackground = CloudDancer,
     onSurface = CloudDancer,
-    onSurfaceVariant = CloudShadow
+    onSurfaceVariant = CloudShadow,
+    outline = GlassBorder
 )
 
 @Composable

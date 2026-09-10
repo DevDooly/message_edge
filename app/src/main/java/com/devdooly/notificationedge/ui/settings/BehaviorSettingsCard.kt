@@ -1,5 +1,7 @@
 package com.devdooly.notificationedge.ui.settings
 
+import com.devdooly.notificationedge.ui.theme.*
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -24,7 +26,7 @@ internal fun BehaviorSettingsCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             BehaviorToggle(
@@ -60,7 +62,7 @@ private fun BehaviorToggle(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            Text(description, color = Color.Gray, fontSize = 12.sp)
+            Text(description, color = TextMuted, fontSize = 12.sp)
         }
         Switch(
             checked = checked,

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="design_handle_preview">Edge handle preview</string>
+    <string name="design_handle_preview_description">%1$s edge · your current handle style</string>
+    <string name="design_handle_style">Handle style</string>
+    <string name="design_lighting">Edge lighting</string>
+    <string name="design_font">Font</string>
+    <string name="design_filters">Notification filters</string>
+    <string name="design_app_settings">App settings</string>
+    <string name="design_side_left">Left</string>
+    <string name="design_side_right">Right</string>
+    <string name="design_open_panel">Open panel</string>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="design_handle_preview">엣지 핸들 미리보기</string>
+    <string name="design_handle_preview_description">%1$s 가장자리 · 현재 핸들 스타일</string>
+    <string name="design_handle_style">핸들 스타일</string>
+    <string name="design_lighting">엣지 라이팅</string>
+    <string name="design_font">글꼴</string>
+    <string name="design_filters">알림 필터</string>
+    <string name="design_app_settings">앱 설정</string>
+    <string name="design_side_left">왼쪽</string>
+    <string name="design_side_right">오른쪽</string>
+    <string name="design_open_panel">패널 열어보기</string>
+</resources>

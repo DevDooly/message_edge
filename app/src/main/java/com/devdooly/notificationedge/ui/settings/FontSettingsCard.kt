@@ -60,7 +60,7 @@ internal fun FontSettingsCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -89,7 +89,7 @@ internal fun FontSettingsCard(
                     Icon(
                         imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = stringResource(if (isExpanded) R.string.font_collapse else R.string.font_expand),
-                        tint = Color.LightGray
+                        tint = TextSecondary
                     )
                 }
             }
@@ -115,7 +115,7 @@ internal fun FontSettingsCard(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.font_alignment_description),
-                        color = Color.Gray,
+                        color = TextMuted,
                         fontSize = 11.sp,
                         lineHeight = 15.sp
                     )
@@ -157,7 +157,7 @@ internal fun FontSettingsCard(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = stringResource(R.string.font_custom_fonts, customFonts.size),
-                        color = Color.LightGray,
+                        color = TextSecondary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -196,13 +196,13 @@ internal fun FontSettingsCard(
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = customFont.fileName,
-                                            color = Color.Gray,
+                                            color = TextMuted,
                                             fontSize = 11.sp
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = stringResource(R.string.font_custom_preview),
-                                            color = if (isSelected) CloudDancer else Color.LightGray,
+                                            color = if (isSelected) CloudDancer else TextSecondary,
                                             fontSize = 12.sp,
                                             fontFamily = customFamily
                                         )
@@ -222,7 +222,7 @@ internal fun FontSettingsCard(
                                             Icon(
                                                 imageVector = Icons.Default.DeleteOutline,
                                                 contentDescription = stringResource(R.string.font_delete),
-                                                tint = Color.Gray,
+                                                tint = TextMuted,
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         }
@@ -231,7 +231,7 @@ internal fun FontSettingsCard(
                                             onClick = { onFontSelected(customFont.id) },
                                             colors = RadioButtonDefaults.colors(
                                                 selectedColor = EdgeCyan,
-                                                unselectedColor = Color.Gray
+                                                unselectedColor = TextMuted
                                             )
                                         )
                                     }
@@ -245,7 +245,7 @@ internal fun FontSettingsCard(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = stringResource(R.string.font_presets),
-                    color = Color.LightGray,
+                    color = TextSecondary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -282,14 +282,14 @@ internal fun FontSettingsCard(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = stringResource(fontOption.descriptionRes),
-                                        color = Color.Gray,
+                                        color = TextMuted,
                                         fontSize = 11.sp
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     // 폰트 실시간 적용 미리보기 샘플
                                     Text(
                                         text = stringResource(R.string.font_preset_preview),
-                                        color = if (isSelected) CloudDancer else Color.LightGray,
+                                        color = if (isSelected) CloudDancer else TextSecondary,
                                         fontSize = 12.sp,
                                         fontFamily = fontOption.toFontFamily()
                                     )
@@ -299,7 +299,7 @@ internal fun FontSettingsCard(
                                     onClick = { onFontSelected(fontOption.id) },
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = EdgeCyan,
-                                        unselectedColor = Color.Gray
+                                        unselectedColor = TextMuted
                                     )
                                 )
                             }

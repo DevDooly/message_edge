@@ -70,7 +70,7 @@ internal fun NotificationFilterSettingsCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -99,14 +99,14 @@ internal fun NotificationFilterSettingsCard(
                     )
                     Text(
                         text = if (isExpanded) stringResource(R.string.settings_filter_description) else stringResource(R.string.settings_filter_summary, discoveredAppList.size, blockedKeywords.size),
-                        color = if (isExpanded) Color.Gray else EdgeCyan,
+                        color = if (isExpanded) TextMuted else EdgeCyan,
                         fontSize = 12.sp
                     )
                 }
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = stringResource(if (isExpanded) R.string.settings_collapse else R.string.settings_expand),
-                    tint = Color.Gray,
+                    tint = TextMuted,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -136,7 +136,7 @@ internal fun NotificationFilterSettingsCard(
                                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                                 modifier = Modifier.heightIn(min = 28.dp)
                             ) {
-                                Text(stringResource(R.string.settings_clear_history), color = Color.Gray, fontSize = 11.sp)
+                                Text(stringResource(R.string.settings_clear_history), color = TextMuted, fontSize = 11.sp)
                             }
                         }
                     }
@@ -151,7 +151,7 @@ internal fun NotificationFilterSettingsCard(
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_received_apps_empty),
-                                color = Color.Gray,
+                                color = TextMuted,
                                 fontSize = 12.sp,
                                 lineHeight = 16.sp,
                                 modifier = Modifier.padding(12.dp)
@@ -205,7 +205,7 @@ internal fun NotificationFilterSettingsCard(
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = appName,
-                                                    color = if (isExcluded) Color.Gray else Color.White,
+                                                    color = if (isExcluded) TextMuted else Color.White,
                                                     fontWeight = FontWeight.Medium,
                                                     fontSize = 13.sp,
                                                     maxLines = 1,
@@ -213,7 +213,7 @@ internal fun NotificationFilterSettingsCard(
                                                 )
                                                 Text(
                                                     text = pkg,
-                                                    color = if (isExcluded) Color(0xFF884444) else Color.DarkGray,
+                                                    color = if (isExcluded) Color(0xFF884444) else GlassBorder,
                                                     fontSize = 10.sp,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
@@ -237,8 +237,8 @@ internal fun NotificationFilterSettingsCard(
                                                 colors = SwitchDefaults.colors(
                                                     checkedThumbColor = EdgeCyan,
                                                     checkedTrackColor = EdgeCyan.copy(alpha = 0.3f),
-                                                    uncheckedThumbColor = Color.Gray,
-                                                    uncheckedTrackColor = Color.DarkGray
+                                                    uncheckedThumbColor = TextMuted,
+                                                    uncheckedTrackColor = GlassBorder
                                                 ),
                                                 modifier = Modifier.scale(0.8f)
                                             )
@@ -265,7 +265,7 @@ internal fun NotificationFilterSettingsCard(
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = stringResource(R.string.settings_blocked_keywords_description),
-                        color = Color.Gray,
+                        color = TextMuted,
                         fontSize = 11.sp
                     )
 
@@ -279,7 +279,7 @@ internal fun NotificationFilterSettingsCard(
                         OutlinedTextField(
                             value = newKeywordText,
                             onValueChange = { newKeywordText = it },
-                            placeholder = { Text(stringResource(R.string.settings_keyword_placeholder), color = Color.Gray, fontSize = 12.sp) },
+                            placeholder = { Text(stringResource(R.string.settings_keyword_placeholder), color = TextMuted, fontSize = 12.sp) },
                             modifier = Modifier.weight(1f),
                             textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 13.sp),
                             singleLine = true,
@@ -325,7 +325,7 @@ internal fun NotificationFilterSettingsCard(
                     if (blockedKeywords.isEmpty()) {
                         Text(
                             text = stringResource(R.string.settings_blocked_keywords_empty),
-                            color = Color.DarkGray,
+                            color = GlassBorder,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
@@ -337,7 +337,7 @@ internal fun NotificationFilterSettingsCard(
                         ) {
                             blockedKeywords.forEach { keyword ->
                                 Surface(
-                                    shape = RoundedCornerShape(16.dp),
+                                    shape = RoundedCornerShape(20.dp),
                                     color = EdgeCyan.copy(alpha = 0.15f),
                                     border = androidx.compose.foundation.BorderStroke(0.5.dp, EdgeCyan.copy(alpha = 0.6f))
                                 ) {

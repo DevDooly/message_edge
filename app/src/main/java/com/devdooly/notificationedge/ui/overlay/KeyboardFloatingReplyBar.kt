@@ -1,5 +1,7 @@
 package com.devdooly.notificationedge.ui.overlay
 
+import com.devdooly.notificationedge.ui.theme.*
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,9 +45,9 @@ internal fun KeyboardFloatingReplyBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp),
-        color = Color(0xF5181818),
-        border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.6f)),
-        shadowElevation = 12.dp
+        color = Graphite900,
+        border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorder),
+        shadowElevation = 4.dp
     ) {
         Column(
             modifier = Modifier
@@ -82,7 +84,7 @@ internal fun KeyboardFloatingReplyBar(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.panel_close),
-                        tint = Color.Gray,
+                        tint = TextMuted,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -99,13 +101,13 @@ internal fun KeyboardFloatingReplyBar(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF282828))
+                        .background(Graphite900)
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
                     if (replyText.isEmpty()) {
                         Text(
                             text = stringResource(R.string.panel_message_hint),
-                            color = Color.Gray,
+                            color = TextMuted,
                             fontSize = 14.sp
                         )
                     }
@@ -135,23 +137,23 @@ internal fun KeyboardFloatingReplyBar(
                     onClick = onSend,
                     enabled = replyText.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = EdgeCyan,
+                        containerColor = ActionBlue,
                         disabledContainerColor = EdgeCyan.copy(alpha = 0.3f)
                     ),
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(24.dp),
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
-                    modifier = Modifier.height(38.dp)
+                    modifier = Modifier.heightIn(min = 48.dp)
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
                         contentDescription = stringResource(R.string.panel_send),
-                        tint = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
+                        tint = if (replyText.isNotBlank()) Color.Black else GlassBorder,
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.panel_send),
-                        color = if (replyText.isNotBlank()) Color.Black else Color.DarkGray,
+                        color = if (replyText.isNotBlank()) Color.Black else GlassBorder,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
                     )

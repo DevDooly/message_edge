@@ -1,5 +1,7 @@
 package com.devdooly.notificationedge.ui.overlay
 
+import com.devdooly.notificationedge.ui.theme.*
+
 import android.content.Context
 import android.icu.text.RelativeDateTimeFormatter
 import android.text.format.DateFormat
@@ -62,12 +64,12 @@ internal fun NotificationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = if (notification.isDismissed) Color(0x991E1E1E) else DarkCardBackground
+            containerColor = if (notification.isDismissed) Graphite900 else DarkCardBackground
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(
             0.5.dp,
             if (isReplyActive) EdgeCyan else (if (notification.isDismissed) Color(0x22FFFFFF) else GlassBorder)
@@ -76,7 +78,7 @@ internal fun NotificationCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
+                .padding(14.dp)
         ) {
             // 상단 앱 정보 및 닫기 버튼
             Row(
@@ -110,7 +112,7 @@ internal fun NotificationCard(
                 ) {
                     Text(
                         text = notification.appName,
-                        color = Color.LightGray,
+                        color = TextSecondary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
@@ -123,7 +125,7 @@ internal fun NotificationCard(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "› ${notificationLabelText(notification.subTextLabel, sub)}",
-                            color = Color(0xFFAAAAAA),
+                            color = TextSecondary,
                             fontSize = 11.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -133,7 +135,7 @@ internal fun NotificationCard(
 
                 Text(
                     text = timeString,
-                    color = Color.Gray,
+                    color = TextMuted,
                     fontSize = 10.sp
                 )
 
@@ -146,7 +148,7 @@ internal fun NotificationCard(
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.panel_dismiss),
-                        tint = Color.Gray,
+                        tint = TextMuted,
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -202,7 +204,7 @@ internal fun NotificationCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color(0xFF1E1E1E).copy(alpha = 0.6f))
+                        .background(Graphite900)
                         .clickable(onClick = onClick)
                         .padding(8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -237,7 +239,7 @@ internal fun NotificationCard(
                                     notification.messages.size,
                                     notification.messages.size
                                 ),
-                                color = Color.Gray,
+                                color = TextMuted,
                                 fontSize = 10.sp
                             )
                         }
@@ -304,7 +306,7 @@ internal fun NotificationCard(
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = msgTime,
-                                        color = Color(0xFFAAAAAA),
+                                        color = TextSecondary,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Normal,
                                         modifier = Modifier.padding(bottom = 1.dp)
@@ -314,7 +316,7 @@ internal fun NotificationCard(
                                 if (msgTime.isNotBlank()) {
                                     Text(
                                         text = msgTime,
-                                        color = Color(0xFFAAAAAA),
+                                        color = TextSecondary,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Normal,
                                         modifier = Modifier.padding(bottom = 1.dp)
@@ -367,7 +369,7 @@ internal fun NotificationCard(
                     ) {
                         Text(
                             text = displayText,
-                            color = Color(0xFFDDDDDD),
+                            color = TextPrimary,
                             fontSize = 13.sp,
                             lineHeight = 17.sp,
                             maxLines = 6,
@@ -378,7 +380,7 @@ internal fun NotificationCard(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = notifTime,
-                                color = Color(0xFFAAAAAA),
+                                color = TextSecondary,
                                 fontSize = 9.sp,
                                 modifier = Modifier.padding(bottom = 1.dp)
                             )
@@ -398,10 +400,11 @@ internal fun NotificationCard(
                 if (replyAction != null) {
                     Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(if (isReplyActive) EdgeCyan else EdgeCyan.copy(alpha = 0.15f))
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(if (isReplyActive) ActionBlue else DarkSurfaceVariant)
                             .clickable { onToggleReply(!isReplyActive) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                            .heightIn(min = 48.dp)
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -442,13 +445,13 @@ internal fun NotificationCard(
                         Icon(
                             imageVector = Icons.Default.Info,
                             contentDescription = stringResource(R.string.panel_copy_data),
-                            tint = Color.Gray,
+                            tint = TextMuted,
                             modifier = Modifier.size(12.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = stringResource(R.string.panel_copy_data),
-                            color = Color.LightGray,
+                            color = TextSecondary,
                             fontSize = 10.sp
                         )
                     }
@@ -472,13 +475,13 @@ internal fun EmptyNotificationView(
             Icon(
                 imageVector = Icons.Default.NotificationsNone,
                 contentDescription = null,
-                tint = Color.Gray.copy(alpha = 0.5f),
+                tint = TextMuted.copy(alpha = 0.5f),
                 modifier = Modifier.size(64.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.panel_empty_notifications),
-                color = Color.Gray,
+                color = TextMuted,
                 fontSize = 14.sp
             )
             Spacer(modifier = Modifier.height(16.dp))

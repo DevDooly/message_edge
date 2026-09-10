@@ -1,7 +1,7 @@
 package com.devdooly.notificationedge.ui.overlay
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
@@ -10,13 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devdooly.notificationedge.R
-import com.devdooly.notificationedge.ui.theme.EdgeCyan
+import com.devdooly.notificationedge.ui.theme.*
 
 @Composable
 internal fun PanelHeader(
@@ -25,80 +24,42 @@ internal fun PanelHeader(
     onOpenSettings: () -> Unit,
     onClose: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = stringResource(R.string.panel_title),
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
-            )
-            if (notificationCount > 0) {
-                Spacer(modifier = Modifier.width(6.dp))
-                Surface(
-                    shape = CircleShape,
-                    color = EdgeCyan.copy(alpha = 0.2f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan)
-                ) {
-                    Text(
-                        text = stringResource(R.string.panel_count, notificationCount),
-                        color = EdgeCyan,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
-                    )
+    // 좁은 패널에서도 세 버튼의 터치 영역과 제목을 겹치지 않게 유지한다.
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val compact = maxWidth < 300.dp
+        val actions: @Composable () -> Unit = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (notificationCount > 0) {
+                    IconButton(onClick = onClearAll, modifier = Modifier.size(48.dp)) {
+                        Icon(Icons.Default.ClearAll, stringResource(R.string.panel_clear_all), tint = TextSecondary)
+                    }
+                }
+                IconButton(onClick = onOpenSettings, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Default.Settings, stringResource(R.string.panel_settings), tint = TextSecondary)
+                }
+                IconButton(onClick = onClose, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Default.Close, stringResource(R.string.panel_close), tint = TextPrimary)
                 }
             }
         }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // 설정 화면 열기 버튼
-            IconButton(
-                onClick = onOpenSettings,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = stringResource(R.string.panel_settings),
-                    tint = Color.LightGray,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            if (notificationCount > 0) {
-                Spacer(modifier = Modifier.width(2.dp))
-                IconButton(
-                    onClick = onClearAll,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ClearAll,
-                        contentDescription = stringResource(R.string.panel_clear_all),
-                        tint = Color.LightGray,
-                        modifier = Modifier.size(20.dp)
-                    )
+        Column {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.panel_title), color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    if (notificationCount > 0) {
+                        Spacer(Modifier.width(8.dp))
+                        Surface(shape = RoundedCornerShape(8.dp), color = ActionBlue) {
+                            Text(
+                                stringResource(R.string.panel_count, notificationCount),
+                                color = Graphite950, fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                            )
+                        }
+                    }
                 }
+                if (!compact) actions()
             }
-
-            Spacer(modifier = Modifier.width(2.dp))
-
-            IconButton(
-                onClick = onClose,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = stringResource(R.string.panel_close),
-                    tint = Color.LightGray,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
+            if (compact) Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { actions() }
         }
     }
 }

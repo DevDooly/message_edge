@@ -37,10 +37,10 @@ internal fun AppUpdateCard(currentVersionName: String) {
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (updateStatus is UpdateUIState.UpdateAvailable) EdgeCyan else Color(0xFF333333)
+            if (updateStatus is UpdateUIState.UpdateAvailable) EdgeCyan else DarkSurfaceVariant
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -67,7 +67,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
 
                 Text(
                     text = stringResource(R.string.update_current_version, currentVersionName),
-                    color = Color.Gray,
+                    color = TextMuted,
                     fontSize = 12.sp
                 )
             }
@@ -78,7 +78,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                 is UpdateUIState.Idle -> {
                     Text(
                         text = stringResource(R.string.update_description),
-                        color = Color.LightGray,
+                        color = TextSecondary,
                         fontSize = 12.sp,
                         lineHeight = 17.sp
                     )
@@ -124,7 +124,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Text(stringResource(R.string.update_checking), color = Color.LightGray, fontSize = 13.sp)
+                        Text(stringResource(R.string.update_checking), color = TextSecondary, fontSize = 13.sp)
                     }
                 }
 
@@ -175,7 +175,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                                 }
                             }
                         ) {
-                            Text(stringResource(R.string.update_reinstall), color = Color.Gray, fontSize = 11.sp)
+                            Text(stringResource(R.string.update_reinstall), color = TextMuted, fontSize = 11.sp)
                         }
 
                         TextButton(
@@ -277,14 +277,14 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(stringResource(R.string.update_downloading), color = Color.LightGray, fontSize = 12.sp, modifier = Modifier.weight(1f))
+                            Text(stringResource(R.string.update_downloading), color = TextSecondary, fontSize = 12.sp, modifier = Modifier.weight(1f))
                             Text(stringResource(R.string.update_progress, (downloadProgress * 100).toInt()), color = EdgeCyan, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         LinearProgressIndicator(
                             progress = { downloadProgress },
                             color = EdgeCyan,
-                            trackColor = Color(0xFF333333),
+                            trackColor = DarkSurfaceVariant,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(6.dp)
@@ -326,7 +326,7 @@ internal fun AppUpdateCard(currentVersionName: String) {
                             onClick = {
                                 updateStatus = UpdateUIState.Idle
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceVariant),
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {

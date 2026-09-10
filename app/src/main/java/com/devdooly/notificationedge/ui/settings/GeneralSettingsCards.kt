@@ -33,12 +33,12 @@ internal fun MasterSwitchCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = if (enabled) EdgeCyan.copy(alpha = 0.15f) else DarkSurface
+            containerColor = DarkSurface
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (enabled) EdgeCyan.copy(alpha = 0.5f) else Color.Transparent
+            if (enabled) GlassBorder else Color.Transparent
         )
     ) {
         Row(
@@ -59,7 +59,7 @@ internal fun MasterSwitchCard(
                 Text(
                     text = stringResource(if (enabled) R.string.settings_edge_handle_enabled else R.string.settings_edge_handle_disabled),
                     modifier = Modifier.fillMaxWidth(),
-                    color = if (enabled) EdgeCyan else Color.Gray,
+                    color = TextSecondary,
                     fontSize = 13.sp
                 )
             }
@@ -67,8 +67,8 @@ internal fun MasterSwitchCard(
                 checked = enabled,
                 onCheckedChange = onCheckedChange,
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = EdgeCyan,
-                    checkedTrackColor = EdgeCyan.copy(alpha = 0.3f)
+                    checkedThumbColor = CloudHighlight,
+                    checkedTrackColor = ActionBlue
                 )
             )
         }
@@ -85,7 +85,7 @@ internal fun GoodLockIntegrationCard(
 ) {
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, EdgeCyan.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -107,7 +107,7 @@ internal fun GoodLockIntegrationCard(
             Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = stringResource(R.string.good_lock_integration_description),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 12.sp,
                 lineHeight = 17.sp
             )
@@ -118,14 +118,14 @@ internal fun GoodLockIntegrationCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF252525))
+                    .background(Graphite900)
                     .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.settings_direct_launch_title), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.settings_direct_launch_description), color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.settings_direct_launch_description), color = TextMuted, fontSize = 11.sp)
                 }
                 Switch(
                     checked = launchDirectToPanel,
@@ -139,14 +139,14 @@ internal fun GoodLockIntegrationCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFF252525))
+                    .background(Graphite900)
                     .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.settings_external_control_title), color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-                    Text(stringResource(R.string.settings_external_control_description), color = Color.Gray, fontSize = 11.sp)
+                    Text(stringResource(R.string.settings_external_control_description), color = TextMuted, fontSize = 11.sp)
                 }
                 Switch(
                     checked = externalControlEnabled,
@@ -174,9 +174,9 @@ internal fun GoodLockIntegrationCard(
 internal fun AppInfoCard() {
     val context = LocalContext.current
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF181818)),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(0.5.dp, Color(0xFF333333))
+        colors = CardDefaults.cardColors(containerColor = Graphite900),
+        shape = RoundedCornerShape(20.dp),
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, DarkSurfaceVariant)
     ) {
         Column(
             modifier = Modifier
@@ -193,7 +193,7 @@ internal fun AppInfoCard() {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.app_tagline),
-                color = Color.LightGray,
+                color = TextSecondary,
                 fontSize = 12.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -206,7 +206,7 @@ internal fun AppInfoCard() {
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.settings_package_details, "com.devdooly.notificationedge"),
-                color = Color.Gray,
+                color = TextMuted,
                 fontSize = 11.sp
             )
         }
@@ -226,8 +226,8 @@ internal fun NotificationDebugDumpCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF333333))
+        shape = RoundedCornerShape(20.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, DarkSurfaceVariant)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -261,7 +261,7 @@ internal fun NotificationDebugDumpCard(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(if (enabled) R.string.settings_debug_enabled_description else R.string.settings_debug_disabled_description),
-                color = if (enabled) Color(0xFFFFCC80) else Color.Gray,
+                color = if (enabled) Color(0xFFFFCC80) else TextMuted,
                 fontSize = 12.sp,
                 lineHeight = 16.sp
             )
@@ -295,7 +295,7 @@ internal fun NotificationDebugDumpCard(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = stringResource(R.string.settings_debug_empty),
-                    color = Color.DarkGray,
+                    color = GlassBorder,
                     fontSize = 11.sp
                 )
             } else if (enabled) {
@@ -333,7 +333,7 @@ internal fun NotificationDebugDumpCard(
                                         )
                                         android.widget.Toast.makeText(context, context.getString(R.string.settings_debug_copied_title, notif.title), android.widget.Toast.LENGTH_SHORT).show()
                                     },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF333333)),
+                                    colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceVariant),
                                     shape = RoundedCornerShape(6.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
                                     modifier = Modifier.heightIn(min = 26.dp)
@@ -344,7 +344,7 @@ internal fun NotificationDebugDumpCard(
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = notif.debugExtrasDump?.take(180) ?: "",
-                                color = Color.Gray,
+                                color = TextMuted,
                                 fontSize = 10.sp,
                                 maxLines = 3,
                                 overflow = TextOverflow.Ellipsis

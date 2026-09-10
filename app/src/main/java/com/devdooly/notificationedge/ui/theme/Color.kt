@@ -3,32 +3,35 @@ package com.devdooly.notificationedge.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // =================================================================
-// Edge Whisper Design Tokens (PANTONE Cloud Dancer & Aqueous Aqua)
+// Slivue Midnight Rail: 아이콘과 공유하는 네이비·블루 팔레트.
 // =================================================================
 
 // Dark Palette (Graphite)
-val Graphite950 = Color(0xFF0F131A) // Deep background
-val Graphite900 = Color(0xFF151923) // Panel background
-val Graphite800 = Color(0xFF252B36) // Card / Surface
-val Graphite700 = Color(0xFF333B4A) // Surface Variant / Borders
+val Graphite950 = Color(0xFF060B1E)
+val Graphite900 = Color(0xFF0A1733)
+val Graphite800 = Color(0xFF102744)
+val Graphite700 = Color(0xFF17385F)
+val ActionBlue = Color(0xFF4387FF)
+val RailCyan = Color(0xFF00D7D7)
+val RailViolet = Color(0xFF7C5CFC)
 
 // Brand Accent Colors
-val AqueousAqua = Color(0xFF82D8D0) // Primary Accent (Edge Aqua)
+val AqueousAqua = Color(0xFF91BBFF) // 본문·작은 아이콘용 고대비 블루
 val QuietPeriwinkle = Color(0xFFA9A6EA) // Secondary Accent (Periwinkle Purple)
-val NeonEmerald = Color(0xFF00E676) // Accent Green
+val NeonEmerald = Color(0xFF68DDB2) // 권한·성공 상태
 val VividPink = Color(0xFFFF4081) // Accent Pink
 
 // Typography & Content Colors (PANTONE 11-4201 Cloud Dancer)
 val CloudDancer = Color(0xFFF0EEE9) // Primary Text
 val CloudHighlight = Color(0xFFF8F6F2) // Highlighted Text / Titles
-val CloudShadow = Color(0xFFB0AEA9) // Secondary Text
-val TextMuted = Color(0xFF7A808C) // Muted / Inactive Text
+val CloudShadow = Color(0xFFB6C7DF) // Secondary Text
+val TextMuted = Color(0xFF9BADCA) // Muted / Inactive Text
 
 // Legacy / Component Mappings
 val DarkBackground = Graphite950
 val DarkSurface = Graphite800
 val DarkSurfaceVariant = Graphite700
-val DarkCardBackground = Color(0xCC252B36)
+val DarkCardBackground = Graphite800
 
 val EdgeCyan = AqueousAqua
 val EdgePurple = QuietPeriwinkle
@@ -38,6 +41,6 @@ val EdgePink = VividPink
 val TextPrimary = CloudDancer
 val TextSecondary = CloudShadow
 
-val GlassBorder = Color(0x3382D8D0)
-val GlassBackground = Color(0xE6151923)
+val GlassBorder = Color(0xFF294362)
+val GlassBackground = Graphite900
 

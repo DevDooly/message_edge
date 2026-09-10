@@ -34,7 +34,7 @@ internal fun PermissionStatusCard(
 
     Card(
         colors = CardDefaults.cardColors(containerColor = DarkSurface),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
             if (allGranted) EdgeGreen.copy(alpha = 0.3f) else (if (!allRequiredGranted) Color(0x66FF5252) else GlassBorder)
@@ -91,7 +91,7 @@ internal fun PermissionStatusCard(
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = stringResource(if (isExpanded) R.string.settings_collapse else R.string.settings_expand),
-                    tint = Color.Gray,
+                    tint = TextMuted,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -106,7 +106,7 @@ internal fun PermissionStatusCard(
                         isGranted = hasOverlay,
                         onClick = onGrantOverlay
                     )
-                    HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(color = GlassBorder, modifier = Modifier.padding(vertical = 8.dp))
 
                     PermissionItem(
                         title = stringResource(R.string.settings_notification_permission_title),
@@ -114,7 +114,7 @@ internal fun PermissionStatusCard(
                         isGranted = hasNotification,
                         onClick = onGrantNotification
                     )
-                    HorizontalDivider(color = Color.DarkGray, modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(color = GlassBorder, modifier = Modifier.padding(vertical = 8.dp))
 
                     PermissionItem(
                         title = stringResource(R.string.settings_battery_permission_title),
@@ -145,7 +145,7 @@ private fun PermissionItem(
     ) {
         Column(modifier = Modifier.weight(1f).padding(end = 8.dp)) {
             Text(title, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            Text(desc, color = Color.Gray, fontSize = 11.sp)
+            Text(desc, color = TextMuted, fontSize = 11.sp)
         }
         if (isGranted) {
             Row(verticalAlignment = Alignment.CenterVertically) {
