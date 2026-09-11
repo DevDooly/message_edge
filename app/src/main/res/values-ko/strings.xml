@@ -2,6 +2,7 @@
     <string name="app_tagline">화면은 그대로, 알림은 바로.</string>
     <string name="notification_listener_service_name">Slivue 알림 감지 서비스</string>
     <string name="open_panel_activity_label">Slivue 알림 패널 열기</string>
+    <string name="panel_shortcut_label">알림 패널 열기</string>
     <string name="overlay_service_title">Slivue 실행 중</string>
     <string name="overlay_service_channel_name">Slivue 백그라운드 서비스</string>
     <string name="overlay_service_channel_description">Slivue 엣지 서비스 백그라운드 실행</string>
@@ -9,6 +10,6 @@
     <string name="test_notification_text">안녕하세요! Slivue 테스트 알림입니다.</string>
     <string name="test_notification_app">메시지</string>
     <string name="test_notification_sender">홍길동</string>
-    <string name="good_lock_integration_description">One Hand Operation +의 제스처에 Slivue를 등록하면 화면에 핸들을 띄우지 않고도 제스처로 알림 패널을 열 수 있습니다.</string>
+    <string name="good_lock_integration_description">One Hand Operation +에서 제스처 동작을 ‘홈 화면 바로가기 → Slivue: 알림 패널 열기’로 선택하세요. 영상의 작은 창 전환을 줄이려면 ‘패널 열기 전 영상 일시 정지’를 켜세요. 목록에 없으면 Slivue를 한 번 실행한 뒤 목록을 다시 여세요.</string>
     <string name="overlay_service_desc">화면 가장자리에서 엣지 패널을 사용할 수 있습니다.</string>
 </resources>

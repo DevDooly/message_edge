@@ -22,8 +22,8 @@
     <string name="appearance_adjust_corners">스마트폰 모서리 곡률에 맞춰 조절하세요</string>
     <string name="appearance_test_lighting">엣지 라이팅 &amp; 알림 동작 테스트</string>
     <string name="appearance_selected">선택됨</string>
-    <string name="behavior_pause_youtube">패널 열릴 때 유튜브 일시 정지</string>
-    <string name="behavior_pause_youtube_description">엣지 패널을 열 때 유튜브 영상을 자동으로 일시 정지합니다 (끄면 영상과 소리가 멈춤 없이 계속 재생됩니다)</string>
+    <string name="behavior_pause_youtube">패널 열기 전 영상 일시 정지</string>
+    <string name="behavior_pause_youtube_description">PiP 지원 영상 앱을 먼저 일시 정지해 작은 창 전환을 줄입니다. 알림 접근 권한이 필요하며 앱·실행 경로에 따라 PiP가 발생할 수 있습니다. 음악 전용 앱은 제외합니다.</string>
     <string name="behavior_haptic_feedback">햅틱 진동 피드백</string>
     <string name="behavior_haptic_feedback_description">핸들 터치 및 알림 시 진동</string>
     <string name="font_added">폰트가 추가되었습니다: %1$s</string>

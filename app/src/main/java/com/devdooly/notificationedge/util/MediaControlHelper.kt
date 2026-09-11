@@ -2,53 +2,106 @@ package com.devdooly.notificationedge.util
 
 import android.content.ComponentName
 import android.content.Context
+import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import com.devdooly.notificationedge.service.NotificationListener
+import org.xmlpull.v1.XmlPullParser
 
-/**
- * 엣지 알림 패널이 열릴 때 유튜브(YouTube) 재생을 즉시 일시 정지(Pause)시켜
- * PiP 팝업 진입을 방지하는 헬퍼.
- * (유튜브 뮤직 및 타 음악 플레이어는 절대 건드리지 않음)
- */
+/** 영상 앱의 세션 하나만 일시정지한다. 전역 미디어키와 자동 재생은 사용하지 않는다. */
 object MediaControlHelper {
+    internal enum class PauseResult { NOT_NEEDED, PAUSED, UNCONFIRMED, UNAVAILABLE }
 
-    private const val TAG = "MediaControlHelper"
-
-    /**
-     * 오직 '유튜브(YouTube)' 앱 세션만 특정하여 동기식으로 일시 정지(Pause) 명령 전송.
-     * - 유튜브 뮤직(com.google.android.apps.youtube.music) 및 일반 음악 앱은 건드리지 않음.
-     * - AudioManager/미디어키 브로드캐스트를 사용하지 않아 다른 앱에 영향 없음.
-     */
-    fun pauseYouTubeOnly(context: Context) {
-        val appContext = context.applicationContext
-
+    internal suspend fun pauseVideoBeforePanel(context: Context): PauseResult = withContext(Dispatchers.IO) {
         try {
-            val mediaSessionManager = appContext.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
-            val componentName = ComponentName(appContext, NotificationListener::class.java)
-            val sessions = mediaSessionManager?.getActiveSessions(componentName)
-
-            sessions?.forEach { controller ->
-                val pkg = controller.packageName ?: ""
-                // 오직 YouTube 앱만 타겟 (유튜브 뮤직 com.google.android.apps.youtube.music 제외)
-                val isYouTube = (pkg == "com.google.android.youtube" ||
-                        pkg.contains("revanced.android.youtube") ||
-                        pkg.contains("vanced.android.youtube")) &&
-                        !pkg.contains("music")
-
-                if (isYouTube) {
-                    val state = controller.playbackState?.state
-                    if (state == PlaybackState.STATE_PLAYING ||
-                        state == PlaybackState.STATE_BUFFERING ||
-                        state == PlaybackState.STATE_CONNECTING) {
-                        controller.transportControls.pause()
-                    }
-                }
-            }
-        } catch (e: SecurityException) {
-            AppLog.warning(TAG, "미디어 세션 접근 권한 없음", e)
-        } catch (e: Exception) {
-            AppLog.warning(TAG, "미디어 일시정지 실패", e)
+            val manager = context.getSystemService(MediaSessionManager::class.java)
+                ?: return@withContext PauseResult.UNAVAILABLE
+            val sessions = manager.getActiveSessions(ComponentName(context, NotificationListener::class.java))
+            // 플랫폼의 우선순위 순서를 따른다. 음악 앱과 Slivue 자체는 제외한다.
+            val target = sessions.firstOrNull {
+                isPlaybackActive(it.playbackState?.state) && isVideoApp(context, it.packageName)
+            } ?: return@withContext PauseResult.NOT_NEEDED
+            pauseAndAwait(AndroidPlaybackSession(target))
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            AppLog.warning("MediaControlHelper", "영상 일시정지 확인 불가; 패널 실행은 유지", error)
+            PauseResult.UNAVAILABLE
         }
     }
+
+    internal fun isVideoApp(context: Context, packageName: String): Boolean {
+        if (packageName == context.packageName || packageName in MUSIC_PACKAGES) return false
+        return try {
+            val resources = context.packageManager.getResourcesForApplication(packageName)
+            resources.assets.openXmlResourceParser("AndroidManifest.xml").use { parser ->
+                declaresPictureInPicture(parser) {
+                    val namespace = "http://schemas.android.com/apk/res/android"
+                    val resourceId = parser.getAttributeResourceValue(namespace, "supportsPictureInPicture", 0)
+                    if (resourceId != 0) resources.getBoolean(resourceId)
+                    else parser.getAttributeBooleanValue(namespace, "supportsPictureInPicture", false)
+                }
+            }
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /** 공개 SDK로 APK 매니페스트를 읽는다. 비공개 ActivityInfo 플래그나 리플렉션은 사용하지 않는다. */
+    internal fun declaresPictureInPicture(parser: XmlPullParser, attributeEnabled: () -> Boolean): Boolean {
+        while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+            if (parser.eventType == XmlPullParser.START_TAG && parser.name == "activity" && attributeEnabled()) {
+                return true
+            }
+            parser.next()
+        }
+        return false
+    }
+
+    internal interface PlaybackSession {
+        val state: Int?
+        val actions: Long
+        fun pause()
+    }
+
+    private class AndroidPlaybackSession(private val controller: MediaController) : PlaybackSession {
+        override val state get() = controller.playbackState?.state
+        override val actions get() = controller.playbackState?.actions ?: 0L
+        override fun pause() = controller.transportControls.pause()
+    }
+
+    internal suspend fun pauseAndAwait(session: PlaybackSession): PauseResult {
+        if (!isPlaybackActive(session.state)) return PauseResult.NOT_NEEDED
+        if (session.actions and (PlaybackState.ACTION_PAUSE or PlaybackState.ACTION_PLAY_PAUSE) == 0L) {
+            return PauseResult.UNCONFIRMED
+        }
+        session.pause() // 토글은 이미 멈춘 영상을 재생할 수 있으므로 PAUSE만 사용한다.
+        repeat(24) {
+            if (session.state == PlaybackState.STATE_PAUSED || session.state == PlaybackState.STATE_STOPPED) {
+                // 앱이 재생 상태와 PiP 파라미터를 함께 반영할 수 있도록 짧은 여유를 둔다.
+                delay(80)
+                return PauseResult.PAUSED
+            }
+            delay(25)
+        }
+        return PauseResult.UNCONFIRMED
+    }
+
+    internal fun isPlaybackActive(state: Int?) = state in ACTIVE_STATES
+
+    private val ACTIVE_STATES = setOf(
+        PlaybackState.STATE_PLAYING, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_CONNECTING,
+        PlaybackState.STATE_FAST_FORWARDING, PlaybackState.STATE_REWINDING,
+        PlaybackState.STATE_SKIPPING_TO_NEXT, PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
+        PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM
+    )
+
+    private val MUSIC_PACKAGES = setOf(
+        "com.google.android.apps.youtube.music", "com.spotify.music", "com.sec.android.app.music",
+        "com.apple.android.music", "com.amazon.mp3"
+    )
 }

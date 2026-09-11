@@ -22,6 +22,14 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- 활성 미디어 세션의 앱이 PiP를 선언했는지 확인한다. 전체 패키지 조회 권한은 요청하지 않는다. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
+
     <application
         android:name=".NotificationEdgeApp"
         android:allowBackup="true"
@@ -80,7 +88,7 @@
             android:label="@string/open_panel_activity_label"
             android:theme="@style/Theme.NotificationEdge.TranslucentLauncher"
             android:taskAffinity="com.devdooly.notificationedge.openpanel"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:noHistory="true"
             android:excludeFromRecents="true">
             <intent-filter>
@@ -89,7 +97,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Good Lock (One Hand Operation +) / Tasker / Broadcast Intent용 무액티비티 리시버 (미디어 재생 완벽 유지) -->
+        <!-- 명시적 브로드캐스트 연동용 리시버. 외부 앱의 직접 호출 지원 여부는 별도 확인한다. -->
         <receiver
             android:name=".service.OpenPanelReceiver"
             android:exported="true"
@@ -98,6 +106,16 @@
                 <action android:name="com.devdooly.notificationedge.OPEN_PANEL" />
                 <action android:name="com.devdooly.notificationedge.CLOSE_PANEL" />
                 <action android:name="com.devdooly.notificationedge.TOGGLE_PANEL" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 동적 앱 바로가기 복원 및 언어 갱신 -->
+        <receiver
+            android:name=".service.ShortcutRefreshReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.LOCALE_CHANGED" />
             </intent-filter>
         </receiver>
 

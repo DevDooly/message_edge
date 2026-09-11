@@ -28,7 +28,7 @@ class AppSettingsTest {
         assertEquals(32, settings.edgeLightingCornerRadiusDp)
         assertEquals("default", settings.selectedFont)
         assertTrue(settings.hapticFeedbackEnabled)
-        assertFalse(settings.pauseMediaOnOpen)
+        assertTrue(settings.pauseMediaOnOpen)
         assertFalse(settings.diagnosticModeEnabled)
         assertFalse(settings.externalControlEnabled)
         assertTrue(settings.excludedPackages.isEmpty())

@@ -8,8 +8,8 @@ import com.devdooly.notificationedge.data.repository.SettingsRepository
 
 /**
  * Good Lock(One Hand Operation +), Tasker, 숏컷 등에서
- * 액티비티 전환 없이(유튜브/미디어 재생 PiP 전환 방지)
- * 엣지 패널 오버레이만 즉시 열기 위한 브로드캐스트 리시버
+ * 서비스의 공통 실행 경로를 통해 엣지 패널을 열기 위한 브로드캐스트 리시버.
+ * 패널은 투명 Activity이며, 설정에 따라 실행 전 영상 일시정지를 요청한다.
  */
 class OpenPanelReceiver : BroadcastReceiver() {
 

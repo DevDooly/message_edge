@@ -667,6 +667,20 @@ graph TD
 
 ---
 
+### 66) 영상 사전 일시정지와 One Hand Operation+ 앱 바로가기 (`v1.3.24`, Build 154)
+
+- 패널 생성 뒤 수행하던 영상 정지를 `EdgePanelLauncher`의 사전 준비 단계로 이동했다. 활성 PiP 지원 영상 세션 하나에 `pause`만 요청하고 최대 600ms 확인 후 패널을 연다. 이미 정지된 세션·지정된 음악 앱은 건드리지 않으며 자동 재생하지 않는다.
+- `PanelLaunchGate`가 준비 중 중복 열기와 취소 후 늦은 실행을 막는다. 명시적으로 저장된 일시정지 옵션 꺼짐은 보존한다.
+- `OpenPanelActivity`의 기존 `ACTION_CREATE_SHORTCUT` 결과 반환을 구현하고 등록 모드를 `standard`로 맞췄다. 이 방식만으로는 One Hand Operation+ 앱 바로가기 목록에 나타나지 않아 동적 앱 바로가기를 추가했다.
+- `PanelShortcuts`가 런처에 연결된 `slivue_open_panel`을 등록한다. 실제 대상은 무화면 `OpenPanelActivity`이며 최초 인텐트부터 `NO_USER_ACTION`을 보존한다. 정적 XML 바로가기는 사용자 지정 플래그를 보존하지 못하므로 사용하지 않는다.
+- 앱 실행·업데이트·언어 변경 시 해당 ID만 갱신하고, 잠금 또는 등록 실패 시 패널 실행은 유지한다. 뒤로가기를 담당하는 투명 `EdgePanelActivity`와 기존 설정·식별자는 유지한다.
+- 사용자 확인: Galaxy S23 Ultra / Android 16 / One UI 8.5에서 `홈 화면 바로가기 → Slivue: 알림 패널 열기` 목록 표시와 영상 재생 중 PiP 전환 없음을 확인했다. 기존 `앱 실행 → Slivue`는 여전히 전환될 수 있으며, 자동으로 바로가기 선택을 변경하지 않는다.
+- 사전 검증: 단위·회귀 207개와 Android 16 기존 계측 5개 통과. 합성 재생 앱의 수동/자동 PiP 모드, 실제 `LauncherApps` 조회·실행을 검사했다. 삼성 기본 홈·PiP 권한은 변경하지 않았다.
+
+최종 빌드·서명·배포 결과 및 미검증 범위는 [PiP 대응 작업 기록](PIP_MITIGATION_WORKLOG.md), 사용자 설정 방법은 [릴리스 안내](releases/v1.3.24.md)를 참고한다.
+
+---
+
 ## 💻 3. 표준 빌드, 버전 관리 및 Git 릴리즈 명령어
 
 ### 1) 버전 판올림 체크리스트

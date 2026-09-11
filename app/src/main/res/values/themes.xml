@@ -27,7 +27,7 @@
     </style>
 
     <!-- Good Lock / Launcher 실행 시 화면 깜빡임 없이 0초 만에 닫히는 완전 투명 무애니메이션 테마 -->
-    <style name="Theme.NotificationEdge.TranslucentLauncher" parent="Theme.NotificationEdge">
+    <style name="Theme.NotificationEdge.TranslucentLauncher" parent="android:style/Theme.NoDisplay">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowContentOverlay">@null</item>

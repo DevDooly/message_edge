@@ -1,6 +1,7 @@
 package com.devdooly.notificationedge.ui.overlay
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
 import android.os.Build
 import android.view.WindowInsets
@@ -90,5 +91,17 @@ class PanelWindowPolicyTest {
         assertEquals(WindowInsets.Side.all(), window.attributes.fitInsetsSides)
         assertFalse(window.attributes.isFitInsetsIgnoringVisibility)
         assertEquals(0, window.attributes.fitInsetsTypes and WindowInsets.Type.ime())
+    }
+
+    @Test fun launcherDoesNotCreateAWindowAndPanelDoesNotSendUserLeaveHint() {
+        val activity = controller.get()
+        activity.setTheme(R.style.Theme_NotificationEdge_TranslucentLauncher)
+        val attributes = activity.obtainStyledAttributes(intArrayOf(android.R.attr.windowNoDisplay))
+        try {
+            assertTrue(attributes.getBoolean(0, false))
+        } finally {
+            attributes.recycle()
+        }
+        assertTrue(EdgePanelLauncher.createIntent(activity).flags and Intent.FLAG_ACTIVITY_NO_USER_ACTION != 0)
     }
 }

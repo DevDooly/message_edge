@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -78,6 +79,14 @@ class SettingsRepositoryTest {
         repository.addDiscoveredPackage("com.google.android.gm")
 
         repository.setPackageExcluded("com.kakao.talk", true)
+    }
+
+    @Test
+    fun `explicit pause preference is preserved and can be enabled again`() = runTest {
+        repository.updatePauseMediaOnOpen(false)
+        assertFalse(repository.settingsFlow.first().pauseMediaOnOpen)
+        repository.updatePauseMediaOnOpen(true)
+        assertTrue(repository.settingsFlow.first().pauseMediaOnOpen)
     }
 
     @Test

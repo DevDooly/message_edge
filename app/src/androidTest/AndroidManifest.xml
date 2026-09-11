@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- 외부 계정·영상 없이 PiP 전환을 재현하는 계측 APK 전용 화면. 공개 APK에는 포함하지 않는다. -->
+        <activity android:name="com.devdooly.notificationedge.PipPlaybackFixtureActivity"
+            android:exported="true" android:supportsPictureInPicture="true"
+            android:theme="@android:style/Theme.Material.NoActionBar"
+            android:launchMode="singleTask"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- 가상 기기에서만 임시 HOME 역할을 부여해 LauncherApps 경로를 검증한다. -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

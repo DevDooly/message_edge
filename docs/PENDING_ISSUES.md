@@ -4,7 +4,11 @@
 
 ---
 
-## 📌 이슈 #1: 유튜브/동영상 재생 중 앱 실행 시 PiP(Picture-in-Picture) 모드 자동 전환 현상
+## ✅ 이슈 #1: One Hand Operation+ 바로가기의 PiP 전환 — v1.3.24 대응
+
+2026-09-11: 사용자가 Galaxy S23 Ultra / Android 16 / One UI 8.5에서 `홈 화면 바로가기 → Slivue: 알림 패널 열기`의 목록 표시 및 영상 재생 중 PiP 전환 없음을 확인했다. 핸들 실행도 확인했으며, 영상 사전 일시정지와 최초 실행 플래그를 포함하는 동적 앱 바로가기를 v1.3.24에 반영한다.
+
+**남은 제약:** 기존 `앱 실행 → Slivue`나 일반 앱 아이콘 실행은 PiP로 전환될 수 있다. 사용자가 제스처 대상을 바로가기로 한 번 변경해야 하며, 모든 영상 앱·실행 경로의 전역 차단 기능은 아니다. 상세 근거와 시행착오는 [PiP 완화 작업 기록](PIP_MITIGATION_WORKLOG.md)을 우선 참고한다. 아래는 과거 기록이며 One Hand Operation+의 직접 브로드캐스트 지원과 유튜브 내부 구현에 대한 미검증 가설을 포함한다.
 
 ### 1. 이슈 개요 및 현상
 * **증상**: 
@@ -25,12 +29,12 @@
 
 ---
 
-### 3. 기술적 원인 분석 (OS 레벨)
+### 3. 과거 원인 가설과 보정 (OS 레벨)
 
 1. **안드로이드 OS의 `onUserLeaveHint()` 강제 발송 메커니즘**:
    * 안드로이드 시스템(ActivityTaskManagerService)은 사용자가 홈 화면의 아이콘을 탭하거나 Good Lock의 "애플리케이션 시작" 제스처를 실행할 때 `Context.startActivity()`를 호출합니다.
-   * `startActivity()`가 발동되면, 호출 대상 액티비티가 `Theme.NoDisplay`이든 `singleInstance`이든 상관없이 **시스템은 현재 포그라운드 액티비티(유튜브)에게 `onUserLeaveHint()`를 무조건 발송**합니다.
-   * 유튜브는 `onUserLeaveHint()`를 수신하는 순간 내부적으로 `enterPictureInPictureMode()`를 자동 호출하도록 설계되어 있습니다.
+   * `NO_USER_ACTION` 없는 일반 실행에서 이전 앱의 `onUserLeaveHint()`가 먼저 발생할 수 있습니다. `NoDisplay`만으로 그 시점을 막지 못한 합성 시험 결과가 있으며, ‘무조건 발송’이라는 과거 표현은 부정확합니다.
+   * 영상 앱의 수동 PiP 진입과 Android 12 이상의 자동 진입 설정은 구분해야 합니다. 합성 앱으로 두 방식을 시험했지만 유튜브의 내부 구현을 직접 확인한 것은 아닙니다.
 
 2. **삼성 기본 엣지 패널과의 차이점**:
    * 삼성 기본 엣지 패널(Edge Panel)은 일반 애플리케이션(`Activity`)이 아니며, **Samsung SystemUI(CocktailBarManagerService)**의 시스템 내부 서비스로 구동됩니다.
@@ -38,7 +42,7 @@
 
 ---
 
-### 4. 추후 해결을 위한 대안 및 연구 과제 (Next Steps)
+### 4. 과거 연구 대안 (이번 버전에 미채택)
 
 1. **대안 A: AccessibilityService(접근성 서비스) 제스처 트리거 방식**
    * 접근성 권한(`AccessibilityService`)을 등록하여 화면 가장자리 제스처나 특정 단축키 입력을 액티비티 실행 없이 순수 백그라운드에서 직접 가로채어 `EdgeOverlayService`를 호출하는 방식 연구.

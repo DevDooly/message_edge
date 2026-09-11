@@ -22,8 +22,8 @@
     <string name="appearance_adjust_corners">Adjust to match the corners of your screen.</string>
     <string name="appearance_test_lighting">Test lighting &amp; notifications</string>
     <string name="appearance_selected">Selected</string>
-    <string name="behavior_pause_youtube">Pause YouTube when opening the panel</string>
-    <string name="behavior_pause_youtube_description">Automatically pause YouTube videos when the edge panel opens. Turn off to keep video and audio playing.</string>
+    <string name="behavior_pause_youtube">Pause video before opening the panel</string>
+    <string name="behavior_pause_youtube_description">Pause PiP-capable video apps first to reduce floating playback. Notification access is required. PiP may still occur depending on the app and launch method. Music-only apps are excluded.</string>
     <string name="behavior_haptic_feedback">Haptic feedback</string>
     <string name="behavior_haptic_feedback_description">Vibrate when touching the handle and receiving notifications</string>
     <string name="font_added">Font added: %1$s</string>

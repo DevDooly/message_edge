@@ -7,14 +7,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.lifecycleScope
 import com.devdooly.notificationedge.data.model.AppSettings
 import com.devdooly.notificationedge.data.repository.SettingsRepository
 import com.devdooly.notificationedge.ui.settings.SettingsActivity
 import com.devdooly.notificationedge.ui.theme.NotificationEdgeTheme
-import com.devdooly.notificationedge.util.MediaControlHelper
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 /**
  * 안드로이드 시스템 네비게이션 뒤로가기(하단 네비바 버튼, 양쪽 화면 제스처)를
@@ -35,14 +31,6 @@ class EdgePanelActivity : ComponentActivity() {
         })
 
         val settingsRepo = SettingsRepository.getInstance(applicationContext)
-
-        // 패널 오픈 시 유튜브 재생 일시 정지 트리거 (유튜브 뮤직 제외)
-        lifecycleScope.launch {
-            val settings = settingsRepo.settingsFlow.first()
-            if (settings.pauseMediaOnOpen) {
-                MediaControlHelper.pauseYouTubeOnly(this@EdgePanelActivity)
-            }
-        }
 
         setContent {
             val settings by settingsRepo.settingsFlow.collectAsStateWithLifecycle(initialValue = AppSettings())

@@ -81,7 +81,7 @@ class EdgeOverlayService : Service() {
                 }
             }
             ACTION_CLOSE_PANEL -> {
-                EdgePanelActivity.closeActiveInstance()
+                EdgePanelLauncher.close()
             }
             ACTION_TOGGLE_PANEL -> {
                 triggerHaptic()
