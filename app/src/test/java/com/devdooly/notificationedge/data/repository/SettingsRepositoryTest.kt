@@ -83,9 +83,15 @@ class SettingsRepositoryTest {
 
     @Test
     fun `explicit pause preference is preserved and can be enabled again`() = runTest {
+        repository.updateHapticEnabled(false)
         repository.updatePauseMediaOnOpen(false)
         assertFalse(repository.settingsFlow.first().pauseMediaOnOpen)
+        assertFalse(repository.settingsFlow.first().hapticFeedbackEnabled)
         repository.updatePauseMediaOnOpen(true)
+        assertTrue(repository.settingsFlow.first().pauseMediaOnOpen)
+        assertFalse(repository.settingsFlow.first().hapticFeedbackEnabled)
+        repository.updateHapticEnabled(true)
+        assertTrue(repository.settingsFlow.first().hapticFeedbackEnabled)
         assertTrue(repository.settingsFlow.first().pauseMediaOnOpen)
     }
 
